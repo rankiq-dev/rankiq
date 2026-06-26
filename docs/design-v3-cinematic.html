@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RankIQ — Cinematic SEO Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Syne',sans-serif;
+  font-size:14px;
+  background:#02040a;
+  color:#e8eaf0;
+  display:flex;
+  flex-direction:column;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── CANVAS BACKGROUND ─── */
+#bg-canvas{
+  position:fixed;inset:0;z-index:0;
+  pointer-events:none;
+}
+
+/* ── GLASS LAYER ─── */
+.glass{
+  background:rgba(8,12,24,0.55);
+  backdrop-filter:blur(24px) saturate(1.4);
+  -webkit-backdrop-filter:blur(24px) saturate(1.4);
+  border:1px solid rgba(255,255,255,0.06);
+}
+.glass-light{
+  background:rgba(255,255,255,0.03);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.07);
+}
+
+/* ── STUDIO BAR ─── */
+.studio{
+  height:40px;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  display:flex;align-items:center;gap:12px;padding:0 16px;
+  font-size:10px;font-family:'JetBrains Mono',monospace;
+  position:relative;z-index:200;flex-shrink:0;overflow-x:auto;
+}
+.sl{color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:.08em;font-size:9px;white-space:nowrap}
+.sg{display:flex;gap:4px}
+.sc{padding:2px 9px;border-radius:3px;font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;border:1px solid rgba(255,255,255,0.12);background:transparent;color:rgba(255,255,255,0.6);transition:all .15s;white-space:nowrap}
+.sc:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.9)}
+.sc.on{background:rgba(99,102,241,0.3);color:#a5b4fc;border-color:rgba(99,102,241,0.5)}
+.sdv{width:1px;height:14px;background:rgba(255,255,255,0.08);flex-shrink:0}
+.ssp{flex:1}
+
+/* ── SHELL ─── */
+.shell{
+  display:flex;flex:1;min-height:0;
+  position:relative;z-index:10;
+  overflow:hidden;
+}
+
+/* ── SIDEBAR ─── */
+.sidebar{
+  width:210px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  border-right:1px solid rgba(255,255,255,0.05);
+  background:rgba(4,6,16,0.6);
+  backdrop-filter:blur(20px);
+  padding:0;
+  opacity:0;transform:translateX(-20px); /* GSAP will animate */
+}
+.sidebar-logo{
+  padding:20px 18px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  display:flex;align-items:center;gap:10px;
+}
+.logo-glyph{
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,#6366f1,#06b6d4);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:12px;color:white;letter-spacing:-0.5px;
+  flex-shrink:0;
+  box-shadow:0 0 20px rgba(99,102,241,0.4);
+}
+.logo-text{font-size:15px;font-weight:700;letter-spacing:-.3px;
+  background:linear-gradient(90deg,#e8eaf0,#a5b4fc);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-section{padding:12px 10px 4px}
+.nav-label-s{font-size:9px;font-weight:700;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:.12em;padding:0 8px 6px}
+.nitem{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 8px;border-radius:6px;
+  font-size:12px;font-weight:500;color:rgba(255,255,255,0.4);
+  cursor:pointer;transition:all .2s;
+  border:none;background:none;width:100%;text-align:left;text-decoration:none;
+}
+.nitem:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.8)}
+.nitem.on{
+  background:rgba(99,102,241,0.15);
+  color:#a5b4fc;
+  border:1px solid rgba(99,102,241,0.2);
+}
+.nitem svg{width:13px;height:13px;flex-shrink:0}
+.nbadge{margin-left:auto;background:rgba(239,68,68,0.2);color:#f87171;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;border:1px solid rgba(239,68,68,0.2)}
+.sidebar-footer{margin-top:auto;padding:12px 10px;border-top:1px solid rgba(255,255,255,0.05)}
+.user-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer}
+.user-row:hover{background:rgba(255,255,255,0.04)}
+.uav{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,#6366f1,#a855f7);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:white;flex-shrink:0;
+}
+.uname{font-size:12px;font-weight:600}
+.uplan{font-size:10px;color:rgba(255,255,255,0.3)}
+
+/* ── MAIN ─── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+
+.topbar{
+  height:52px;
+  background:rgba(4,6,16,0.5);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  display:flex;align-items:center;gap:12px;padding:0 24px;flex-shrink:0;
+  opacity:0; /* GSAP */
+}
+.tb-title{font-size:13px;font-weight:700;letter-spacing:-.2px}
+.tb-domain{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.3)}
+.tb-sep{color:rgba(255,255,255,0.1)}
+.tb-chip{
+  padding:3px 10px;border-radius:4px;font-size:10px;font-weight:700;
+  background:rgba(251,191,36,0.1);color:#fbbf24;
+  border:1px solid rgba(251,191,36,0.15);font-family:'JetBrains Mono',monospace;
+}
+.tb-ts{font-size:10px;color:rgba(255,255,255,0.25);font-family:'JetBrains Mono',monospace}
+.tb-actions{margin-left:auto;display:flex;gap:8px}
+.btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 14px;border-radius:6px;
+  font-size:12px;font-weight:600;font-family:'Syne',sans-serif;
+  cursor:pointer;transition:all .2s;border:1px solid transparent;
+}
+.btn-ghost{
+  background:rgba(255,255,255,0.04);
+  border-color:rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.6);
+}
+.btn-ghost:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.9)}
+.btn-primary{
+  background:linear-gradient(135deg,#6366f1,#06b6d4);
+  color:white;
+  box-shadow:0 0 20px rgba(99,102,241,0.3);
+}
+.btn-primary:hover{box-shadow:0 0 30px rgba(99,102,241,0.5);transform:translateY(-1px)}
+
+/* ── CONTENT ─── */
+.content{flex:1;overflow-y:auto;padding:24px;scroll-behavior:smooth}
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-track{background:transparent}
+.content::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+
+/* ── SCORE SECTION ─── */
+.score-section{
+  display:grid;grid-template-columns:260px 1fr;gap:16px;
+  margin-bottom:20px;
+}
+
+/* BIG SCORE RING CARD */
+.score-ring-card{
+  border-radius:14px;padding:24px;
+  background:rgba(8,12,28,0.7);
+  border:1px solid rgba(255,255,255,0.07);
+  backdrop-filter:blur(20px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+  opacity:0;transform:translateY(30px); /* GSAP */
+}
+.score-ring-card::before{
+  content:'';position:absolute;
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+}
+.score-ring-label{
+  font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);
+  text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px;
+}
+.ring-wrap{position:relative;width:140px;height:140px;margin-bottom:16px}
+.ring-svg{width:140px;height:140px;transform:rotate(-90deg)}
+.ring-track{fill:none;stroke:rgba(255,255,255,0.05);stroke-width:8}
+.ring-fill{
+  fill:none;stroke-width:8;stroke-linecap:round;
+  stroke-dasharray:408;
+  stroke-dashoffset:408; /* starts at 0, GSAP animates to ~130 */
+  stroke:url(#ringGrad);
+  filter:drop-shadow(0 0 6px rgba(99,102,241,0.6));
+}
+.ring-center{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.ring-score{
+  font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:600;
+  line-height:1;letter-spacing:-2px;
+  background:linear-gradient(135deg,#e8eaf0,#a5b4fc);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.ring-sub{font-size:9px;color:rgba(255,255,255,0.3);margin-top:4px;text-transform:uppercase;letter-spacing:.08em}
+.ring-status{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.15);
+  padding:5px 12px;border-radius:20px;font-size:10px;font-weight:600;color:#fbbf24;
+}
+.ring-status-dot{width:5px;height:5px;border-radius:50%;background:#fbbf24;
+  box-shadow:0 0 6px #fbbf24;animation:pulse-dot 2s ease infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(0.8)}}
+
+/* STATS GRID */
+.stats-right{display:flex;flex-direction:column;gap:12px}
+.stat-cards-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+
+.stat-card{
+  border-radius:10px;padding:14px 16px;
+  background:rgba(8,12,28,0.6);
+  border:1px solid rgba(255,255,255,0.06);
+  backdrop-filter:blur(16px);
+  opacity:0;transform:translateY(20px); /* GSAP */
+  position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  border-radius:2px 2px 0 0;
+}
+.stat-c::before{background:linear-gradient(90deg,rgba(239,68,68,0.8),rgba(239,68,68,0))}
+.stat-w::before{background:linear-gradient(90deg,rgba(251,191,36,0.8),rgba(251,191,36,0))}
+.stat-i::before{background:linear-gradient(90deg,rgba(99,102,241,0.8),rgba(99,102,241,0))}
+
+.stat-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.stat-num{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:600;line-height:1;margin-bottom:4px}
+.stat-sub{font-size:10px;color:rgba(255,255,255,0.3)}
+.stat-c .stat-num{color:#f87171;text-shadow:0 0 20px rgba(239,68,68,0.4)}
+.stat-w .stat-num{color:#fbbf24;text-shadow:0 0 20px rgba(251,191,36,0.4)}
+.stat-i .stat-num{color:#818cf8;text-shadow:0 0 20px rgba(99,102,241,0.4)}
+
+/* METRICS ROW */
+.metrics-mini{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+  border-radius:10px;
+  background:rgba(8,12,28,0.5);
+  border:1px solid rgba(255,255,255,0.05);
+  padding:14px 20px;
+}
+.mm-item{text-align:center}
+.mm-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e8eaf0}
+.mm-lbl{font-size:9px;color:rgba(255,255,255,0.25);margin-top:3px;text-transform:uppercase;letter-spacing:.08em}
+
+/* ── ISSUES TABLE ─── */
+.issues-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.issues-title{font-size:13px;font-weight:700;letter-spacing:-.2px}
+.issues-sub{font-size:11px;color:rgba(255,255,255,0.3)}
+.filter-pills{display:flex;gap:5px;margin-left:auto}
+.fpill{padding:3px 10px;border-radius:4px;font-size:10px;font-weight:600;border:1px solid rgba(255,255,255,0.08);background:transparent;color:rgba(255,255,255,0.35);cursor:pointer;transition:all .15s;font-family:'JetBrains Mono',monospace}
+.fpill:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7)}
+.fpill.on{background:rgba(99,102,241,0.2);color:#a5b4fc;border-color:rgba(99,102,241,0.3)}
+
+.table{
+  border-radius:12px;overflow:hidden;
+  border:1px solid rgba(255,255,255,0.06);
+  background:rgba(6,9,22,0.7);
+  backdrop-filter:blur(20px);
+}
+.thead{
+  display:grid;grid-template-columns:36px 1fr 110px 70px 110px;
+  padding:0 16px;height:36px;align-items:center;
+  background:rgba(255,255,255,0.02);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.th{font-size:9px;font-weight:700;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:.1em}
+
+.trow{
+  display:grid;grid-template-columns:36px 1fr 110px 70px 110px;
+  padding:0 16px;min-height:56px;align-items:center;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  cursor:pointer;transition:background .15s;
+  opacity:0;transform:translateX(-16px); /* GSAP stagger */
+  position:relative;
+}
+.trow::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:transparent;transition:background .2s;
+}
+.trow:hover{background:rgba(255,255,255,0.02)}
+.trow:hover::before{background:rgba(99,102,241,0.5)}
+.trow:last-child{border-bottom:none}
+
+.rn{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,0.15);font-weight:500}
+.ititle{font-size:12px;font-weight:600;margin-bottom:3px;color:#e8eaf0}
+.idesc{font-size:11px;color:rgba(255,255,255,0.3);line-height:1.4}
+
+.sev{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.sev-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.sev-c .sev-dot{background:#f87171;box-shadow:0 0 6px rgba(239,68,68,0.6)}
+.sev-c{color:#f87171}
+.sev-w .sev-dot{background:#fbbf24;box-shadow:0 0 6px rgba(251,191,36,0.6)}
+.sev-w{color:#fbbf24}
+.sev-i .sev-dot{background:#818cf8;box-shadow:0 0 6px rgba(99,102,241,0.6)}
+.sev-i{color:#818cf8}
+
+.pc{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;text-align:center}
+.pc-c{color:#f87171}.pc-w{color:#fbbf24}
+
+.act-btn{
+  padding:4px 12px;border-radius:5px;font-size:11px;font-weight:700;
+  cursor:pointer;transition:all .2s;border:none;font-family:'Syne',sans-serif;
+  letter-spacing:-.1px;
+}
+.act-glow{
+  background:rgba(99,102,241,0.15);color:#a5b4fc;
+  border:1px solid rgba(99,102,241,0.2);
+}
+.act-glow:hover{
+  background:rgba(99,102,241,0.3);
+  box-shadow:0 0 16px rgba(99,102,241,0.3);
+  transform:translateY(-1px);
+}
+.act-dim{
+  background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);
+  border:1px solid rgba(255,255,255,0.07);
+}
+.act-dim:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7)}
+
+.tfooter{
+  padding:10px 16px;display:flex;justify-content:space-between;align-items:center;
+  background:rgba(255,255,255,0.01);border-top:1px solid rgba(255,255,255,0.04);
+}
+.tftext{font-size:10px;color:rgba(255,255,255,0.2);font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+
+<!-- THREE.JS CANVAS -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- SVG DEFS for ring gradient -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d9488"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- STUDIO BAR -->
+<div class="studio">
+  <span class="sl">Accent</span>
+  <div class="sg">
+    <button class="sc on" id="at" onclick="setA('teal')"    type="button">◈ Teal/Cyan</button>
+    <button class="sc"    id="ai" onclick="setA('indigo')"  type="button">◈ Indigo/Cyan</button>
+    <button class="sc"    id="ae" onclick="setA('emerald')" type="button">◈ Emerald</button>
+    <button class="sc"    id="av" onclick="setA('violet')"  type="button">◈ Violet/Rose</button>
+  </div>
+  <div class="sdv"></div>
+  <span class="sl">Particle speed</span>
+  <div class="sg">
+    <button class="sc" id="ps0" onclick="setSpeed(0)" type="button">Off</button>
+    <button class="sc on" id="ps1" onclick="setSpeed(1)" type="button">Slow</button>
+    <button class="sc" id="ps2" onclick="setSpeed(2)" type="button">Fast</button>
+  </div>
+  <div class="ssp"></div>
+  <button class="sc" onclick="replayAnim()" type="button">↺ Replay</button>
+</div>
+
+<!-- SHELL -->
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-glyph" id="logo-glyph">Rk</div>
+      <span class="logo-text">RankIQ</span>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label-s">Overview</div>
+      <button class="nitem" type="button">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
+        Dashboard
+      </button>
+      <button class="nitem on" type="button">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 1.5S5 5 5 8s3 6.5 3 6.5M8 1.5S11 5 11 8 8 14.5 8 14.5M1.5 8h13" stroke="currentColor" stroke-width="1.4"/></svg>
+        Audit Results
+        <span class="nbadge">8</span>
+      </button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label-s">Actions</div>
+      <button class="nitem" type="button">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Action Plans
+      </button>
+      <button class="nitem" type="button">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 2h7l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4"/><path d="M5 9h6M5 12h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Reports
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="uav">JS</div>
+        <div><div class="uname">Jake Sullivan</div><div class="uplan">Growth Plan</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar" id="topbar">
+      <span class="tb-title">Audit Results</span>
+      <span class="tb-sep">·</span>
+      <span class="tb-domain">bakersfieldhvac.com</span>
+      <span class="tb-chip">Needs Work</span>
+      <span class="tb-ts">Last crawl 2h ago</span>
+      <div class="tb-actions">
+        <button class="btn btn-ghost" type="button">Export</button>
+        <button class="btn btn-primary" type="button">↻ Re-crawl</button>
+      </div>
+    </div>
+
+    <div class="content" id="content">
+      <!-- SCORE SECTION -->
+      <div class="score-section">
+        <!-- RING CARD -->
+        <div class="score-ring-card" id="ringCard">
+          <div class="score-ring-label">Site Health Score</div>
+          <div class="ring-wrap">
+            <svg class="ring-svg" viewBox="0 0 140 140">
+              <circle class="ring-track" cx="70" cy="70" r="65"/>
+              <circle class="ring-fill" id="ringFill" cx="70" cy="70" r="65"/>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-score" id="scoreNum">0</div>
+              <div class="ring-sub">out of 100</div>
+            </div>
+          </div>
+          <div class="ring-status">
+            <div class="ring-status-dot"></div>
+            Needs Attention
+          </div>
+        </div>
+
+        <!-- STATS RIGHT -->
+        <div class="stats-right">
+          <div class="stat-cards-row">
+            <div class="stat-card stat-c" id="sc0">
+              <div class="stat-label">Critical</div>
+              <div class="stat-num" id="cn0">0</div>
+              <div class="stat-sub">Blocking rankings</div>
+            </div>
+            <div class="stat-card stat-w" id="sc1">
+              <div class="stat-label">Warnings</div>
+              <div class="stat-num" id="cn1">0</div>
+              <div class="stat-sub">Hurting performance</div>
+            </div>
+            <div class="stat-card stat-i" id="sc2">
+              <div class="stat-label">Info</div>
+              <div class="stat-num" id="cn2">0</div>
+              <div class="stat-sub">Good to know</div>
+            </div>
+          </div>
+          <div class="metrics-mini">
+            <div class="mm-item"><div class="mm-val">247</div><div class="mm-lbl">Pages crawled</div></div>
+            <div class="mm-item"><div class="mm-val">2.4s</div><div class="mm-lbl">Avg load time</div></div>
+            <div class="mm-item"><div class="mm-val">+3 pts</div><div class="mm-lbl">vs last week</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ISSUES TABLE -->
+      <div class="issues-hdr">
+        <div>
+          <div class="issues-title">All Issues</div>
+          <div class="issues-sub">Ranked by estimated impact on traffic &amp; revenue</div>
+        </div>
+        <div class="filter-pills">
+          <button class="fpill on" type="button">All (72)</button>
+          <button class="fpill" type="button">Critical (8)</button>
+          <button class="fpill" type="button">Warning (23)</button>
+          <button class="fpill" type="button">Info (41)</button>
+        </div>
+      </div>
+
+      <div class="table">
+        <div class="thead">
+          <div class="th">#</div>
+          <div class="th">Issue</div>
+          <div class="th">Severity</div>
+          <div class="th" style="text-align:center">Pages</div>
+          <div class="th" style="text-align:right">Action</div>
+        </div>
+        <div class="trow" id="tr0">
+          <div class="rn">01</div>
+          <div><div class="ititle">Missing title tags</div><div class="idesc">34 pages have no &lt;title&gt; — Google can't rank them</div></div>
+          <div><span class="sev sev-c"><span class="sev-dot"></span>Critical</span></div>
+          <div class="pc pc-c">34</div>
+          <div style="text-align:right"><button class="act-btn act-glow" type="button">Fix now →</button></div>
+        </div>
+        <div class="trow" id="tr1">
+          <div class="rn">02</div>
+          <div><div class="ititle">Mobile page speed &lt;50</div><div class="idesc">Slow mobile = lower Google ranking</div></div>
+          <div><span class="sev sev-c"><span class="sev-dot"></span>Critical</span></div>
+          <div class="pc pc-c">12</div>
+          <div style="text-align:right"><button class="act-btn act-glow" type="button">Fix now →</button></div>
+        </div>
+        <div class="trow" id="tr2">
+          <div class="rn">03</div>
+          <div><div class="ititle">Broken internal links</div><div class="idesc">19 pages linked from nav return 404</div></div>
+          <div><span class="sev sev-c"><span class="sev-dot"></span>Critical</span></div>
+          <div class="pc pc-c">19</div>
+          <div style="text-align:right"><button class="act-btn act-glow" type="button">Fix now →</button></div>
+        </div>
+        <div class="trow" id="tr3">
+          <div class="rn">04</div>
+          <div><div class="ititle">Duplicate meta descriptions</div><div class="idesc">61 pages share identical descriptions</div></div>
+          <div><span class="sev sev-w"><span class="sev-dot"></span>Warning</span></div>
+          <div class="pc pc-w">61</div>
+          <div style="text-align:right"><button class="act-btn act-dim" type="button">View fix</button></div>
+        </div>
+        <div class="trow" id="tr4">
+          <div class="rn">05</div>
+          <div><div class="ititle">Images missing alt text</div><div class="idesc">87 images invisible to Google Image Search</div></div>
+          <div><span class="sev sev-w"><span class="sev-dot"></span>Warning</span></div>
+          <div class="pc pc-w">87</div>
+          <div style="text-align:right"><button class="act-btn act-dim" type="button">View fix</button></div>
+        </div>
+        <div class="trow" id="tr5">
+          <div class="rn">06</div>
+          <div><div class="ititle">No XML sitemap</div><div class="idesc">Google may miss new pages without a sitemap</div></div>
+          <div><span class="sev sev-w"><span class="sev-dot"></span>Warning</span></div>
+          <div class="pc pc-w">1</div>
+          <div style="text-align:right"><button class="act-btn act-dim" type="button">View fix</button></div>
+        </div>
+        <div class="tfooter">
+          <span class="tftext">Showing 6 of 72 · sorted by estimated impact</span>
+          <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" type="button">Load all →</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ════════════════════════════════
+   THREE.JS — PARTICLE FIELD
+════════════════════════════════ */
+const canvas = document.getElementById('bg-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 0, 5);
+
+/* Particles */
+const COUNT = 1800;
+const positions = new Float32Array(COUNT * 3);
+const colors = new Float32Array(COUNT * 3);
+const sizes = new Float32Array(COUNT);
+
+const palette = [
+  new THREE.Color('#0d9488'),
+  new THREE.Color('#06b6d4'),
+  new THREE.Color('#14b8a6'),
+  new THREE.Color('#22d3ee'),
+  new THREE.Color('#5eead4'),
+];
+
+for (let i = 0; i < COUNT; i++) {
+  positions[i * 3]     = (Math.random() - 0.5) * 20;
+  positions[i * 3 + 1] = (Math.random() - 0.5) * 12;
+  positions[i * 3 + 2] = (Math.random() - 0.5) * 8;
+  const c = palette[Math.floor(Math.random() * palette.length)];
+  colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
+  sizes[i] = Math.random() * 2.5 + 0.5;
+}
+
+const geo = new THREE.BufferGeometry();
+geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+const mat = new THREE.PointsMaterial({
+  size: 0.025,
+  vertexColors: true,
+  transparent: true,
+  opacity: 0.55,
+  sizeAttenuation: true,
+});
+
+const particles = new THREE.Points(geo, mat);
+scene.add(particles);
+
+/* Lines connecting nearby particles */
+const lineMat = new THREE.LineBasicMaterial({
+  color: 0x6366f1,
+  transparent: true,
+  opacity: 0.04,
+});
+
+let speedMult = 0.3;
+let accentConfig = {
+  c1: new THREE.Color('#6366f1'),
+  c2: new THREE.Color('#06b6d4'),
+};
+
+let mouseX = 0, mouseY = 0;
+document.addEventListener('mousemove', e => {
+  mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+  mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+});
+
+let t = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  t += 0.0004 * speedMult;
+  particles.rotation.y = t * 0.5 + mouseX * 0.08;
+  particles.rotation.x = mouseY * 0.05;
+  particles.position.y = Math.sin(t * 0.3) * 0.1;
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+function setSpeed(s) {
+  speedMult = [0, 0.3, 1.2][s];
+  ['ps0','ps1','ps2'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===s));
+}
+
+/* ════════════════════════════════
+   GSAP — ENTRANCE ANIMATION
+════════════════════════════════ */
+function runAnim() {
+  const tl = gsap.timeline({ defaults: { ease: 'power3.out' }});
+
+  tl.to('#sidebar',   { opacity:1, x:0,   duration:0.7 })
+    .to('#topbar',    { opacity:1,          duration:0.5 }, '-=0.3')
+    .to('#ringCard',  { opacity:1, y:0,    duration:0.7 }, '-=0.3')
+    .to(['#sc0','#sc1','#sc2'], { opacity:1, y:0, duration:0.5, stagger:0.1 }, '-=0.4')
+    /* Animate score ring */
+    .to('#ringFill', {
+      strokeDashoffset: 130,  /* 68/100 × 408 ≈ 130 remaining */
+      duration: 1.4,
+      ease: 'power2.out'
+    }, '-=0.8')
+    /* Count up score number */
+    .to({ val: 0 }, {
+      val: 68,
+      duration: 1.2,
+      ease: 'power2.out',
+      onUpdate() { document.getElementById('scoreNum').textContent = Math.round(this.targets()[0].val); }
+    }, '<')
+    /* Count up stat cards */
+    .to({ val: 0 }, { val:8,  duration:.8, ease:'power2.out', onUpdate(){ document.getElementById('cn0').textContent=Math.round(this.targets()[0].val) }}, '<+0.1')
+    .to({ val: 0 }, { val:23, duration:.8, ease:'power2.out', onUpdate(){ document.getElementById('cn1').textContent=Math.round(this.targets()[0].val) }}, '<+0.1')
+    .to({ val: 0 }, { val:41, duration:.8, ease:'power2.out', onUpdate(){ document.getElementById('cn2').textContent=Math.round(this.targets()[0].val) }}, '<+0.1')
+    /* Stagger in table rows */
+    .to(['#tr0','#tr1','#tr2','#tr3','#tr4','#tr5'], {
+      opacity:1, x:0, duration:0.45, stagger:0.07, ease:'power2.out'
+    }, '-=0.4');
+}
+runAnim();
+
+function replayAnim() {
+  /* Reset */
+  gsap.set('#sidebar',  { opacity:0, x:-20 });
+  gsap.set('#topbar',   { opacity:0 });
+  gsap.set('#ringCard', { opacity:0, y:30 });
+  gsap.set(['#sc0','#sc1','#sc2'], { opacity:0, y:20 });
+  gsap.set(['#tr0','#tr1','#tr2','#tr3','#tr4','#tr5'], { opacity:0, x:-16 });
+  gsap.set('#ringFill', { strokeDashoffset:408 });
+  document.getElementById('scoreNum').textContent = '0';
+  ['cn0','cn1','cn2'].forEach(id=>document.getElementById(id).textContent='0');
+  setTimeout(runAnim, 100);
+}
+
+/* ════════════════════════════════
+   ACCENT SWITCHER
+════════════════════════════════ */
+const ACCENTS3 = {
+  teal:    { g:'#0d9488,#06b6d4', glow:'rgba(13,148,136,0.6)',  btn:'rgba(13,148,136',  ring:'#0d9488', c2:'#06b6d4' },
+  indigo:  { g:'#6366f1,#06b6d4', glow:'rgba(99,102,241,0.6)', btn:'rgba(99,102,241',  ring:'#6366f1', c2:'#06b6d4' },
+  emerald: { g:'#10b981,#34d399', glow:'rgba(16,185,129,0.6)',  btn:'rgba(16,185,129',  ring:'#10b981', c2:'#34d399' },
+  violet:  { g:'#8b5cf6,#ec4899', glow:'rgba(139,92,246,0.6)',  btn:'rgba(139,92,246',  ring:'#8b5cf6', c2:'#ec4899' },
+};
+
+function setA(name) {
+  ['ai','av','ae','ag'].forEach(id => document.getElementById(id)?.classList.remove('on'));
+  const map={teal:'at',indigo:'ai',emerald:'ae',violet:'av'};
+  document.getElementById(map[name]).classList.add('on');
+
+  const a = ACCENTS3[name];
+  const root = document.documentElement;
+
+  /* Update CSS variables */
+  const style = document.getElementById('accent-style') || (() => {
+    const s = document.createElement('style'); s.id='accent-style'; document.head.appendChild(s); return s;
+  })();
+  style.textContent = `
+    .logo-glyph { background: linear-gradient(135deg,${a.g}) !important; box-shadow: 0 0 20px ${a.glow} !important; }
+    .logo-text { background: linear-gradient(90deg,#e8eaf0,${a.c2}) !important; }
+    .nitem.on { background: ${a.btn},0.15) !important; color: ${a.c2} !important; border-color: ${a.btn},0.2) !important; }
+    .ring-fill { stroke: url(#ringGrad2) !important; filter: drop-shadow(0 0 6px ${a.glow}) !important; }
+    .btn-primary { background: linear-gradient(135deg,${a.g}) !important; box-shadow: 0 0 20px ${a.glow} !important; }
+    .act-glow { background: ${a.btn},0.15) !important; color: ${a.c2} !important; border-color: ${a.btn},0.2) !important; }
+    .act-glow:hover { background: ${a.btn},0.3) !important; box-shadow: 0 0 16px ${a.glow} !important; }
+    .trow:hover::before { background: ${a.glow} !important; }
+    .fpill.on { background: ${a.btn},0.2) !important; color: ${a.c2} !important; border-color: ${a.btn},0.3) !important; }
+    .sc.on { background: ${a.btn},0.3) !important; color: ${a.c2} !important; border-color: ${a.btn},0.5) !important; }
+    .nbadge { background: ${a.btn},0.15) !important; color: ${a.c2} !important; border-color: ${a.btn},0.2) !important; }
+  `;
+
+  /* Update gradient defs */
+  const ns = 'http://www.w3.org/2000/svg';
+  let defs = document.querySelector('svg defs');
+  if (!defs.querySelector('#ringGrad2')) {
+    const lg = document.createElementNS(ns,'linearGradient');
+    lg.id='ringGrad2'; lg.setAttribute('x1','0%'); lg.setAttribute('y1','0%');
+    lg.setAttribute('x2','100%'); lg.setAttribute('y2','100%');
+    const s1=document.createElementNS(ns,'stop'); s1.setAttribute('offset','0%');
+    const s2=document.createElementNS(ns,'stop'); s2.setAttribute('offset','100%');
+    lg.appendChild(s1); lg.appendChild(s2); defs.appendChild(lg);
+  }
+  const lg2=document.getElementById('ringGrad2');
+  const [c1s,c2s]=a.g.split(',');
+  lg2.children[0].setAttribute('stop-color',c1s);
+  lg2.children[1].setAttribute('stop-color',c2s);
+
+  /* Update particle colors */
+  const newPalette = [new THREE.Color(c1s.trim()), new THREE.Color(c2s.trim())];
+  for(let i=0;i<COUNT;i++){
+    const c=newPalette[i%newPalette.length];
+    colors[i*3]=c.r; colors[i*3+1]=c.g; colors[i*3+2]=c.b;
+  }
+  geo.attributes.color.needsUpdate=true;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+version: "1"
+name: action-plan
+description: >
+  Given a list of SEO issues found on a website, rank them by estimated
+  revenue/traffic impact and generate a plain-English explanation + step-by-step
+  fix for each. Written for business owners, not SEO experts.
+
+system: |
+  You are an SEO expert advisor helping a business owner understand and fix their
+  website's SEO issues. Your job is to:
+  1. Rank the provided issues by their estimated impact on traffic and sales
+  2. Explain each issue in plain English (no jargon)
+  3. Give clear, specific, step-by-step instructions to fix each issue
+  4. Estimate the difficulty (Easy / Medium / Hard) and time to fix
+
+  Rules:
+  - Never use SEO jargon without immediately explaining it
+  - Be specific — "add your target keyword to the title tag" not "optimise your titles"
+  - Focus on business impact: more traffic = more potential sales
+  - Keep explanations to 2-3 sentences max
+  - Fix instructions should be numbered steps a non-technical person can follow
+
+user: |
+  Here are the SEO issues found on {{ domain }}:
+
+  {{ issues_json }}
+
+  Return a JSON array of the top {{ max_issues }} issues, ranked by impact, with this structure:
+  {
+    "ranked_issues": [
+      {
+        "issue_id": "string",
+        "impact": "high|medium|low",
+        "impact_reason": "one sentence: why this hurts traffic/sales",
+        "plain_explanation": "2-3 sentences: what this is, in plain English",
+        "fix_steps": ["step 1", "step 2", ...],
+        "difficulty": "Easy|Medium|Hard",
+        "time_estimate": "e.g. 10 minutes, 1 hour"
+      }
+    ]
+  }

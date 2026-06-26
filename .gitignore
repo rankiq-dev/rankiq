@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+
+# Environment — NEVER commit real secrets
+.env
+.env.*
+!.env.example
+*.env.local
+*.env.bak
+
+# Database
+*.db
+*.sqlite
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+.vercel
+*.tsbuildinfo
+next-env.d.ts

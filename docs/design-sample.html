@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RankIQ — Design Sample + Theme Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   LIGHT TOKENS (default)
+   shadcn-compatible OKLCH CSS variables
+═══════════════════════════════════════════════════════════ */
+:root, [data-theme="light"] {
+  --font-sans:  'IBM Plex Sans',  sans-serif;
+  --font-mono:  'IBM Plex Mono',  monospace;
+
+  /* Surfaces */
+  --background:        oklch(0.985 0.003 250);
+  --foreground:        oklch(0.24  0.02  250);
+  --card:              oklch(1     0     0);
+  --card-foreground:   oklch(0.24  0.02  250);
+  --muted:             oklch(0.96  0.004 250);
+  --muted-foreground:  oklch(0.50  0.015 250);
+  --border:            oklch(0.91  0.004 250);
+  --input:             oklch(0.91  0.004 250);
+
+  /* Teal-Slate accent */
+  --primary:           oklch(0.48  0.09  230);
+  --primary-foreground:oklch(0.99  0.005 250);
+  --primary-light:     oklch(0.93  0.04  230);
+
+  /* Status */
+  --success:           oklch(0.45  0.14  155);
+  --success-bg:        oklch(0.95  0.04  155);
+  --warning:           oklch(0.50  0.15   65);
+  --warning-bg:        oklch(0.97  0.04   75);
+  --destructive:       oklch(0.50  0.20   27);
+  --destructive-bg:    oklch(0.96  0.04   27);
+  --info:              oklch(0.48  0.09  230);
+  --info-bg:           oklch(0.94  0.04  230);
+
+  /* Elevation */
+  --shadow-sm: 0 1px 3px oklch(0.24 0.02 250 / 0.07), 0 1px 2px oklch(0.24 0.02 250 / 0.05);
+  --shadow-md: 0 4px 6px oklch(0.24 0.02 250 / 0.07), 0 2px 4px oklch(0.24 0.02 250 / 0.05);
+
+  /* Studio UI */
+  --studio-bg:     oklch(0.15 0.01 250);
+  --studio-text:   oklch(0.90 0.01 250);
+  --studio-border: oklch(0.25 0.01 250);
+  --studio-chip-active-bg: var(--primary);
+  --studio-chip-active-text: var(--primary-foreground);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DARK TOKENS
+═══════════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  /* Surfaces */
+  --background:        oklch(0.16  0.01  250);
+  --foreground:        oklch(0.93  0.01  250);
+  --card:              oklch(0.20  0.01  250);
+  --card-foreground:   oklch(0.93  0.01  250);
+  --muted:             oklch(0.24  0.01  250);
+  --muted-foreground:  oklch(0.60  0.01  250);
+  --border:            oklch(0.28  0.01  250);
+  --input:             oklch(0.28  0.01  250);
+
+  /* Teal-Slate accent — lighter in dark for contrast */
+  --primary:           oklch(0.66  0.10  220);
+  --primary-foreground:oklch(0.12  0.01  250);
+  --primary-light:     oklch(0.24  0.04  230);
+
+  /* Status */
+  --success:           oklch(0.65  0.15  155);
+  --success-bg:        oklch(0.22  0.06  155);
+  --warning:           oklch(0.72  0.15   75);
+  --warning-bg:        oklch(0.22  0.06   75);
+  --destructive:       oklch(0.68  0.20   27);
+  --destructive-bg:    oklch(0.22  0.06   27);
+  --info:              oklch(0.66  0.10  220);
+  --info-bg:           oklch(0.22  0.05  230);
+
+  /* Elevation — glow shadows in dark */
+  --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.35), 0 1px 2px oklch(0 0 0 / 0.25);
+  --shadow-md: 0 4px 8px oklch(0 0 0 / 0.40), 0 2px 4px oklch(0 0 0 / 0.30);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESET + BASE
+═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+
+body {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--foreground);
+  background: var(--background);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   THEME STUDIO BAR (top-of-page control panel)
+═══════════════════════════════════════════════════════════ */
+.studio-bar {
+  background: var(--studio-bg);
+  color: var(--studio-text);
+  border-bottom: 1px solid var(--studio-border);
+  padding: 0 20px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.studio-label {
+  color: oklch(0.55 0.01 250);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.studio-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.studio-chip {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--studio-border);
+  background: transparent;
+  color: var(--studio-text);
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+.studio-chip:hover { background: oklch(0.22 0.01 250); }
+.studio-chip.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+/* When in dark mode the chips live on the dark studio bar */
+[data-theme="dark"] .studio-chip.active {
+  background: oklch(0.66 0.10 220);
+  color: oklch(0.12 0.01 250);
+}
+
+.studio-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--studio-border);
+  flex-shrink: 0;
+}
+
+.studio-swatch {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+  border: 1px solid oklch(0.35 0.01 250);
+}
+
+.studio-token {
+  color: oklch(0.60 0.08 220);
+  font-size: 11px;
+}
+
+.studio-spacer { flex: 1; }
+
+/* ═══════════════════════════════════════════════════════════
+   APP SHELL (sidebar + main)
+═══════════════════════════════════════════════════════════ */
+.app-shell {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── SIDEBAR ───────────────────────────────────────────── */
+.sidebar {
+  width: 220px;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-height: calc(100vh - 44px);
+  transition: background 200ms ease, border-color 200ms ease;
+}
+
+.sidebar-logo {
+  padding: 18px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-mark {
+  width: 28px; height: 28px;
+  background: var(--primary);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--primary-foreground);
+  font-weight: 600; font-size: 13px; letter-spacing: -0.5px;
+  flex-shrink: 0;
+  transition: background 200ms ease;
+}
+.logo-name { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+
+.sidebar-nav { padding: 12px 10px; flex: 1; }
+.nav-label {
+  font-size: 11px; font-weight: 500; color: var(--muted-foreground);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  padding: 4px 10px 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 6px;
+  font-size: 14px; font-weight: 400; color: var(--muted-foreground);
+  cursor: pointer; transition: all 150ms ease;
+  border: none; background: none; width: 100%; text-align: left;
+  text-decoration: none;
+}
+.nav-item:hover { background: var(--muted); color: var(--foreground); }
+.nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
+.nav-item:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.nav-icon { width: 16px; height: 16px; opacity: 0.7; flex-shrink: 0; }
+.nav-item.active .nav-icon { opacity: 1; }
+
+.sidebar-footer { padding: 12px 10px; border-top: 1px solid var(--border); }
+.user-pill {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 6px; cursor: pointer;
+}
+.user-pill:hover { background: var(--muted); }
+.avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--primary-light); color: var(--primary);
+  font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 200ms ease, color 200ms ease;
+}
+.user-name { font-size: 13px; font-weight: 500; }
+.user-plan { font-size: 11px; color: var(--muted-foreground); }
+
+/* ── MAIN ──────────────────────────────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 52px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  flex-shrink: 0;
+  position: sticky; top: 44px; z-index: 10;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+.breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--muted-foreground);
+}
+.breadcrumb .current { color: var(--foreground); font-weight: 500; }
+.breadcrumb-sep { opacity: 0.4; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 6px;
+  font-size: 13px; font-weight: 500; font-family: var(--font-sans);
+  cursor: pointer; transition: all 150ms ease;
+  border: 1px solid transparent;
+}
+.btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.btn-outline { background: var(--card); border-color: var(--border); color: var(--foreground); }
+.btn-outline:hover { background: var(--muted); }
+.btn-primary { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+.btn-primary:hover { filter: brightness(0.92); }
+
+.page { padding: 24px; flex: 1; }
+
+/* ── OVERVIEW CARDS ────────────────────────────────────── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: start;
+}
+
+.health-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+  padding: 20px 24px;
+  display: flex; align-items: center; gap: 20px;
+  min-width: 220px;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+
+.score-ring { width: 72px; height: 72px; flex-shrink: 0; position: relative; }
+.score-ring svg { transform: rotate(-90deg); }
+.score-ring .track { fill: none; stroke: var(--muted); stroke-width: 5; }
+.score-ring .fill {
+  fill: none; stroke: var(--warning); stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 188.5;
+  stroke-dashoffset: 60;
+}
+.score-number {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 18px; font-weight: 500;
+}
+
+.health-label { font-size: 12px; font-weight: 500; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+.health-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.health-sub { font-size: 12px; color: var(--muted-foreground); }
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+  padding: 16px 20px;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+.stat-label { font-size: 12px; font-weight: 500; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.stat-value { font-family: var(--font-mono); font-size: 24px; font-weight: 500; margin-bottom: 4px; }
+.stat-sub { font-size: 12px; color: var(--muted-foreground); }
+.stat-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+.dot-critical { background: var(--destructive); }
+.dot-warning  { background: var(--warning); }
+.dot-info     { background: var(--info); }
+
+/* ── ISSUES TABLE ──────────────────────────────────────── */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-title { font-size: 14px; font-weight: 600; }
+.section-sub { font-size: 13px; color: var(--muted-foreground); margin-top: 1px; }
+
+.filter-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.filter-chip {
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--card); color: var(--muted-foreground);
+  cursor: pointer; transition: all 150ms ease;
+}
+.filter-chip:hover { background: var(--muted); }
+.filter-chip.active { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+
+.issues-table {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+.table-head {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 80px 100px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
+}
+.th { font-size: 11px; font-weight: 600; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.07em; }
+.th.right { text-align: right; }
+
+.table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 80px 100px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  transition: background 150ms ease;
+  cursor: pointer;
+}
+.table-row:last-child { border-bottom: none; }
+.table-row:hover { background: var(--muted); }
+
+.issue-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.issue-desc  { font-size: 12px; color: var(--muted-foreground); }
+
+.severity-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; }
+.severity-badge .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.sev-critical { color: var(--destructive); }
+.sev-critical .dot { background: var(--destructive); }
+.sev-warning  { color: var(--warning); }
+.sev-warning .dot  { background: var(--warning); }
+.sev-info     { color: var(--info); }
+.sev-info .dot     { background: var(--info); }
+
+.pages-count { font-family: var(--font-mono); font-size: 13px; text-align: right; }
+
+.fix-btn {
+  padding: 4px 10px; border-radius: 4px;
+  font-size: 12px; font-weight: 500;
+  background: var(--primary-light); color: var(--primary);
+  border: none; cursor: pointer; transition: all 150ms ease;
+  font-family: var(--font-sans); white-space: nowrap;
+}
+.fix-btn:hover { background: var(--primary); color: var(--primary-foreground); }
+
+.table-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--muted);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.table-footer-text { font-size: 12px; color: var(--muted-foreground); }
+
+/* ── TOKEN PANEL (expandable) ──────────────────────────── */
+.token-panel {
+  background: var(--studio-bg);
+  border-top: 1px solid var(--studio-border);
+  padding: 0;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 300ms ease, padding 300ms ease;
+}
+.token-panel.open {
+  max-height: 600px;
+  padding: 20px 24px;
+}
+.token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.token-row {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--studio-text);
+}
+.token-swatch {
+  width: 24px; height: 24px; border-radius: 4px; flex-shrink: 0;
+  border: 1px solid oklch(0.35 0.01 250);
+}
+.token-name { color: oklch(0.60 0.08 220); }
+.token-value { color: oklch(0.55 0.01 250); margin-top: 1px; font-size: 10px; }
+
+/* ── RESPONSIVE ────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .overview-grid { grid-template-columns: 1fr 1fr; }
+  .health-card { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .table-head { display: none; }
+  .table-row { grid-template-columns: 1fr auto; }
+  .table-row > :nth-child(3), .table-row > :nth-child(4) { display: none; }
+  .studio-bar { overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════════════════════════╗
+     ║  THEME STUDIO BAR                                   ║
+     ╚══════════════════════════════════════════════════════╝ -->
+<div class="studio-bar" role="toolbar" aria-label="Theme studio controls">
+
+  <span class="studio-label">Theme</span>
+  <div class="studio-group" role="group" aria-label="Mode">
+    <button class="studio-chip active" id="btn-light" onclick="setTheme('light')" type="button">☀ Light</button>
+    <button class="studio-chip" id="btn-dark"  onclick="setTheme('dark')"  type="button">☾ Dark</button>
+  </div>
+
+  <div class="studio-divider" aria-hidden="true"></div>
+
+  <span class="studio-label">Accent</span>
+  <div class="studio-group" role="group" aria-label="Accent colour">
+    <button class="studio-chip active" id="acc-teal"    onclick="setAccent('teal')"    type="button"><span class="studio-swatch" style="background:oklch(0.48 0.09 230)"></span>Teal-Slate</button>
+    <button class="studio-chip"        id="acc-violet"  onclick="setAccent('violet')"  type="button"><span class="studio-swatch" style="background:oklch(0.48 0.11 285)"></span>Violet</button>
+    <button class="studio-chip"        id="acc-emerald" onclick="setAccent('emerald')" type="button"><span class="studio-swatch" style="background:oklch(0.46 0.13 160)"></span>Emerald</button>
+    <button class="studio-chip"        id="acc-amber"   onclick="setAccent('amber')"   type="button"><span class="studio-swatch" style="background:oklch(0.58 0.17  65)"></span>Amber</button>
+  </div>
+
+  <div class="studio-divider" aria-hidden="true"></div>
+
+  <span class="studio-label">Radius</span>
+  <div class="studio-group" role="group" aria-label="Border radius">
+    <button class="studio-chip"        id="rad-none"   onclick="setRadius('0px')"   type="button">None</button>
+    <button class="studio-chip"        id="rad-sm"     onclick="setRadius('4px')"   type="button">sm</button>
+    <button class="studio-chip active" id="rad-md"     onclick="setRadius('6px')"   type="button">md</button>
+    <button class="studio-chip"        id="rad-lg"     onclick="setRadius('10px')"  type="button">lg</button>
+    <button class="studio-chip"        id="rad-full"   onclick="setRadius('999px')" type="button">pill</button>
+  </div>
+
+  <div class="studio-spacer"></div>
+
+  <button class="studio-chip" id="btn-tokens" onclick="toggleTokens()" type="button" aria-expanded="false" aria-controls="token-panel">
+    ⬡ Tokens
+  </button>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════╗
+     ║  APP SHELL                                          ║
+     ╚══════════════════════════════════════════════════════╝ -->
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo">
+      <div class="logo-mark" aria-hidden="true">Rk</div>
+      <span class="logo-name">RankIQ</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Main</div>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item active" href="#" aria-current="page">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5C8 1.5 5 5 5 8s3 6.5 3 6.5M8 1.5C8 1.5 11 5 11 8S8 14.5 8 14.5M1.5 8h13" stroke="currentColor" stroke-width="1.5"/></svg>
+        Sites
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h8M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="13" cy="11" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Action Plans
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 2h7l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v3h3M5 9h6M5 12h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Reports
+      </a>
+      <div class="nav-label" style="margin-top:12px">Account</div>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M2.93 2.93l1.06 1.06M12.01 12.01l1.06 1.06M13.07 2.93l-1.06 1.06M3.99 12.01l-1.06 1.06" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Settings
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-pill" tabindex="0">
+        <div class="avatar" aria-hidden="true">JS</div>
+        <div>
+          <div class="user-name">Jake Sullivan</div>
+          <div class="user-plan">Growth Plan</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <span>Sites</span>
+        <span class="breadcrumb-sep" aria-hidden="true">›</span>
+        <span class="current">bakersfieldhvac.com</span>
+        <span class="breadcrumb-sep" aria-hidden="true">›</span>
+        <span class="current">Audit Results</span>
+      </nav>
+      <div class="topbar-actions">
+        <button class="btn btn-outline" type="button">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3 8l5-5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Export
+        </button>
+        <button class="btn btn-primary" type="button">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M14 8A6 6 0 112 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 8l-2-2M14 8l-2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Re-crawl Site
+        </button>
+      </div>
+    </div>
+
+    <div class="page">
+
+      <!-- OVERVIEW -->
+      <div class="overview-grid" role="region" aria-label="Site health overview">
+        <div class="health-card">
+          <div class="score-ring" role="img" aria-label="Site health score 68 out of 100">
+            <svg width="72" height="72" viewBox="0 0 72 72">
+              <circle class="track" cx="36" cy="36" r="30"/>
+              <circle class="fill" cx="36" cy="36" r="30"/>
+            </svg>
+            <div class="score-number" aria-hidden="true">68</div>
+          </div>
+          <div>
+            <div class="health-label">Site Health</div>
+            <div class="health-title">Needs Attention</div>
+            <div class="health-sub">Crawled 2 hrs ago · 247 pages</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Critical Issues</div>
+          <div class="stat-value" style="color:var(--destructive)">8</div>
+          <div class="stat-sub"><span class="stat-dot dot-critical" aria-hidden="true"></span>Blocking rankings now</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Warnings</div>
+          <div class="stat-value" style="color:var(--warning)">23</div>
+          <div class="stat-sub"><span class="stat-dot dot-warning" aria-hidden="true"></span>Hurting performance</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Info / Notices</div>
+          <div class="stat-value" style="color:var(--info)">41</div>
+          <div class="stat-sub"><span class="stat-dot dot-info" aria-hidden="true"></span>Good to know</div>
+        </div>
+      </div>
+
+      <!-- ISSUES -->
+      <div class="section-header">
+        <div>
+          <div class="section-title">All Issues</div>
+          <div class="section-sub">Ranked by estimated impact on your traffic &amp; sales</div>
+        </div>
+      </div>
+
+      <div class="filter-row" role="group" aria-label="Filter by severity">
+        <button class="filter-chip active" type="button" aria-pressed="true">All (72)</button>
+        <button class="filter-chip" type="button" aria-pressed="false">Critical (8)</button>
+        <button class="filter-chip" type="button" aria-pressed="false">Warnings (23)</button>
+        <button class="filter-chip" type="button" aria-pressed="false">Info (41)</button>
+      </div>
+
+      <div class="issues-table" role="table" aria-label="SEO issues list">
+        <div class="table-head" role="row">
+          <div class="th" role="columnheader">Issue</div>
+          <div class="th" role="columnheader">Severity</div>
+          <div class="th" role="columnheader">Category</div>
+          <div class="th right" role="columnheader">Pages</div>
+          <div class="th right" role="columnheader">Action</div>
+        </div>
+        <div class="table-row" role="row" tabindex="0">
+          <div role="cell"><div class="issue-title">Missing title tags</div><div class="issue-desc">34 pages have no &lt;title&gt; — Google can't rank them properly</div></div>
+          <div role="cell"><span class="severity-badge sev-critical"><span class="dot" aria-hidden="true"></span>Critical</span></div>
+          <div role="cell" style="font-size:12px;color:var(--muted-foreground)">On-page</div>
+          <div role="cell" class="pages-count">34</div>
+          <div role="cell"><button class="fix-btn" type="button">Fix now</button></div>
+        </div>
+        <div class="table-row" role="row" tabindex="0">
+          <div role="cell"><div class="issue-title">Page speed below 50 (mobile)</div><div class="issue-desc">Google penalises slow mobile pages — you're losing rankings</div></div>
+          <div role="cell"><span class="severity-badge sev-critical"><span class="dot" aria-hidden="true"></span>Critical</span></div>
+          <div role="cell" style="font-size:12px;color:var(--muted-foreground)">Technical</div>
+          <div role="cell" class="pages-count">12</div>
+          <div role="cell"><button class="fix-btn" type="button">Fix now</button></div>
+        </div>
+        <div class="table-row" role="row" tabindex="0">
+          <div role="cell"><div class="issue-title">Broken internal links</div><div class="issue-desc">Links pointing to pages that no longer exist (404 errors)</div></div>
+          <div role="cell"><span class="severity-badge sev-critical"><span class="dot" aria-hidden="true"></span>Critical</span></div>
+          <div role="cell" style="font-size:12px;color:var(--muted-foreground)">Technical</div>
+          <div role="cell" class="pages-count">19</div>
+          <div role="cell"><button class="fix-btn" type="button">Fix now</button></div>
+        </div>
+        <div class="table-row" role="row" tabindex="0">
+          <div role="cell"><div class="issue-title">Duplicate meta descriptions</div><div class="issue-desc">61 pages share the same description — each page needs its own</div></div>
+          <div role="cell"><span class="severity-badge sev-warning"><span class="dot" aria-hidden="true"></span>Warning</span></div>
+          <div role="cell" style="font-size:12px;color:var(--muted-foreground)">On-page</div>
+          <div role="cell" class="pages-count">61</div>
+          <div role="cell"><button class="fix-btn" type="button">Fix now</button></div>
+        </div>
+        <div class="table-row" role="row" tabindex="0">
+          <div role="cell"><div class="issue-title">Images missing alt text</div><div class="issue-desc">Screen readers and Google can't understand these images</div></div>
+          <div role="cell"><span class="severity-badge sev-warning"><span class="dot" aria-hidden="true"></span>Warning</span></div>
+          <div role="cell" style="font-size:12px;color:var(--muted-foreground)">On-page</div>
+          <div role="cell" class="pages-count">87</div>
+          <div role="cell"><button class="fix-btn" type="button">Fix now</button></div>
+        </div>
+        <div class="table-row" role="row" tabindex="0">
+          <div role="cell"><div class="issue-title">No XML sitemap found</div><div class="issue-desc">Google may miss new pages without a sitemap — easy to add</div></div>
+          <div role="cell"><span class="severity-badge sev-warning"><span class="dot" aria-hidden="true"></span>Warning</span></div>
+          <div role="cell" style="font-size:12px;color:var(--muted-foreground)">Technical</div>
+          <div role="cell" class="pages-count">1</div>
+          <div role="cell"><button class="fix-btn" type="button">Fix now</button></div>
+        </div>
+        <div class="table-footer">
+          <span class="table-footer-text">Showing 6 of 72 issues · sorted by estimated impact</span>
+          <button class="btn btn-outline" style="padding:4px 12px;font-size:12px" type="button">View all issues</button>
+        </div>
+      </div>
+
+    </div><!-- /page -->
+  </main>
+</div><!-- /app-shell -->
+
+<!-- TOKEN PANEL -->
+<div class="token-panel" id="token-panel" role="region" aria-label="Design token reference">
+  <div class="token-grid" id="token-grid"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     STUDIO SCRIPT
+═══════════════════════════════════════════════════════ -->
+<script>
+/* Accent palettes — [light-primary, light-light, dark-primary, dark-light] */
+const ACCENTS = {
+  teal:    ['oklch(0.48 0.09 230)', 'oklch(0.93 0.04 230)', 'oklch(0.66 0.10 220)', 'oklch(0.24 0.04 230)'],
+  violet:  ['oklch(0.48 0.11 285)', 'oklch(0.93 0.04 285)', 'oklch(0.68 0.12 280)', 'oklch(0.24 0.05 285)'],
+  emerald: ['oklch(0.46 0.13 160)', 'oklch(0.93 0.05 160)', 'oklch(0.65 0.15 155)', 'oklch(0.22 0.06 160)'],
+  amber:   ['oklch(0.50 0.15  65)', 'oklch(0.95 0.06  75)', 'oklch(0.72 0.16  70)', 'oklch(0.24 0.07  65)'],
+};
+
+let currentTheme  = 'light';
+let currentAccent = 'teal';
+
+function setTheme(mode) {
+  currentTheme = mode;
+  document.documentElement.setAttribute('data-theme', mode);
+  document.getElementById('btn-light').classList.toggle('active', mode === 'light');
+  document.getElementById('btn-dark').classList.toggle('active',  mode === 'dark');
+  applyAccent(currentAccent);
+  if (document.getElementById('token-panel').classList.contains('open')) renderTokens();
+}
+
+function setAccent(name) {
+  currentAccent = name;
+  document.querySelectorAll('[id^="acc-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('acc-' + name).classList.add('active');
+  applyAccent(name);
+  if (document.getElementById('token-panel').classList.contains('open')) renderTokens();
+}
+
+function applyAccent(name) {
+  const [lp, ll, dp, dl] = ACCENTS[name];
+  const root = document.documentElement;
+  if (currentTheme === 'light') {
+    root.style.setProperty('--primary',       lp);
+    root.style.setProperty('--primary-light', ll);
+  } else {
+    root.style.setProperty('--primary',       dp);
+    root.style.setProperty('--primary-light', dl);
+  }
+}
+
+function setRadius(r) {
+  document.querySelectorAll('[id^="rad-"]').forEach(b => b.classList.remove('active'));
+  const key = {'0px':'none','4px':'sm','6px':'md','10px':'lg','999px':'full'}[r];
+  if (key) document.getElementById('rad-' + key).classList.add('active');
+  document.documentElement.style.setProperty('--radius', r);
+  document.querySelectorAll('.btn, .stat-card, .health-card, .issues-table, .nav-item, .fix-btn, .filter-chip, .studio-chip')
+    .forEach(el => el.style.borderRadius = r === '999px' ? (el.classList.contains('fix-btn') ? '999px' : r) : '');
+}
+
+function toggleTokens() {
+  const panel = document.getElementById('token-panel');
+  const btn   = document.getElementById('btn-tokens');
+  const open  = panel.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open);
+  if (open) renderTokens();
+}
+
+function renderTokens() {
+  const isDark = currentTheme === 'dark';
+  const tokens = [
+    ['--background',       isDark ? 'oklch(0.16 0.01 250)'  : 'oklch(0.985 0.003 250)', 'Page background'],
+    ['--foreground',       isDark ? 'oklch(0.93 0.01 250)'  : 'oklch(0.24 0.02 250)',   'Body text'],
+    ['--card',             isDark ? 'oklch(0.20 0.01 250)'  : 'oklch(1 0 0)',            'Card surface'],
+    ['--muted',            isDark ? 'oklch(0.24 0.01 250)'  : 'oklch(0.96 0.004 250)',  'Subtle bg, table head'],
+    ['--muted-foreground', isDark ? 'oklch(0.60 0.01 250)'  : 'oklch(0.50 0.015 250)',  'Labels, placeholders'],
+    ['--border',           isDark ? 'oklch(0.28 0.01 250)'  : 'oklch(0.91 0.004 250)',  'Hairline borders'],
+    ['--primary',          getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(), 'Accent — links, buttons'],
+    ['--primary-light',    getComputedStyle(document.documentElement).getPropertyValue('--primary-light').trim(), 'Accent bg tint'],
+    ['--destructive',      isDark ? 'oklch(0.68 0.20 27)'   : 'oklch(0.50 0.20 27)',    'Critical issues'],
+    ['--warning',          isDark ? 'oklch(0.72 0.15 75)'   : 'oklch(0.50 0.15 65)',    'Warning issues'],
+    ['--success',          isDark ? 'oklch(0.65 0.15 155)'  : 'oklch(0.45 0.14 155)',   'Resolved / ok'],
+    ['--info',             isDark ? 'oklch(0.66 0.10 220)'  : 'oklch(0.48 0.09 230)',   'Info notices'],
+  ];
+  const grid = document.getElementById('token-grid');
+  grid.innerHTML = tokens.map(([name, val, desc]) => `
+    <div class="token-row">
+      <div class="token-swatch" style="background:${val.trim()}"></div>
+      <div>
+        <div class="token-name">${name}</div>
+        <div class="token-value">${val.trim()} — ${desc}</div>
+      </div>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>

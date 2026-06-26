@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: rankiq
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: rankiq_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dependency vulnerability scan
+        run: npm audit --audit-level=high
+
+      - name: Lint + type-check
+        run: npm run check
+
+      - name: Run migrations
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: postgresql://rankiq:testpassword@localhost:5432/rankiq_test
+
+      - name: Tests
+        run: npm run test
+        env:
+          DATABASE_URL: postgresql://rankiq:testpassword@localhost:5432/rankiq_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
