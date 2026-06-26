@@ -30,9 +30,11 @@ function makePage(overrides: Partial<CrawledPage> = {}): CrawledPage {
 
 function makeCrawlResult(pages: CrawledPage[] = [], overrides: Partial<CrawlResult> = {}): CrawlResult {
   return {
+    domain:         "example.com",
     pages,
     brokenLinks:    [],
     redirectChains: [],
+    crawledAt:      new Date().toISOString(),
     durationMs:     1000,
     ...overrides,
   }

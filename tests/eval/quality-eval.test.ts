@@ -39,7 +39,7 @@ function makePage(overrides: Partial<CrawledPage> = {}): CrawledPage {
 }
 
 function crawlResult(pages: CrawledPage[], overrides: Partial<CrawlResult> = {}): CrawlResult {
-  return { pages, brokenLinks: [], redirectChains: [], durationMs: 1000, ...overrides }
+  return { domain: "example.com", pages, brokenLinks: [], redirectChains: [], crawledAt: new Date().toISOString(), durationMs: 1000, ...overrides }
 }
 
 /* ─────────────────────────────────────────────────────────────────────

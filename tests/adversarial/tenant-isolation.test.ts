@@ -155,17 +155,19 @@ describe("IDOR attack patterns", () => {
 
 describe("Auth boundary patterns", () => {
   it("Unauthenticated request (no session) is blocked before any data access", () => {
-    /* Simulate the pattern: if (!session?.user?.id) return 401 */
-    const session: { user?: { id?: string } } | null = null
-    const userId = session?.user?.id
+    /* Simulate the pattern: if (!session?.user?.id) return 401
+     * Use a runtime-null value via a typed variable so TS doesn't narrow to never. */
+    function getSession(): { user: { id: string } } | null { return null }
+    const session = getSession()
+    const userId: string | undefined = session?.user?.id
     expect(userId).toBeUndefined()
     /* All downstream calls use userId — undefined userId hits no records */
     expect(getSiteById("site-a", userId as string, sites)).toBeUndefined()
   })
 
   it("Session with missing user.id is treated as unauthenticated", () => {
-    const session = { user: {} }
-    const userId = session.user?.id
+    const session: { user: { id?: string } } = { user: {} }
+    const userId: string | undefined = session.user?.id
     expect(userId).toBeUndefined()
     expect(getSiteById("site-a", userId as string, sites)).toBeUndefined()
   })

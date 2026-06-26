@@ -701,7 +701,143 @@ EVAL_M5_BLOCKED_GATES       = 7     # decreases as integration sprint lands
 
 ## #Ship log
 
-_To be filled by /ship_
+### v0.1.0 — 2026-06-26
+
+**What shipped:** Full product — M1 through M6 complete. Auth + billing, crawler, SEO analysis, AI action plan, GSC integration, email reports.
+
+**Semver:** `0.1.0` (first release — no prior public version)
+
+---
+
+#### Code review findings (verified against real code)
+
+| Finding | Severity | Status |
+|---|---|---|
+| `tsc --noEmit` had 4 errors in test files (`CrawlResult.domain` required; TS type narrowing on null session) | Medium | **Fixed** — `makeCrawlResult` now includes `domain` + `crawledAt`; `getSession()` helper replaces literal `null` |
+| `PLAN_FROM_PRICE` in stripe webhook is an unused empty object (logic is in `getPlanFromPrice()`) | Low | Accepted — dead variable but not a bug; zero-impact at runtime |
+| GSC error logging uses `console.error` in one place (`gsc/callback/route.ts:36`) rather than `logger` | Low | Accepted — callback is an edge-case error path; logger would require importing config which loads env |
+| `fillTemplate` leaves unmatched `{{KEY}}` tokens in the output if var not supplied | Info | By design — visible in logs; no security impact (template vars are server-controlled) |
+| Health score calibration: bottom-of-scale resolution poor (≥2 criticals × 5pp = 0) | Medium | Documented in eval; background task spawned for log-damped fix |
+| AI fix instructions: 4/5 lack explicit revenue tie-in | Medium | Documented in eval; YAML prompt improvement deferred to post-launch sprint |
+
+**No blocking findings.** All 20 API routes verified auth-gated. Tenant isolation chain verified issue→audit→site→userId on every resource-returning route.
+
+---
+
+#### Security review (OWASP LLM Top 10 + auth/data surface)
+
+| Check | Result |
+|---|---|
+| **LLM01 Prompt Injection** | `sanitizeUrl()` strips all query strings/fragments, caps at 80 chars. `fillTemplate` uses `\w+` regex — no spaces/colons in token names, blocking `{{SYSTEM: …}}` patterns. Issue titles/descriptions are server-generated, not user input. ✅ |
+| **LLM02 Insecure Output Handling** | LLM output is parsed as JSON into a typed struct; only `fixInstructions` (capped at 400 chars) and `revenueImpactRank` (coerced to int ≥1) reach the DB. No raw LLM output rendered to browser. ✅ |
+| **LLM06 Sensitive Information Disclosure** | Payload to LLM contains no PII — no email, userId, session data. Verified in golden tests (7/7). ✅ |
+| **Auth — every route calls `auth()` first** | 20/20 API routes verified. Middleware redirects unauthenticated requests to `/login`. ✅ |
+| **Tenant isolation** | `getSiteById(id, userId)` is the single seam. Issue→audit→site→userId chain on PATCH fix and GSC routes. 19/19 adversarial tests pass. ✅ |
+| **Stripe webhook** | Signature verified via `constructWebhookEvent` before body is consumed. Missing signature → 400 immediately. ✅ |
+| **GSC OAuth CSRF** | State param = `base64url(JSON({siteId,userId}))`; callback verifies `parsed.userId === session.user.id`. ✅ |
+| **XSS in email** | `escHtml()` escapes `& < > "` on all user-controlled fields (domain, recipientName, issue titles). ✅ |
+| **Boot guard** | Refuses to start if any secret matches placeholder pattern in non-test env. ✅ |
+| **Secret scan in CI** | `gitleaks` in pre-commit + CI pipeline. No secrets in repo. ✅ |
+| **CORS** | Next.js default — same-origin. No explicit `Access-Control-Allow-Origin: *`. ✅ |
+| **Cookies** | Auth.js v5 sets `HttpOnly; Secure; SameSite=Lax` session cookies. Not localStorage. ✅ |
+| **Dependency vulns** | `npm audit`: 6 moderate findings, all dev-tool transitive (not in runtime bundle). Accepted at /dev-check. ✅ |
+
+**No blocking security issues.** OWASP LLM01/02/06 addressed. GDPR/data-deletion path: users can disconnect GSC (deletes keyword data), delete their account via `DELETE /api/v1/account` (cascades via DB FK). Full data export is deferred to post-launch.
+
+---
+
+#### Docs reconciled
+
+| Doc | Status |
+|---|---|
+| `PRODUCT.md` | Current — all sections filled (#Vision through #Ship log) |
+| `docs/features/m1-auth-billing.md` | Matches code |
+| `docs/features/m2-crawler-audit.md` | Matches code |
+| `docs/features/m3-on-page-analysis.md` | Matches code |
+| `docs/features/m4-action-plan.md` | Matches code |
+| `docs/features/m5-gsc-progress.md` | Matches code |
+| `docs/features/m6-email-polish.md` | Matches code |
+| `README.md` | Exists — describes project setup |
+| `SECURITY.md` | Exists — responsible disclosure policy |
+| `CHANGELOG.md` | Updated — v0.1.0 entry written |
+
+No false capability claims found. The docs honestly state what is and is not tested (7 live-path gates deferred to integration sprint).
+
+---
+
+#### Rollout safety
+
+**Rollback path:** `git revert HEAD` — this is the initial commit, so rollback = delete the deployment. No migrations to reverse on a fresh environment; existing migration files (`0000`, `0002`) are idempotent on a fresh DB.
+
+**Risky/irreversible changes:** Stripe subscription state and GSC OAuth tokens are persisted. If rolled back, users with active subscriptions must be handled via Stripe dashboard. No flag needed for v0.1.0 — it is the first release, no existing users.
+
+**Post-deploy signals to watch:**
+1. `GET /api/health` — 200 confirms app + DB connection alive
+2. BullMQ dashboard (if wired) — crawl/action-plan/email queue depth should drain within 5 min of a test audit
+3. Stripe webhook delivery rate in Stripe dashboard — failed deliveries indicate signature mismatch or endpoint unreachable
+4. Error rate in structured logs (`pino`) — watch for `"Action plan LLM response was not valid JSON"` (LLM quality signal) and `"Stripe webhook signature verification failed"` (replay attack signal)
+5. First real-user audit to completion — confirm health score appears, action plan generates, email arrives
+
+---
+
+#### Confidence score: **72 / 100**
+
+Raised from eval's 67 by fixing the 4 tsc errors found in deep review.
+
+| Layer | Confidence |
+|---|---|
+| Auth/tenant isolation, Stripe webhook, boot guard | **Solid** — all verified in code |
+| Issue detection, health score, validator, email XSS | **Solid** — 163 tests, tsc clean |
+| AI payload sanitization (LLM01) | **Solid** — measured 7/7 |
+| Health score calibration | **Weak** — bottom-of-scale resolution gap (filed) |
+| AI instruction revenue connection | **Weak** — prompt improvement needed |
+| Live LLM quality, crawler E2E, GSC, Stripe, email delivery | **Untested** — 7 blocked operational gates |
+
+**To raise to 85+:** resolve the 7 operational gates in the integration sprint.
+
+---
+
+#### PR
+
+No remote repository configured (project is local). When a remote is added:
+
+```bash
+git remote add origin <repo-url>
+git push -u origin main
+gh pr create --title "feat: RankIQ v0.1.0 — full SEO SaaS (M1–M6)" \
+  --body "$(cat <<'EOF'
+## Summary
+- M1–M6 complete: Auth, Stripe billing, crawler, SEO analysis, AI action plan, GSC, email reports
+- 163 tests (unit + adversarial + golden + eval); tsc clean; all 20 API routes auth-gated
+- Confidence: 72/100 (offline logic solid; 7 live-path gates pending integration sprint)
+
+## Security
+- Tenant isolation: getSiteById(id, userId) seam on every resource route
+- OWASP LLM01: sanitizeUrl() + fillTemplate regex blocks prompt injection
+- Stripe webhook: signature verified before body read
+- GSC OAuth: CSRF state param with userId cross-check
+- XSS: escHtml() on all user-controlled email fields
+- Boot guard: rejects placeholder secrets
+
+## Known gaps (integration sprint)
+- Health score calibration: log-damped penalty curve (background chip filed)
+- AI instructions: 4/5 lack revenue connection (YAML prompt improvement)
+- 7 live-path gates blocked pending infra: LLM quality, crawler E2E, GSC, Stripe, email delivery, auth, 10-min onboarding
+
+## Rollback
+git revert HEAD — no DB migrations to reverse on fresh environment.
+
+## Post-deploy signals
+1. GET /api/health → 200
+2. BullMQ queue drains within 5 min of test audit
+3. Stripe webhook delivery rate in dashboard
+4. Structured log error rate (LLM parse failures, webhook sig failures)
+5. First real-user audit completes end-to-end
+
+🤖 Generated with Claude Code
+EOF
+)"
+```
 
 ---
 
