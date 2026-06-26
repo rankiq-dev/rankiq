@@ -46,6 +46,16 @@ export async function crawlSite(domain: string, opts: CrawlOptions): Promise<Cra
       maxRequestsPerCrawl: opts.maxPages,
       navigationTimeoutSecs: 30,
       requestHandlerTimeoutSecs: 60,
+      preNavigationHooks: [
+        async ({ request }) => {
+          request.headers = {
+            ...request.headers,
+            "User-Agent": "Mozilla/5.0 (compatible; RankIQ-Bot/1.0; +https://rankiq.app/bot)",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+          }
+        },
+      ],
 
       async requestHandler({ request, response, $ }) {
         const url = normalizeUrl(request.url)

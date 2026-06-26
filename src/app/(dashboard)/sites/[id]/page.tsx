@@ -5,6 +5,7 @@ import { getKeywordMetricsBySite } from "@/db/repositories/gsc"
 import { getGscAuthUrl } from "@/domain/sites/gsc"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
+import { RunAuditButton } from "./RunAuditButton"
 import type { Metadata } from "next"
 import type { GscKeywordMetric } from "@/db/schema"
 
@@ -51,23 +52,26 @@ export default async function SitePage({
           </h1>
           <p style={{ fontSize: "13px", color: "oklch(0.65 0.008 230)" }}>{site.domain}</p>
         </div>
-        {latestAudit && (
-          <Link
-            href={`/audits/${latestAudit.id}`}
-            style={{
-              padding: "9px 16px",
-              background: "linear-gradient(135deg, oklch(0.55 0.13 178), oklch(0.65 0.13 196))",
-              color: "oklch(0.98 0.005 230)",
-              borderRadius: "8px",
-              fontSize: "13px",
-              fontWeight: 700,
-              textDecoration: "none",
-              letterSpacing: "0.02em",
-            }}
-          >
-            View latest audit
-          </Link>
-        )}
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          {latestAudit && (
+            <Link
+              href={`/audits/${latestAudit.id}`}
+              style={{
+                padding: "9px 16px",
+                background: "oklch(0.18 0.006 230)",
+                color: "oklch(0.78 0.008 230)",
+                borderRadius: "8px",
+                fontSize: "13px",
+                fontWeight: 700,
+                textDecoration: "none",
+                border: "1px solid oklch(0.98 0 0 / 0.06)",
+              }}
+            >
+              View latest audit
+            </Link>
+          )}
+          <RunAuditButton siteId={id} />
+        </div>
       </div>
 
       {/* GSC banner notification */}

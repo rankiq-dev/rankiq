@@ -1,50 +1,27 @@
-import NextAuth, { type NextAuthConfig } from "next-auth"
+import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { db } from "@/db"
-import { config } from "@/config"
-import { logger } from "@/infra/logger"
+import { users, accounts, sessions, verificationTokens } from "@/db/schema"
+import { authConfig } from "./config"
 
-/* Next Auth v5 beta: the session callback union type (database vs JWT strategy) is
-   not narrowed automatically in TypeScript. We cast to the concrete database shape. */
-type DatabaseSessionParams = {
-  session: { user: { id?: string }; expires: string }
-  user: { id?: string; email?: string }
-}
-
-const authConfig: NextAuthConfig = {
-  adapter: DrizzleAdapter(db),
-  providers: [
-    Google({
-      clientId: config.googleClientId,
-      clientSecret: config.googleClientSecret,
-      authorization: {
-        params: {
-          scope: ["openid", "email", "profile"].join(" "),
-        },
-      },
-    }),
-  ],
-  session: { strategy: "database" },
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }),
+  session: { strategy: "jwt" },
   callbacks: {
-    session(ctx) {
-      const { session, user } = ctx as unknown as DatabaseSessionParams
-      if (user?.id) session.user.id = user.id ?? undefined
+    async jwt({ token, user }) {
+      if (user?.id) token.id = user.id
+      return token
+    },
+    async session({ session, token }) {
+      if (token?.id) session.user.id = token.id as string
       return session
     },
   },
-  events: {
-    signIn({ user }) {
-      logger.info({ userId: user.id, email: user.email }, "User signed in")
-    },
-    signOut() {
-      logger.info("User signed out")
-    },
-  },
-  pages: {
-    signIn: "/login",
-    error:  "/login",
-  },
-}
-
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
+})

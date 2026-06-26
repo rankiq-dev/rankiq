@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "worker": "tsx watch src/jobs/worker.ts",
+    "worker": "tsx watch --env-file=.env src/jobs/worker.ts",
     "lint": "next lint && tsc --noEmit",
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",

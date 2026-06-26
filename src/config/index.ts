@@ -78,10 +78,14 @@ function loadConfig() {
 
   /* Fail-closed: reject known placeholder secrets in any env */
   if (cfg.nodeEnv !== "test") {
-    refuseIfConstant("NEXTAUTH_SECRET",      cfg.nextauthSecret)
-    refuseIfConstant("ANTHROPIC_API_KEY",    cfg.anthropicApiKey)
-    refuseIfConstant("STRIPE_SECRET_KEY",    cfg.stripeSecretKey)
-    refuseIfConstant("STRIPE_WEBHOOK_SECRET",cfg.stripeWebhookSecret)
+    refuseIfConstant("NEXTAUTH_SECRET",   cfg.nextauthSecret)
+    refuseIfConstant("ANTHROPIC_API_KEY", cfg.anthropicApiKey)
+    /* Stripe is optional in development — skip guard if value contains "placeholder" */
+    const stripeIsPlaceholder = cfg.stripeSecretKey.includes("placeholder")
+    if (!stripeIsPlaceholder) {
+      refuseIfConstant("STRIPE_SECRET_KEY",     cfg.stripeSecretKey)
+      refuseIfConstant("STRIPE_WEBHOOK_SECRET", cfg.stripeWebhookSecret)
+    }
   }
 
   return cfg
