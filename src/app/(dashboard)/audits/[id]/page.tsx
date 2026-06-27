@@ -16,13 +16,18 @@ export const metadata: Metadata = { title: "Audit Results" }
 
 export default async function AuditPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ sev?: string; cat?: string }>
 }) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
   const { id } = await params
+  const sp = await searchParams
+  const sevFilter = sp.sev ?? null
+  const catFilter = sp.cat ?? null
   const audit = await getAuditById(id)
   if (!audit) notFound()
 
@@ -31,7 +36,7 @@ export default async function AuditPage({
 
   const [summary, issues] = await Promise.all([
     getHealthSummary(id),
-    getIssuesByAudit(id, { limit: 50 }),
+    getIssuesByAudit(id, { limit: 200 }),
   ])
 
   const pageAnalyses = (audit.pageAnalyses as PageAnalysis[] | null) ?? []
@@ -57,7 +62,7 @@ export default async function AuditPage({
             {audit.status === "complete" && <ShareButton auditId={id} initialToken={audit.shareToken ?? null} />}
             {audit.status === "complete" && (
               <>
-                <
+                <a
                   href={`/api/v1/audits/${id}/issues/csv`}
                   download
                   style={{
@@ -140,7 +145,7 @@ export default async function AuditPage({
         <RunningState status={audit.status} />
       ) : (
         <>
-          <IssuesSection issues={issues} />
+          <IssuesSection issues={issues} auditId={id} sevFilter={sevFilter} catFilter={catFilter} />
           {sortedPages.length > 0 && <PagesSection pages={sortedPages} />}
         </>
       )}
@@ -249,26 +254,55 @@ function RunningState({ status }: { status: string }) {
   )
 }
 
-function IssuesSection({ issues }: { issues: AuditIssue[] }) {
+function IssuesSection({ issues, auditId, sevFilter, catFilter }: { issues: AuditIssue[]; auditId: string; sevFilter: string | null; catFilter: string | null }) {
   if (issues.length === 0) return null
 
-  const critical = issues.filter(i => i.severity === "critical")
-  const warnings = issues.filter(i => i.severity === "warning")
-  const info = issues.filter(i => i.severity === "info")
+  const filtered = issues.filter(i =>
+    (!sevFilter || i.severity === sevFilter) &&
+    (!catFilter || i.category === catFilter)
+  )
+
+  const critical = filtered.filter(i => i.severity === "critical")
+  const warnings = filtered.filter(i => i.severity === "warning")
+  const info = filtered.filter(i => i.severity === "info")
+  const rest = filtered.filter(i => !["critical", "warning", "info"].includes(i.severity))
 
   const groups = [
     { label: "Critical", color: "var(--destructive)", bg: "var(--destructive-bg)", border: "oklch(0.65 0.20 27 / 0.3)", items: critical },
     { label: "Warning", color: "var(--warning)", bg: "var(--warning-bg)", border: "oklch(0.80 0.15 75 / 0.3)", items: warnings },
     { label: "Info", color: "var(--info)", bg: "var(--info-bg)", border: "oklch(0.70 0.12 230 / 0.3)", items: info },
+    { label: "Other", color: "var(--foreground-3)", bg: "oklch(0.18 0.008 230)", border: "var(--glass-border)", items: rest },
   ].filter(g => g.items.length > 0)
+
+  const severities = ["critical", "warning", "info"]
+  const categories = [...new Set(issues.map(i => i.category))]
 
   return (
     <section style={{ marginBottom: "36px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
         <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
           Issues Found
         </div>
-        <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{issues.length} total</div>
+        <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{filtered.length} of {issues.length}</div>
+      </div>
+      {/* Filter pills */}
+      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "14px" }}>
+        <Link href={`/audits/${auditId}`} style={{
+          padding: "3px 10px", borderRadius: "20px", fontSize: "10px", fontWeight: 700,
+          textDecoration: "none",
+          background: !sevFilter && !catFilter ? "var(--primary-soft)" : "transparent",
+          color: !sevFilter && !catFilter ? "var(--primary-2)" : "var(--foreground-3)",
+          border: !sevFilter && !catFilter ? "1px solid oklch(0.55 0.13 178 / 0.3)" : "1px solid var(--glass-border)",
+        }}>All</Link>
+        {severities.filter(s => issues.some(i => i.severity === s)).map(s => (
+          <Link key={s} href={`/audits/${auditId}?sev=${s}`} style={{
+            padding: "3px 10px", borderRadius: "20px", fontSize: "10px", fontWeight: 700,
+            textDecoration: "none", textTransform: "capitalize",
+            background: sevFilter === s ? "var(--primary-soft)" : "transparent",
+            color: sevFilter === s ? "var(--primary-2)" : "var(--foreground-3)",
+            border: sevFilter === s ? "1px solid oklch(0.55 0.13 178 / 0.3)" : "1px solid var(--glass-border)",
+          }}>{s}</Link>
+        ))}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {groups.map(group => group.items.map((issue) => (
