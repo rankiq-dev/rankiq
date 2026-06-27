@@ -10,9 +10,9 @@ export function BulkAuditButton({ siteCount }: { siteCount: number }) {
     setState("loading")
     try {
       const res = await fetch("/api/v1/agency/bulk-audit", { method: "POST" })
-      const data = await res.json() as { queued?: number }
+      const data = await res.json() as { data?: { triggered?: number } }
       if (res.ok) {
-        setCount(data.queued ?? 0)
+        setCount(data.data?.triggered ?? 0)
         setState("done")
         setTimeout(() => setState("idle"), 4000)
       } else {
