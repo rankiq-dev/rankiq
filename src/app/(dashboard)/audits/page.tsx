@@ -8,9 +8,15 @@ import type { Metadata } from "next"
 
 export const metadata: Metadata = { title: "Audit History" }
 
-export default async function AuditsListPage() {
+export default async function AuditsListPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; site?: string }>
+}) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
+
+  const { status: statusFilter, site: siteFilter } = await searchParams
 
   const sites = await getSitesByUser(session.user.id)
 
@@ -25,7 +31,19 @@ export default async function AuditsListPage() {
   const allAudits = auditsBySite
     .flat()
     .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
-    .slice(0, 100)
+    .slice(0, 200)
+
+  const filtered = allAudits.filter(a =>
+    (!statusFilter || a.status === statusFilter) &&
+    (!siteFilter || a.site.id === siteFilter)
+  )
+
+  const statusCounts = {
+    complete: allAudits.filter(a => a.status === "complete").length,
+    running: allAudits.filter(a => a.status === "running").length,
+    queued: allAudits.filter(a => a.status === "queued").length,
+    failed: allAudits.filter(a => a.status === "failed").length,
+  }
 
   const statusColor = (s: string) => {
     if (s === "complete") return "var(--success)"
@@ -51,7 +69,7 @@ export default async function AuditsListPage() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
         <div>
           <h1 style={{ fontSize: "26px", fontWeight: 800, color: "var(--foreground)", letterSpacing: "-0.5px", marginBottom: "4px" }}>Audit History</h1>
-          <p style={{ fontSize: "13px", color: "var(--foreground-2)" }}>{allAudits.length} audits across {sites.length} site{sites.length !== 1 ? "s" : ""}</p>
+          <p style={{ fontSize: "13px", color: "var(--foreground-2)" }}>{filtered.length} of {allAudits.length} audits across {sites.length} site{sites.length !== 1 ? "s" : ""}</p>
         </div>
         <Link href="/sites/new" style={{
           padding: "9px 18px", fontSize: "13px", fontWeight: 700,
@@ -60,6 +78,30 @@ export default async function AuditsListPage() {
           textDecoration: "none", boxShadow: "var(--shadow-glow)",
         }}>+ New Audit</Link>
       </div>
+
+      {/* Filter pills */}
+      {allAudits.length > 0 && (
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
+          {[
+            { label: "All", value: null },
+            { label: `Complete (${statusCounts.complete})`, value: "complete" },
+            ...(statusCounts.running > 0 ? [{ label: `Running (${statusCounts.running})`, value: "running" }] : []),
+            ...(statusCounts.queued > 0 ? [{ label: `Queued (${statusCounts.queued})`, value: "queued" }] : []),
+            ...(statusCounts.failed > 0 ? [{ label: `Failed (${statusCounts.failed})`, value: "failed" }] : []),
+          ].map(pill => {
+            const active = pill.value === (statusFilter ?? null)
+            return (
+              <Link key={pill.label} href={pill.value ? `/audits?status=${pill.value}` : "/audits"} style={{
+                padding: "4px 12px", borderRadius: "20px", fontSize: "10px", fontWeight: 700,
+                textDecoration: "none", textTransform: "capitalize",
+                background: active ? "var(--primary-soft)" : "transparent",
+                color: active ? "var(--primary-2)" : "var(--foreground-3)",
+                border: active ? "1px solid oklch(0.55 0.13 178 / 0.3)" : "1px solid var(--glass-border)",
+              }}>{pill.label}</Link>
+            )
+          })}
+        </div>
+      )}
 
       {allAudits.length === 0 ? (
         <div style={{
@@ -95,8 +137,8 @@ export default async function AuditsListPage() {
               </tr>
             </thead>
             <tbody>
-              {allAudits.map((audit, i) => (
-                <tr key={audit.id} style={{ borderBottom: i < allAudits.length - 1 ? "1px solid oklch(0.98 0 0 / 0.04)" : "none" }}>
+              {filtered.map((audit, i) => (
+                <tr key={audit.id} style={{ borderBottom: i < filtered.length - 1 ? "1px solid oklch(0.98 0 0 / 0.04)" : "none" }}>
                   <td style={{ padding: "12px 20px" }}>
                     <Link href={`/sites/${audit.site.id}`} style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)", textDecoration: "none" }}>
                       {audit.site.domain}
