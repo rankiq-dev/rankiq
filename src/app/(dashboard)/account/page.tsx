@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { PLAN_LIMITS } from "@/lib/constants"
+import { NotificationSettings } from "./NotificationSettings"
 
 export const metadata: Metadata = { title: "Account" }
 
@@ -138,7 +139,13 @@ export default async function AccountPage() {
         border: "1px solid oklch(0.65 0.20 27 / 0.2)", borderRadius: "var(--radius-xl)",
         padding: "20px 28px",
       }}>
-        <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>
+        <NotificationSettings
+          notifyAuditComplete={user.notifyAuditComplete ?? true}
+          notifyWeeklyDigest={user.notifyWeeklyDigest ?? true}
+          notifyCriticalOnly={user.notifyCriticalOnly ?? false}
+        />
+
+        <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px", marginTop: "32px" }}>
           Sign Out
         </div>
         <p style={{ fontSize: "12px", color: "var(--foreground-3)", marginBottom: "14px", lineHeight: 1.6 }}>

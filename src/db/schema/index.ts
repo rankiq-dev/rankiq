@@ -67,6 +67,11 @@ export const users = pgTable("users", {
   /* Unix epoch seconds — mirrors Stripe's representation to avoid TZ drift */
   stripeCurrentPeriodEnd: integer("stripe_current_period_end_unix"),
 
+  /* Notification preferences */
+  notifyAuditComplete:  boolean("notify_audit_complete").default(true).notNull(),
+  notifyWeeklyDigest:   boolean("notify_weekly_digest").default(true).notNull(),
+  notifyCriticalOnly:   boolean("notify_critical_only").default(false).notNull(),
+
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 })
