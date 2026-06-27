@@ -16,11 +16,13 @@ interface Props {
   siteId: string
   auditSchedule: string
   maxPages: number
+  clientLabel: string | null
 }
 
-export function SiteSettingsPanel({ siteId, auditSchedule, maxPages }: Props) {
+export function SiteSettingsPanel({ siteId, auditSchedule, maxPages, clientLabel }: Props) {
   const [schedule, setSchedule] = useState(auditSchedule)
   const [pages, setPages] = useState(maxPages)
+  const [label, setLabel] = useState(clientLabel ?? "")
   const [saving, setSaving] = useState(false)
   const [changed, setChanged] = useState(false)
   const { toast } = useOptionalToast()
@@ -28,6 +30,7 @@ export function SiteSettingsPanel({ siteId, auditSchedule, maxPages }: Props) {
 
   function onSchedule(v: string) { setSchedule(v); setChanged(true) }
   function onPages(v: number) { setPages(v); setChanged(true) }
+  function onLabel(v: string) { setLabel(v); setChanged(true) }
 
   async function save() {
     setSaving(true)
@@ -35,7 +38,7 @@ export function SiteSettingsPanel({ siteId, auditSchedule, maxPages }: Props) {
       const res = await fetch(`/api/v1/sites/${siteId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ auditSchedule: schedule, maxPages: pages }),
+        body: JSON.stringify({ auditSchedule: schedule, maxPages: pages, clientLabel: label.trim() || null }),
       })
       if (res.ok) {
         toast("Settings saved", "success")
@@ -91,6 +94,24 @@ export function SiteSettingsPanel({ siteId, auditSchedule, maxPages }: Props) {
         <div style={{ fontSize: "11px", color: "var(--foreground-3)", marginTop: "6px" }}>
           Crawl up to {pages} pages per run
         </div>
+      </div>
+
+      <div style={{ marginBottom: "20px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--foreground-3)", marginBottom: "8px" }}>
+          Client label <span style={{ fontWeight: 400, textTransform: "none" }}>(agency)</span>
+        </div>
+        <input
+          value={label}
+          onChange={e => onLabel(e.target.value)}
+          placeholder="e.g. Acme Corp"
+          style={{
+            width: "100%", padding: "8px 12px", fontSize: "12px",
+            background: "oklch(0.14 0.006 230)", border: "1px solid var(--glass-border)",
+            borderRadius: "var(--radius-md)", color: "var(--foreground)",
+            fontFamily: "var(--font-sans), sans-serif", outline: "none", boxSizing: "border-box",
+          }}
+        />
+        <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "4px" }}>Tag this site to group clients in the agency view</div>
       </div>
 
       {changed && (

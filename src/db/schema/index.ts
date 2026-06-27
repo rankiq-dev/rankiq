@@ -120,6 +120,8 @@ export const sites = pgTable(
     gscConnected:    boolean("gsc_connected").default(false).notNull(),
     /* Sensitive — GSC OAuth refresh token; redacted in logs */
     gscRefreshToken: text("gsc_refresh_token"),
+    /* Client label for agency users — e.g. "Client: Acme Corp" */
+    clientLabel:    text("client_label"),
     /* Audit schedule: "off" | "weekly" | "biweekly" | "monthly" */
     auditSchedule:  text("audit_schedule").default("weekly").notNull(),
     /* Max pages to crawl per audit */

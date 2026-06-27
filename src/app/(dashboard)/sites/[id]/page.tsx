@@ -283,6 +283,7 @@ export default async function SitePage({
           siteId={id}
           auditSchedule={site.auditSchedule ?? "weekly"}
           maxPages={site.maxPages ?? 200}
+          clientLabel={site.clientLabel ?? null}
         />
       </div>
     </div>
