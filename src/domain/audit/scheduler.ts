@@ -1,9 +1,11 @@
 import { createQueue, QUEUE_NAMES } from "@/infra/queue"
 import { db } from "@/db"
 import { sites, users } from "@/db/schema"
-import { eq } from "drizzle-orm"
+import { eq, inArray } from "drizzle-orm"
 import { triggerAudit } from "./service"
 import { logger } from "@/infra/logger"
+
+const emailQueue = createQueue<{ type: string; userId: string }>(QUEUE_NAMES.EMAIL)
 
 const scheduledQueue = createQueue<Record<string, never>>(QUEUE_NAMES.SCHEDULED_AUDIT)
 
@@ -74,4 +76,17 @@ export async function runScheduledAudits() {
   }
 
   logger.info({ success, failed, total: allToAudit.length }, "Scheduled audit run complete")
+
+  /* Queue weekly digest emails for all users who had sites audited */
+  const userIds = [...new Set(allToAudit.map(s => s.userId))]
+  if (userIds.length > 0) {
+    const eligibleUsers = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(inArray(users.id, userIds))
+    await Promise.all(eligibleUsers.map(u =>
+      emailQueue.add("weekly-digest", { type: "weekly_digest", userId: u.id }, { delay: 5 * 60 * 1000 /* 5min delay so audits can complete */ })
+    ))
+    logger.info({ count: eligibleUsers.length }, "Queued weekly digest emails")
+  }
 }
