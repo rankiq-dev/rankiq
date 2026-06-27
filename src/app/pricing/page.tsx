@@ -4,7 +4,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { PLAN_LIMITS } from "@/lib/constants"
 
-export const metadata: Metadata = { title: "Pricing" }
+export const metadata: Metadata = { title: "Pricing — RankIQ" }
 
 const PLANS = [
   {
@@ -19,9 +19,11 @@ const PLANS = [
       `${PLAN_LIMITS.starter.sites} site`,
       `${PLAN_LIMITS.starter.pagesPerCrawl} pages per crawl`,
       `${PLAN_LIMITS.starter.auditsPerMonth} audits / month`,
-      "Technical SEO audit",
+      "Full technical SEO audit",
       "On-page analysis",
       "AI action plan",
+      "PDF report export",
+      "Competitor analysis",
     ],
   },
   {
@@ -32,13 +34,14 @@ const PLANS = [
     cta: "Upgrade to Growth",
     highlight: true,
     features: [
-      `${PLAN_LIMITS.growth.sites} sites`,
+      `Up to ${PLAN_LIMITS.growth.sites} sites`,
       `${PLAN_LIMITS.growth.pagesPerCrawl} pages per crawl`,
       `${PLAN_LIMITS.growth.auditsPerMonth} audits / month`,
       "Everything in Starter",
       "Google Search Console integration",
-      "Weekly email reports",
-      "Progress tracking",
+      "Keyword position tracking",
+      "Weekly auto-audits",
+      "Position change tracking",
     ],
   },
   {
@@ -49,219 +52,250 @@ const PLANS = [
     cta: "Upgrade to Agency",
     highlight: false,
     features: [
-      `${PLAN_LIMITS.agency.sites} sites`,
+      `Up to ${PLAN_LIMITS.agency.sites} sites`,
       `${PLAN_LIMITS.agency.pagesPerCrawl} pages per crawl`,
       `${PLAN_LIMITS.agency.auditsPerMonth} audits / month`,
       "Everything in Growth",
+      "Agency portfolio dashboard",
+      "Bulk audit triggers",
       "Priority support",
-      "Custom branding (coming soon)",
+      "White-label reports (coming soon)",
     ],
   },
 ] as const
+
+const FAQ = [
+  { q: "Can I cancel anytime?", a: "Yes — cancel your subscription at any time. You keep access until the end of your billing period." },
+  { q: "What happens to my data if I downgrade?", a: "Your audits and sites are preserved. You just lose access to features above your plan tier." },
+  { q: "Do you support JavaScript-rendered sites?", a: "Yes. RankIQ automatically falls back to a Playwright-powered headless browser if the standard crawler returns 0 pages." },
+  { q: "How does Google Search Console integration work?", a: "You connect your GSC account from the site settings page. RankIQ imports your top 25 keywords and tracks position changes weekly." },
+]
 
 export default async function PricingPage() {
   const session = await auth()
   const isLoggedIn = !!session?.user
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "oklch(0.10 0.008 230)",
-        padding: "60px 24px 80px",
-        fontFamily: "var(--font-sans), sans-serif",
-      }}
-    >
-      <div
-        aria-hidden
-        style={{
-          position: "fixed",
-          inset: 0,
-          pointerEvents: "none",
-          background:
-            "radial-gradient(ellipse 80% 50% at 50% -10%, oklch(0.55 0.13 178 / 0.10), transparent)",
-        }}
-      />
+    <main style={{
+      minHeight: "100vh",
+      background: "oklch(0.08 0.010 230)",
+      fontFamily: "var(--font-sans), sans-serif",
+      position: "relative",
+    }}>
+      {/* Backgrounds */}
+      <div aria-hidden style={{
+        position: "fixed", inset: 0, pointerEvents: "none",
+        background: "radial-gradient(ellipse 80% 50% at 50% -10%, oklch(0.55 0.13 178 / 0.12), transparent)",
+      }} />
 
-      <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "56px" }}>
-          <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: "8px", textDecoration: "none", marginBottom: "32px" }}>
-            <div style={{ width: "28px", height: "28px", borderRadius: "6px", background: "linear-gradient(135deg, oklch(0.55 0.13 178), oklch(0.65 0.13 196))" }} />
-            <span style={{ fontSize: "18px", fontWeight: 800, background: "linear-gradient(135deg, oklch(0.75 0.13 178), oklch(0.80 0.13 196))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.4px" }}>RankIQ</span>
+      {/* Navbar */}
+      <nav style={{
+        position: "sticky", top: 0, zIndex: 50,
+        borderBottom: "1px solid oklch(0.98 0 0 / 0.06)",
+        background: "oklch(0.08 0.010 230 / 0.85)", backdropFilter: "blur(20px)",
+        padding: "0 40px",
+      }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: "56px" }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: "9px", textDecoration: "none" }}>
+            <div style={{
+              width: "27px", height: "27px", borderRadius: "7px",
+              background: "linear-gradient(135deg, oklch(0.55 0.13 178), oklch(0.65 0.13 196))",
+              boxShadow: "0 0 12px oklch(0.55 0.13 178 / 0.4)",
+            }} />
+            <span style={{
+              fontSize: "17px", fontWeight: 800,
+              background: "linear-gradient(135deg, oklch(0.82 0.13 178), oklch(0.88 0.13 196))",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              letterSpacing: "-0.4px",
+            }}>RankIQ</span>
           </Link>
-          <h1
-            style={{
-              fontSize: "40px",
-              fontWeight: 800,
-              color: "oklch(0.92 0.008 230)",
-              letterSpacing: "-1px",
-              lineHeight: 1.1,
-              marginBottom: "16px",
-            }}
-          >
-            Simple, transparent pricing
+          <Link href={isLoggedIn ? "/dashboard" : "/login"} style={{
+            padding: "7px 16px", fontSize: "13px", fontWeight: 700,
+            background: "linear-gradient(135deg, oklch(0.55 0.13 178), oklch(0.65 0.13 196))",
+            color: "white", borderRadius: "8px", textDecoration: "none",
+            boxShadow: "0 0 14px oklch(0.55 0.13 178 / 0.3)",
+          }}>
+            {isLoggedIn ? "Dashboard" : "Sign in →"}
+          </Link>
+        </div>
+      </nav>
+
+      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "72px 24px 80px" }}>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: "60px" }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: "6px",
+            padding: "4px 14px", borderRadius: "20px", marginBottom: "20px",
+            background: "oklch(0.55 0.13 178 / 0.10)", border: "1px solid oklch(0.55 0.13 178 / 0.25)",
+            fontSize: "11px", fontWeight: 700, color: "oklch(0.75 0.13 196)", letterSpacing: "0.08em",
+            textTransform: "uppercase",
+          }}>
+            Transparent Pricing
+          </div>
+          <h1 style={{
+            fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 900,
+            letterSpacing: "-1.5px", lineHeight: 1.1, marginBottom: "18px",
+            background: "linear-gradient(135deg, oklch(0.95 0.005 230) 0%, oklch(0.75 0.13 196) 100%)",
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+          }}>
+            Simple plans. No surprises.
           </h1>
-          <p style={{ fontSize: "16px", color: "oklch(0.65 0.008 230)", maxWidth: "480px", margin: "0 auto", lineHeight: 1.6 }}>
-            Pick the plan that fits your business. Upgrade or cancel any time.
+          <p style={{ fontSize: "16px", color: "oklch(0.55 0.008 230)", maxWidth: "500px", margin: "0 auto", lineHeight: 1.7 }}>
+            Start free. Upgrade when you need more. Cancel any time — no contracts.
           </p>
         </div>
 
         {/* Plans grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px", alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(295px, 1fr))", gap: "16px", alignItems: "stretch", marginBottom: "80px" }}>
           {PLANS.map((plan) => (
             <PlanCard key={plan.id} plan={plan} isLoggedIn={isLoggedIn} />
           ))}
+        </div>
+
+        {/* FAQ */}
+        <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+          <h2 style={{ fontSize: "24px", fontWeight: 800, color: "oklch(0.92 0.008 230)", letterSpacing: "-0.5px", marginBottom: "32px", textAlign: "center" }}>
+            Common questions
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {FAQ.map(({ q, a }) => (
+              <div key={q} style={{
+                background: "oklch(0.11 0.008 230 / 0.8)", backdropFilter: "blur(16px)",
+                border: "1px solid oklch(0.98 0 0 / 0.06)", borderRadius: "12px",
+                padding: "20px 24px",
+              }}>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: "oklch(0.88 0.008 230)", marginBottom: "8px" }}>{q}</div>
+                <div style={{ fontSize: "13px", color: "oklch(0.55 0.008 230)", lineHeight: 1.7 }}>{a}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </main>
   )
 }
 
-function PlanCard({
-  plan,
-  isLoggedIn,
-}: {
-  plan: (typeof PLANS)[number]
-  isLoggedIn: boolean
-}) {
-  const glowBorder = plan.highlight
-    ? "1px solid oklch(0.55 0.13 178 / 0.5)"
-    : "1px solid oklch(0.98 0 0 / 0.06)"
-
+function PlanCard({ plan, isLoggedIn }: { plan: (typeof PLANS)[number]; isLoggedIn: boolean }) {
   return (
-    <div
-      style={{
-        background: plan.highlight ? "oklch(0.13 0.010 195 / 0.70)" : "oklch(0.12 0.008 230 / 0.60)",
-        backdropFilter: "blur(20px) saturate(1.4)",
-        border: glowBorder,
-        borderRadius: "14px",
-        padding: "28px",
-        boxShadow: plan.highlight
-          ? "0 0 0 1px oklch(0.55 0.13 178 / 0.2), 0 0 32px oklch(0.55 0.13 178 / 0.12), 0 8px 24px oklch(0 0 0 / 0.4)"
-          : "0 0 0 1px oklch(0.98 0 0 / 0.06), 0 8px 24px oklch(0 0 0 / 0.4)",
-        position: "relative",
-      }}
-    >
+    <div style={{
+      background: plan.highlight ? "oklch(0.13 0.012 195 / 0.85)" : "oklch(0.11 0.008 230 / 0.80)",
+      backdropFilter: "blur(20px)",
+      border: plan.highlight ? "1px solid oklch(0.55 0.13 178 / 0.5)" : "1px solid oklch(0.98 0 0 / 0.07)",
+      borderRadius: "16px",
+      padding: "0",
+      boxShadow: plan.highlight
+        ? "0 0 0 1px oklch(0.55 0.13 178 / 0.15), 0 0 40px oklch(0.55 0.13 178 / 0.1), 0 16px 32px oklch(0 0 0 / 0.4)"
+        : "0 0 0 1px oklch(0.98 0 0 / 0.06), 0 8px 24px oklch(0 0 0 / 0.3)",
+      position: "relative", overflow: "hidden",
+      display: "flex", flexDirection: "column",
+    }}>
+      {/* Top accent */}
       {plan.highlight && (
-        <div
-          style={{
-            position: "absolute",
-            top: "-1px",
-            left: "50%",
-            transform: "translateX(-50%)",
+        <div style={{
+          height: "2px",
+          background: "linear-gradient(90deg, oklch(0.55 0.13 178), oklch(0.75 0.13 196), oklch(0.55 0.13 178))",
+        }} />
+      )}
+
+      <div style={{ padding: "28px 28px 24px", flex: 1, display: "flex", flexDirection: "column" }}>
+        {plan.highlight && (
+          <div style={{
+            alignSelf: "flex-start",
             padding: "3px 10px",
-            background: "linear-gradient(135deg, oklch(0.55 0.13 178), oklch(0.65 0.13 196))",
-            borderRadius: "0 0 8px 8px",
-            fontSize: "10px",
-            fontWeight: 700,
-            color: "oklch(0.98 0.005 230)",
-            textTransform: "uppercase",
-            letterSpacing: "0.1em",
-          }}
-        >
-          Most popular
-        </div>
-      )}
+            background: "linear-gradient(135deg, oklch(0.55 0.13 178 / 0.3), oklch(0.65 0.13 196 / 0.3))",
+            border: "1px solid oklch(0.65 0.13 196 / 0.4)",
+            borderRadius: "20px",
+            fontSize: "10px", fontWeight: 700, color: "oklch(0.75 0.13 196)",
+            textTransform: "uppercase", letterSpacing: "0.1em",
+            marginBottom: "16px",
+          }}>Most popular</div>
+        )}
 
-      <div style={{ marginBottom: "20px" }}>
-        <div style={{ fontSize: "13px", fontWeight: 700, color: "oklch(0.65 0.13 178)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>
-          {plan.name}
+        <div style={{ marginBottom: "24px" }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "10px" }}>
+            {plan.name}
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "4px", marginBottom: "10px" }}>
+            <span style={{
+              fontSize: "40px", fontWeight: 900, letterSpacing: "-1.5px",
+              fontFamily: "var(--font-mono)",
+              color: plan.highlight ? "oklch(0.92 0.008 230)" : "oklch(0.85 0.008 230)",
+            }}>
+              {plan.price === 0 ? "Free" : `$${plan.price}`}
+            </span>
+            {plan.price > 0 && <span style={{ fontSize: "13px", color: "oklch(0.38 0.008 230)", marginBottom: "4px" }}>/mo</span>}
+          </div>
+          <p style={{ fontSize: "12px", color: "oklch(0.50 0.008 230)", lineHeight: 1.6 }}>
+            {plan.description}
+          </p>
         </div>
-        <div style={{ display: "flex", alignItems: "baseline", gap: "4px", marginBottom: "8px" }}>
-          <span style={{ fontSize: "36px", fontWeight: 800, color: "oklch(0.92 0.008 230)", letterSpacing: "-1px", fontFamily: "var(--font-mono)" }}>
-            {plan.price === 0 ? "Free" : `$${plan.price}`}
-          </span>
-          {plan.price > 0 && <span style={{ fontSize: "13px", color: "oklch(0.38 0.008 230)" }}>/mo</span>}
-        </div>
-        <p style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)", lineHeight: 1.5 }}>
-          {plan.description}
-        </p>
-      </div>
 
-      {/* CTA */}
-      {plan.id === "starter" ? (
-        <Link
-          href={isLoggedIn ? "/dashboard" : "/login"}
-          style={{
-            display: "block",
-            textAlign: "center",
-            padding: "10px",
-            background: "oklch(0.22 0.006 230)",
-            color: "oklch(0.92 0.008 230)",
-            borderRadius: "8px",
-            fontSize: "13px",
-            fontWeight: 700,
-            textDecoration: "none",
-            marginBottom: "20px",
-          }}
-        >
-          {isLoggedIn ? "Current plan" : plan.cta}
-        </Link>
-      ) : (
-        <form action={`/api/v1/billing/checkout`} method="post" style={{ marginBottom: "20px" }}>
-          <input type="hidden" name="plan" value={plan.id} />
-          {isLoggedIn ? (
-            <CheckoutButton plan={plan.id} label={plan.cta} highlight={plan.highlight} />
-          ) : (
-            <Link
-              href="/login"
-              style={{
-                display: "block",
-                textAlign: "center",
-                padding: "10px",
-                background: plan.highlight
-                  ? "linear-gradient(135deg, oklch(0.55 0.13 178), oklch(0.65 0.13 196))"
-                  : "oklch(0.22 0.006 230)",
-                color: "oklch(0.98 0.005 230)",
-                borderRadius: "8px",
-                fontSize: "13px",
-                fontWeight: 700,
-                textDecoration: "none",
-              }}
-            >
-              {plan.cta}
+        {/* CTA */}
+        <div style={{ marginBottom: "24px" }}>
+          {plan.id === "starter" ? (
+            <Link href={isLoggedIn ? "/dashboard" : "/login"} style={{
+              display: "block", textAlign: "center",
+              padding: "11px", background: "oklch(0.20 0.006 230)",
+              color: "oklch(0.82 0.008 230)", borderRadius: "10px",
+              fontSize: "13px", fontWeight: 700, textDecoration: "none",
+              border: "1px solid oklch(0.98 0 0 / 0.08)",
+            }}>
+              {isLoggedIn ? "Your current plan" : plan.cta}
             </Link>
+          ) : (
+            <>
+              {isLoggedIn ? (
+                <CheckoutButton planId={plan.id} label={plan.cta} highlight={plan.highlight} />
+              ) : (
+                <Link href="/login" style={{
+                  display: "block", textAlign: "center",
+                  padding: "11px",
+                  background: plan.highlight
+                    ? "linear-gradient(135deg, oklch(0.55 0.13 178), oklch(0.65 0.13 196))"
+                    : "oklch(0.20 0.006 230)",
+                  color: "oklch(0.98 0.005 230)",
+                  borderRadius: "10px", fontSize: "13px", fontWeight: 700, textDecoration: "none",
+                  boxShadow: plan.highlight ? "0 0 20px oklch(0.55 0.13 178 / 0.35)" : "none",
+                  border: plan.highlight ? "none" : "1px solid oklch(0.98 0 0 / 0.08)",
+                }}>
+                  {plan.cta}
+                </Link>
+              )}
+            </>
           )}
-        </form>
-      )}
+        </div>
 
-      {/* Features */}
-      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
-        {plan.features.map((f) => (
-          <li key={f} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "oklch(0.65 0.008 230)" }}>
-            <span style={{ color: "oklch(0.65 0.13 178)", fontSize: "11px" }}>✓</span>
-            {f}
-          </li>
-        ))}
-      </ul>
+        {/* Features */}
+        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "9px" }}>
+          {plan.features.map((f) => (
+            <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "9px", fontSize: "12px", color: "oklch(0.62 0.008 230)" }}>
+              <span style={{ color: "var(--success)", fontSize: "11px", marginTop: "1px", flexShrink: 0 }}>✓</span>
+              {f}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   )
 }
 
-function CheckoutButton({ plan: _plan, label, highlight }: { plan: string; label: string; highlight: boolean }) {
+function CheckoutButton({ planId, label, highlight }: { planId: string; label: string; highlight: boolean }) {
   return (
-    <button
-      type="submit"
-      formAction={async () => {
-        "use server"
-      }}
-      style={{
-        width: "100%",
-        padding: "10px",
+    <form action="/api/v1/billing/checkout" method="post">
+      <input type="hidden" name="plan" value={planId} />
+      <button type="submit" style={{
+        width: "100%", padding: "11px",
         background: highlight
           ? "linear-gradient(135deg, oklch(0.55 0.13 178), oklch(0.65 0.13 196))"
-          : "oklch(0.22 0.006 230)",
+          : "oklch(0.20 0.006 230)",
         color: "oklch(0.98 0.005 230)",
-        border: "none",
-        borderRadius: "8px",
-        fontSize: "13px",
-        fontWeight: 700,
-        cursor: "pointer",
+        border: highlight ? "none" : "1px solid oklch(0.98 0 0 / 0.08)",
+        borderRadius: "10px", fontSize: "13px", fontWeight: 700, cursor: "pointer",
         fontFamily: "var(--font-sans), sans-serif",
-      }}
-    >
-      {label}
-    </button>
+        boxShadow: highlight ? "0 0 20px oklch(0.55 0.13 178 / 0.35)" : "none",
+      }}>
+        {label}
+      </button>
+    </form>
   )
 }

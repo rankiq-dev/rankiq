@@ -60,6 +60,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <NavItem href="/compete" label="Competitor" icon={
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 12V5l5-3 5 3v7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.8"/><rect x="5.5" y="8" width="4" height="4" rx="1" fill="currentColor" opacity="0.5"/><path d="M2 8h3M10 8h3" stroke="currentColor" strokeWidth="1" opacity="0.5"/></svg>
           } />
+          <NavItem href="/account" label="Account" icon={
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.2" opacity="0.8"/><path d="M2.5 13c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.8"/></svg>
+          } />
           <div style={{ margin: "8px 0", borderTop: "1px solid var(--glass-border)" }} />
           <NavItem href="/pricing" label="Upgrade" icon={
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1L9.5 5.5H14L10.5 8.5L12 13L7.5 10.5L3 13L4.5 8.5L1 5.5H5.5L7.5 1Z" fill="currentColor" opacity="0.8"/></svg>
