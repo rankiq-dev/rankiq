@@ -11,6 +11,7 @@ import { AnimatedScoreRing } from "@/components/ui/AnimatedScoreRing"
 import { AuditPoller } from "./AuditPoller"
 import { RerunButton } from "./RerunButton"
 import { ShareButton } from "./ShareButton"
+import { ExpandableIssue } from "./ExpandableIssue"
 
 export const metadata: Metadata = { title: "Audit Results" }
 
@@ -352,35 +353,19 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter }: { issues: Audi
           }}>{s}</Link>
         ))}
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
         {groups.map(group => group.items.map((issue) => (
-          <div key={issue.id} style={{
-            background: "var(--glass-bg)", backdropFilter: "blur(20px)",
-            border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
-            padding: "14px 18px",
-            display: "flex", alignItems: "flex-start", gap: "12px",
-            borderLeft: `3px solid ${group.color}`,
-          }}>
-            <span style={{
-              padding: "2px 8px", background: group.bg, color: group.color,
-              border: `1px solid ${group.border}`,
-              borderRadius: "4px", fontSize: "9px", fontWeight: 700,
-              textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0, marginTop: "2px",
-            }}>{issue.severity}</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--foreground)", marginBottom: "3px" }}>
-                {issue.title}
-              </div>
-              <div style={{ fontSize: "12px", color: "var(--foreground-2)", lineHeight: 1.55 }}>
-                {issue.description}
-              </div>
-              {issue.affectedCount > 0 && (
-                <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "5px" }}>
-                  {issue.affectedCount} page{issue.affectedCount !== 1 ? "s" : ""} affected · {issue.category.replace(/_/g, " ")}
-                </div>
-              )}
-            </div>
-          </div>
+          <ExpandableIssue
+            key={issue.id}
+            title={issue.title}
+            description={issue.description}
+            severity={issue.severity}
+            category={issue.category}
+            affectedCount={issue.affectedCount}
+            affectedUrls={(issue.affectedUrls as string[] | null) ?? undefined}
+            fixInstructions={issue.fixInstructions}
+            isFixed={issue.isFixed}
+          />
         )))}
       </div>
     </section>
