@@ -18,12 +18,31 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "RankIQ — SEO Co-pilot for Business Owners",
+    default: "RankIQ — AI-Powered SEO Co-pilot",
     template: "%s | RankIQ",
   },
   description:
-    "RankIQ unifies all 6 SEO disciplines under one roof and uses AI to turn your site issues into a prioritised weekly action plan — so you fix the right things without hiring an agency.",
+    "RankIQ crawls your site, identifies critical SEO issues across 6 disciplines, and generates an AI action plan ranked by revenue impact — in minutes.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  openGraph: {
+    type: "website",
+    siteName: "RankIQ",
+    title: "RankIQ — AI-Powered SEO Co-pilot",
+    description: "Full SEO audit + AI action plan in under 5 minutes. Free to start.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "RankIQ" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RankIQ — AI-Powered SEO Co-pilot",
+    description: "Full SEO audit + AI action plan in under 5 minutes.",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+    ],
+  },
+  keywords: ["SEO audit", "AI SEO", "technical SEO", "SEO co-pilot", "keyword tracking", "search console", "SEO tool"],
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
