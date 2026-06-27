@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Syne, JetBrains_Mono } from "next/font/google"
+import { cookies } from "next/headers"
 import "./globals.css"
 
 const syne = Syne({
@@ -45,9 +46,11 @@ export const metadata: Metadata = {
   keywords: ["SEO audit", "AI SEO", "technical SEO", "SEO co-pilot", "keyword tracking", "search console", "SEO tool"],
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const theme = cookieStore.get("rankiq_theme")?.value === "light" ? "light" : "dark"
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-theme={theme}>
       <body className={`${syne.variable} ${jetbrainsMono.variable}`}>
         {children}
       </body>
