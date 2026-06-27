@@ -267,16 +267,38 @@ function ActionCard({ issue, rank }: { issue: AuditIssue; rank: number }) {
           </div>
         )}
 
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "11px", color: "var(--foreground-3)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "11px", color: "var(--foreground-3)", marginBottom: "8px" }}>
           <span>{issue.affectedCount} page{issue.affectedCount !== 1 ? "s" : ""} affected</span>
           <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "var(--border-strong)", display: "inline-block" }} />
           <span>{issue.category.replace(/_/g, " ")}</span>
-          {(issue.affectedUrls as string[] | null)?.slice(0, 1).map(url => (
-            <span key={url} style={{ fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "200px" }}>
-              {url}
-            </span>
-          ))}
+          {issue.revenueImpactRank != null && (
+            <>
+              <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "var(--border-strong)", display: "inline-block" }} />
+              <span style={{ color: "var(--primary-2)" }}>Revenue impact #{issue.revenueImpactRank}</span>
+            </>
+          )}
         </div>
+        {(issue.affectedUrls as string[] | null) && (issue.affectedUrls as string[]).length > 0 && (
+          <div style={{ marginTop: "4px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "4px" }}>
+              Affected URLs
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              {(issue.affectedUrls as string[]).slice(0, 5).map(url => (
+                <a key={url} href={url} target="_blank" rel="noopener noreferrer" style={{
+                  fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--primary-2)",
+                  textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  maxWidth: "100%", display: "block",
+                }}>{url}</a>
+              ))}
+              {(issue.affectedUrls as string[]).length > 5 && (
+                <span style={{ fontSize: "10px", color: "var(--foreground-3)" }}>
+                  +{(issue.affectedUrls as string[]).length - 5} more…
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
