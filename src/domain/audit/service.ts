@@ -59,6 +59,16 @@ export async function processCrawlJob(data: {
   try {
     const result = await crawlSite(domain, { maxPages, timeoutMs: CRAWL_TIMEOUT_MS })
 
+    if (result.pages.length === 0) {
+      await updateAuditStatus(auditId, {
+        status: "failed",
+        errorMessage: "No pages could be crawled. The site may be blocking crawlers, require JavaScript rendering, or be unreachable.",
+        completedAt: new Date(),
+      })
+      logger.warn({ auditId, domain }, "Crawl returned 0 pages — marking as failed")
+      return
+    }
+
     const issues = analyzePages(auditId, result)
     const healthScore = computeHealthScore(issues)
     const pageAnalyses = buildPageAnalyses(result.pages, issues)
