@@ -257,6 +257,14 @@ function SiteGrid({ sites, latestAudits }: { sites: Site[]; latestAudits: (Audit
               </div>
             )}
 
+            {audit?.status === "complete" && (
+              <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+                <span style={{ fontSize: "10px", color: "var(--foreground-3)" }}>
+                  {audit.completedAt ? new Date(audit.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
+                </span>
+              </div>
+            )}
+
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{statusText}</div>
               <div style={{ display: "flex", gap: "6px" }}>
