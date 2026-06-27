@@ -12,10 +12,11 @@ function getConnectionOptions(): ConnectionOptions {
 }
 
 export const QUEUE_NAMES = {
-  CRAWL:       "crawl",
-  AUDIT:       "audit",
-  ACTION_PLAN: "action-plan",
-  EMAIL:       "email",
+  CRAWL:          "crawl",
+  AUDIT:          "audit",
+  ACTION_PLAN:    "action-plan",
+  EMAIL:          "email",
+  SCHEDULED_AUDIT: "scheduled-audit",
 } as const
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES]

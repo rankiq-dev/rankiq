@@ -3,6 +3,7 @@
 import { createWorker, QUEUE_NAMES } from "@/infra/queue"
 import { logger } from "@/infra/logger"
 import { generateActionPlan } from "@/domain/action-plan/service"
+import { registerWeeklyAuditJob, runScheduledAudits } from "@/domain/audit/scheduler"
 
 logger.info("Worker process starting")
 
@@ -37,12 +38,25 @@ const emailWorker = createWorker<EmailJobPayload>(
   }
 )
 
+/* ── Scheduled audit job ── */
+const scheduledAuditWorker = createWorker<Record<string, never>>(
+  QUEUE_NAMES.SCHEDULED_AUDIT,
+  async (job) => {
+    logger.info({ jobId: job.id }, "Processing scheduled audit job")
+    await runScheduledAudits()
+  }
+)
+
+/* Register the weekly repeatable job */
+registerWeeklyAuditJob().catch(err => logger.error({ err }, "Failed to register weekly audit job"))
+
 /* Graceful shutdown */
 async function shutdown() {
   logger.info("Worker shutting down")
   await crawlWorker.close()
   await actionPlanWorker.close()
   await emailWorker.close()
+  await scheduledAuditWorker.close()
   process.exit(0)
 }
 

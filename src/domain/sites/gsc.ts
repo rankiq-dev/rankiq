@@ -8,6 +8,7 @@ import { updateSite, getSiteById } from "@/db/repositories/sites"
 import {
   bulkInsertKeywordMetrics,
   deleteKeywordMetricsBySite,
+  deleteKeywordMetricsByDate,
 } from "@/db/repositories/gsc"
 import type { NewGscKeywordMetric } from "@/db/schema"
 
@@ -103,8 +104,8 @@ async function importGscData(opts: {
     rowLimit:    500,
   })
 
-  /* Replace existing data for this site with the fresh import */
-  await deleteKeywordMetricsBySite(opts.siteId)
+  /* Only replace data for the same date range (same-day re-import) — preserve older snapshots for history */
+  await deleteKeywordMetricsByDate(opts.siteId, endDate)
 
   const records: NewGscKeywordMetric[] = rows.map((r) => ({
     siteId:        opts.siteId,

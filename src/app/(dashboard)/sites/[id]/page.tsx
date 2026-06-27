@@ -2,13 +2,15 @@ export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
 import { getSiteById } from "@/db/repositories/sites"
 import { getAuditsForSite } from "@/db/repositories/audits"
-import { getKeywordMetricsBySite } from "@/db/repositories/gsc"
+import { getKeywordPositionChanges } from "@/db/repositories/gsc"
 import { getGscAuthUrl } from "@/domain/sites/gsc"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { RunAuditButton } from "./RunAuditButton"
 import type { Metadata } from "next"
 import type { GscKeywordMetric } from "@/db/schema"
+
+type KeywordWithChange = GscKeywordMetric & { prevPosition: string | null; positionChange: number | null }
 
 export const metadata: Metadata = { title: "Site Overview" }
 
@@ -30,7 +32,7 @@ export default async function SitePage({
 
   const [audits, keywords] = await Promise.all([
     getAuditsForSite(id),
-    site.gscConnected ? getKeywordMetricsBySite(id, 25) : Promise.resolve([]),
+    site.gscConnected ? getKeywordPositionChanges(id, 25) : Promise.resolve([]),
   ])
 
   const completedAudits = audits
@@ -260,7 +262,7 @@ export default async function SitePage({
       </div>
 
       {/* Keyword Table */}
-      {site.gscConnected && keywords.length > 0 && <KeywordTable keywords={keywords} siteId={id} />}
+      {site.gscConnected && keywords.length > 0 && <KeywordTable keywords={keywords as KeywordWithChange[]} siteId={id} />}
     </div>
   )
 }
@@ -313,8 +315,9 @@ function HealthChart({ audits }: { audits: Array<{ id: string; healthScore: numb
   )
 }
 
-function KeywordTable({ keywords, siteId: _siteId }: { keywords: GscKeywordMetric[], siteId: string }) {
+function KeywordTable({ keywords, siteId: _siteId }: { keywords: KeywordWithChange[], siteId: string }) {
   const sorted = [...keywords].sort((a, b) => b.clicks - a.clicks)
+  const hasHistory = sorted.some(k => k.positionChange != null)
 
   return (
     <div style={{
@@ -326,16 +329,19 @@ function KeywordTable({ keywords, siteId: _siteId }: { keywords: GscKeywordMetri
         <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
           Keyword Rankings (28 days)
         </div>
-        <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{sorted.length} keywords</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {hasHistory && <span style={{ fontSize: "10px", color: "var(--foreground-3)" }}>vs previous period</span>}
+          <span style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{sorted.length} keywords</span>
+        </div>
       </div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              {["Keyword", "Position", "Clicks", "Impressions", "CTR"].map((h) => (
-                <th key={h} style={{
+              {["Keyword", "Position", hasHistory ? "Change" : null, "Clicks", "Impressions", "CTR"].filter(Boolean).map((h) => (
+                <th key={h!} style={{
                   padding: "10px 16px", fontSize: "10px", fontWeight: 700,
-                  color: "var(--foreground-3)", textAlign: h === "Keyword" ? "left" : "right",
+                  color: "var(--foreground-3)", textAlign: h === "Keyword" ? "left" : "center",
                   textTransform: "uppercase", letterSpacing: "0.06em",
                   borderBottom: "1px solid var(--glass-border)",
                 }}>{h}</th>
@@ -346,25 +352,39 @@ function KeywordTable({ keywords, siteId: _siteId }: { keywords: GscKeywordMetri
             {sorted.map((k, i) => {
               const pos = Number(k.positionAvg)
               const posColor = pos <= 3 ? "var(--success)" : pos <= 10 ? "var(--primary-2)" : pos <= 20 ? "var(--warning)" : "var(--foreground-3)"
+              const change = k.positionChange
               return (
                 <tr key={k.id} style={{ borderBottom: i < sorted.length - 1 ? "1px solid var(--glass-border)" : "none" }}>
                   <td style={{ padding: "11px 16px", fontSize: "13px", color: "var(--foreground)", maxWidth: "240px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {k.keyword}
                   </td>
-                  <td style={{ padding: "11px 16px", textAlign: "right" }}>
+                  <td style={{ padding: "11px 16px", textAlign: "center" }}>
                     <span style={{
                       fontSize: "13px", fontWeight: 700, color: posColor,
                       fontFamily: "var(--font-mono)",
                       filter: pos <= 3 ? "drop-shadow(0 0 4px var(--success))" : "none",
                     }}>#{pos.toFixed(1)}</span>
                   </td>
-                  <td style={{ padding: "11px 16px", fontSize: "13px", fontWeight: 600, color: "var(--foreground)", textAlign: "right", fontFamily: "var(--font-mono)" }}>
+                  {hasHistory && (
+                    <td style={{ padding: "11px 16px", textAlign: "center" }}>
+                      {change != null ? (
+                        <span style={{
+                          fontSize: "11px", fontWeight: 700,
+                          color: change > 0 ? "var(--success)" : change < 0 ? "var(--destructive)" : "var(--foreground-3)",
+                          fontFamily: "var(--font-mono)",
+                        }}>
+                          {change > 0 ? `↑ +${change}` : change < 0 ? `↓ ${change}` : "—"}
+                        </span>
+                      ) : <span style={{ color: "var(--foreground-3)", fontSize: "11px" }}>new</span>}
+                    </td>
+                  )}
+                  <td style={{ padding: "11px 16px", fontSize: "13px", fontWeight: 600, color: "var(--foreground)", textAlign: "center", fontFamily: "var(--font-mono)" }}>
                     {k.clicks.toLocaleString()}
                   </td>
-                  <td style={{ padding: "11px 16px", fontSize: "13px", color: "var(--foreground-2)", textAlign: "right", fontFamily: "var(--font-mono)" }}>
+                  <td style={{ padding: "11px 16px", fontSize: "13px", color: "var(--foreground-2)", textAlign: "center", fontFamily: "var(--font-mono)" }}>
                     {k.impressions.toLocaleString()}
                   </td>
-                  <td style={{ padding: "11px 16px", fontSize: "13px", color: "var(--foreground-2)", textAlign: "right", fontFamily: "var(--font-mono)" }}>
+                  <td style={{ padding: "11px 16px", fontSize: "13px", color: "var(--foreground-2)", textAlign: "center", fontFamily: "var(--font-mono)" }}>
                     {Number(k.ctrPct).toFixed(1)}%
                   </td>
                 </tr>
