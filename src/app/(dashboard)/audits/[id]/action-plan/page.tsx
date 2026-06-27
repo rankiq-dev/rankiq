@@ -177,6 +177,20 @@ function PendingState({ auditStatus }: { auditStatus: string }) {
   )
 }
 
+const FIX_TIME: Record<string, string> = {
+  missing_title: "5 min", short_title: "5 min", long_title: "5 min",
+  missing_meta_description: "10 min", missing_h1: "10 min", multiple_h1: "15 min",
+  missing_canonical: "15 min", missing_image_alt: "30 min", thin_content: "2 hrs",
+  broken_link: "30 min", redirect_chain: "1 hr", orphan_page: "45 min",
+  missing_schema: "1 hr", no_schema: "1 hr", duplicate_title: "30 min",
+  duplicate_meta_description: "30 min", page_not_found: "30 min",
+  slow_page: "2 hrs", missing_sitemap: "30 min",
+}
+
+function getFixTime(type: string): string {
+  return FIX_TIME[type] ?? "1 hr"
+}
+
 function ActionCard({ issue, rank }: { issue: AuditIssue; rank: number }) {
   const sevColor: Record<string, string> = {
     critical: "var(--destructive)", warning: "var(--warning)", info: "var(--info)",
@@ -271,6 +285,8 @@ function ActionCard({ issue, rank }: { issue: AuditIssue; rank: number }) {
           <span>{issue.affectedCount} page{issue.affectedCount !== 1 ? "s" : ""} affected</span>
           <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "var(--border-strong)", display: "inline-block" }} />
           <span>{issue.category.replace(/_/g, " ")}</span>
+          <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "var(--border-strong)", display: "inline-block" }} />
+          <span style={{ color: "var(--info)" }}>⏱ {getFixTime(issue.type)}</span>
           {issue.revenueImpactRank != null && (
             <>
               <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "var(--border-strong)", display: "inline-block" }} />
