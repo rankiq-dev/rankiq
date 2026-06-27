@@ -7,6 +7,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import type { PageAnalysis } from "@/domain/audit/types"
 import type { AuditIssue } from "@/db/schema"
+import { AnimatedScoreRing } from "@/components/ui/AnimatedScoreRing"
 
 export const metadata: Metadata = { title: "Audit Results" }
 
@@ -64,7 +65,7 @@ export default async function AuditPage({
 
       {/* Score + counts row */}
       <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: "20px", marginBottom: "40px" }}>
-        <ScoreRing score={audit.healthScore ?? 0} />
+        <AnimatedScoreRing score={audit.healthScore ?? 0} size={160} />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", alignContent: "start" }}>
           <StatCard label="Critical" value={summary.criticalCount} color="oklch(0.65 0.20 27)" />
           <StatCard label="Warnings" value={summary.warningCount} color="oklch(0.80 0.15 75)" />
