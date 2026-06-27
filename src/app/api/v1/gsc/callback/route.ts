@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { connectGsc, parseGscState } from "@/domain/sites/gsc"
 import { config } from "@/config"
+import { logger } from "@/infra/logger"
 
 /** GET /api/v1/gsc/callback — Google OAuth2 callback for Search Console connection */
 export async function GET(req: NextRequest) {
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
     await connectGsc({ code, siteId: parsed.siteId, userId: session.user.id })
     return NextResponse.redirect(`${config.appUrl}/sites/${parsed.siteId}?gsc=connected`)
   } catch (err) {
-    console.error("[gsc/callback] connectGsc failed:", err)
+    logger.error({ err }, "[gsc/callback] connectGsc failed")
     return NextResponse.redirect(`${config.appUrl}/sites/${parsed.siteId}?gsc=error`)
   }
 }

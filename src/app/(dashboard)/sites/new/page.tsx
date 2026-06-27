@@ -2,9 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import type { Metadata } from "next"
-
-// Note: metadata export only works in Server Components — this is a Client Component.
 // Page title is set via the parent layout's template.
 
 export default function NewSitePage() {

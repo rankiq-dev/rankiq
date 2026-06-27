@@ -1,6 +1,6 @@
 import { sendEmail } from "@/providers/email"
 import { auditReportEmail, welcomeEmail } from "@/domain/email/templates"
-import { getAuditById, getIssuesByAudit, getLatestAuditForSite } from "@/db/repositories/audits"
+import { getAuditById, getIssuesByAudit } from "@/db/repositories/audits"
 import { getSitesByUser } from "@/db/repositories/sites"
 import { getUserById } from "@/db/repositories/users"
 import { logger } from "@/infra/logger"

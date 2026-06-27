@@ -1,4 +1,4 @@
-import { and, eq, desc } from "drizzle-orm"
+import { eq, desc } from "drizzle-orm"
 import { db } from "@/db"
 import { gscKeywordMetrics, type GscKeywordMetric, type NewGscKeywordMetric } from "@/db/schema"
 

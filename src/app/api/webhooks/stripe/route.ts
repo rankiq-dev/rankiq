@@ -7,7 +7,6 @@ import type { Plan } from "@/lib/types"
 /* Stripe sends the raw body; Next.js must NOT parse it — we need the raw bytes for signature verification */
 export const runtime = "nodejs"
 
-const PLAN_FROM_PRICE: Record<string, Plan> = {} // populated from env at runtime — see getPlanFromPrice()
 
 function getPlanFromPrice(priceId: string): Plan {
   const { STRIPE_STARTER_PRICE_ID, STRIPE_GROWTH_PRICE_ID, STRIPE_AGENCY_PRICE_ID } = process.env

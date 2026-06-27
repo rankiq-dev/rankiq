@@ -238,7 +238,7 @@ function PlanCard({
   )
 }
 
-function CheckoutButton({ plan, label, highlight }: { plan: string; label: string; highlight: boolean }) {
+function CheckoutButton({ plan: _plan, label, highlight }: { plan: string; label: string; highlight: boolean }) {
   return (
     <button
       type="submit"
