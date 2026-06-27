@@ -1,6 +1,6 @@
 import { sendEmail } from "@/providers/email"
-import { auditReportEmail, welcomeEmail } from "@/domain/email/templates"
-import { getAuditById, getIssuesByAudit } from "@/db/repositories/audits"
+import { auditReportEmail, welcomeEmail, weeklyDigestEmail } from "@/domain/email/templates"
+import { getAuditById, getIssuesByAudit, getLatestAuditForSite } from "@/db/repositories/audits"
 import { getSitesByUser } from "@/db/repositories/sites"
 import { getUserById } from "@/db/repositories/users"
 import { logger } from "@/infra/logger"
@@ -9,12 +9,15 @@ import { config } from "@/config"
 export type EmailJobPayload =
   | { type: "audit_report"; auditId: string; userId: string }
   | { type: "welcome"; userId: string }
+  | { type: "weekly_digest"; userId: string }
 
 export async function processEmailJob(payload: EmailJobPayload): Promise<void> {
   if (payload.type === "welcome") {
     await sendWelcomeEmail(payload.userId)
   } else if (payload.type === "audit_report") {
     await sendAuditReportEmail(payload.auditId, payload.userId)
+  } else if (payload.type === "weekly_digest") {
+    await sendWeeklyDigest(payload.userId)
   }
 }
 
@@ -94,4 +97,37 @@ export async function sendAuditReportEmail(auditId: string, userId: string): Pro
 
   const { id } = await sendEmail({ to: user.email, subject, html })
   logger.info({ emailId: id, auditId, userId }, "Audit report email sent")
+}
+
+export async function sendWeeklyDigest(userId: string): Promise<void> {
+  const user = await getUserById(userId)
+  if (!user?.email) return
+  if (!user.notifyWeeklyDigest) {
+    logger.info({ userId }, "sendWeeklyDigest: user opted out")
+    return
+  }
+
+  const sites = await getSitesByUser(userId)
+  if (sites.length === 0) return
+
+  const siteSummaries = await Promise.all(sites.map(async site => {
+    const audit = await getLatestAuditForSite(site.id)
+    let criticalCount = 0
+    if (audit?.status === "complete") {
+      const issues = await getIssuesByAudit(audit.id, { limit: 100 })
+      criticalCount = issues.filter(i => i.severity === "critical").length
+    }
+    return {
+      domain: site.domain,
+      displayName: site.displayName,
+      siteId: site.id,
+      healthScore: audit?.healthScore ?? null,
+      criticalCount,
+      lastAuditDate: audit?.completedAt?.toISOString() ?? null,
+    }
+  }))
+
+  const { subject, html } = weeklyDigestEmail({ recipientName: user.name, sites: siteSummaries, appUrl: config.appUrl })
+  const { id } = await sendEmail({ to: user.email, subject, html })
+  logger.info({ emailId: id, userId, siteCount: sites.length }, "Weekly digest email sent")
 }

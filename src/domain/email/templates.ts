@@ -173,6 +173,81 @@ export function welcomeEmail(data: WelcomeEmailData): { subject: string; html: s
   return { subject: "Welcome to RankIQ — let's improve your rankings", html }
 }
 
+export interface WeeklyDigestData {
+  recipientName: string | null
+  sites: Array<{
+    domain: string
+    displayName: string | null
+    siteId: string
+    healthScore: number | null
+    criticalCount: number
+    lastAuditDate: string | null
+  }>
+  appUrl: string
+}
+
+export function weeklyDigestEmail(data: WeeklyDigestData): { subject: string; html: string } {
+  const { recipientName, sites, appUrl } = data
+  const name = escHtml(recipientName ?? "there")
+  const avgScore = sites.filter(s => s.healthScore != null).length > 0
+    ? Math.round(sites.reduce((sum, s) => sum + (s.healthScore ?? 0), 0) / sites.filter(s => s.healthScore != null).length)
+    : null
+  const totalCritical = sites.reduce((s, site) => s + site.criticalCount, 0)
+
+  const scoreColor = (score: number | null) => score == null ? "#94a3b8" : score >= 90 ? "#4ade80" : score >= 70 ? "#30b8a0" : score >= 50 ? "#f59e0b" : "#f87171"
+
+  const siteRows = sites.map(site => `
+    <tr>
+      <td style="padding:10px 16px;border-bottom:1px solid #1e2d3d;font-size:13px;color:#e2e8f0;">${escHtml(site.displayName ?? site.domain)}</td>
+      <td style="padding:10px 16px;border-bottom:1px solid #1e2d3d;font-size:16px;font-weight:800;color:${scoreColor(site.healthScore)};font-family:monospace;">${site.healthScore ?? "—"}</td>
+      <td style="padding:10px 16px;border-bottom:1px solid #1e2d3d;font-size:13px;color:${site.criticalCount > 0 ? "#f87171" : "#94a3b8"};">${site.criticalCount > 0 ? `${site.criticalCount} critical` : "✓ None"}</td>
+      <td style="padding:10px 16px;border-bottom:1px solid #1e2d3d;"><a href="${appUrl}/sites/${site.siteId}" style="color:#30b8a0;font-size:12px;text-decoration:none;">View →</a></td>
+    </tr>`).join("")
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#0e1319;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<div style="max-width:600px;margin:40px auto;padding:0 20px;">
+  <div style="text-align:center;padding:32px 0 24px;">
+    <div style="display:inline-block;width:44px;height:44px;background:linear-gradient(135deg,#1a8a7a,#30b8a0);border-radius:10px;line-height:44px;text-align:center;font-size:20px;margin-bottom:16px;">◈</div>
+    <h1 style="color:#e2e8f0;font-size:22px;font-weight:800;margin:0;letter-spacing:-0.5px;">Weekly SEO Digest</h1>
+    <p style="color:#64748b;font-size:13px;margin:8px 0 0;">Hi ${name} — here's how your sites are doing</p>
+  </div>
+
+  ${avgScore != null ? `
+  <div style="background:#1a2433;border:1px solid #1e2d3d;border-radius:12px;padding:20px 24px;margin-bottom:20px;text-align:center;">
+    <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Portfolio Average</div>
+    <div style="font-size:48px;font-weight:900;color:${scoreColor(avgScore)};font-family:monospace;letter-spacing:-2px;line-height:1;">${avgScore}</div>
+    ${totalCritical > 0 ? `<div style="font-size:12px;color:#f87171;margin-top:8px;">${totalCritical} critical issue${totalCritical !== 1 ? "s" : ""} need attention</div>` : `<div style="font-size:12px;color:#4ade80;margin-top:8px;">No critical issues 🎉</div>`}
+  </div>` : ""}
+
+  <div style="background:#1a2433;border:1px solid #1e2d3d;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:#0e1319;">
+          <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;">Site</th>
+          <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;">Score</th>
+          <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;">Critical</th>
+          <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;"></th>
+        </tr>
+      </thead>
+      <tbody>${siteRows}</tbody>
+    </table>
+  </div>
+
+  <div style="text-align:center;margin-bottom:32px;">
+    <a href="${appUrl}/dashboard" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#1a8a7a,#30b8a0);color:white;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">Go to Dashboard →</a>
+  </div>
+
+  <div style="text-align:center;padding-top:20px;border-top:1px solid #1e2d3d;">
+    <p style="font-size:11px;color:#334155;margin:0;">RankIQ · <a href="${appUrl}/account" style="color:#30b8a0;text-decoration:none;">Manage notifications</a></p>
+  </div>
+</div>
+</body></html>`
+
+  return { subject: `Weekly SEO Digest — ${sites.length} site${sites.length !== 1 ? "s" : ""} · ${avgScore ?? "—"}/100 avg`, html }
+}
+
 function escHtml(s: string | null | undefined): string {
   return (s ?? "")
     .replace(/&/g, "&amp;")
