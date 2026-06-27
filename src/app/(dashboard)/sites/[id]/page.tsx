@@ -13,6 +13,7 @@ import { SiteNameEditor } from "./SiteNameEditor"
 import { SiteSettingsPanel } from "./SiteSettingsPanel"
 import { ScoreHistory } from "./ScoreHistory"
 import { RobotsChecker } from "./RobotsChecker"
+import { PageSpeedPanel } from "./PageSpeedPanel"
 import type { Metadata } from "next"
 import type { GscKeywordMetric } from "@/db/schema"
 
@@ -270,9 +271,10 @@ export default async function SitePage({
       {/* Keyword Table */}
       {site.gscConnected && keywords.length > 0 && <KeywordTable keywords={keywords as KeywordWithChange[]} siteId={id} />}
 
-      {/* Robots & Sitemap Checker */}
-      <div style={{ marginTop: "24px", maxWidth: "500px", marginBottom: "24px" }}>
+      {/* Tools row */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "24px", marginBottom: "24px" }}>
         <RobotsChecker siteId={id} />
+        <PageSpeedPanel siteId={id} />
       </div>
 
       {/* Site Settings */}
