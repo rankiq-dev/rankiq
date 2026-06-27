@@ -66,6 +66,34 @@ const ISSUE_BUILDERS: IssueBuilder[] = [
       predicate: (p) => p.status === 200 && p.h1Count === 0,
     }),
 
+  /* ── Duplicate meta descriptions ───────────────────────────────── */
+  (pages, _, auditId) => {
+    const descGroups = new Map<string, string[]>()
+    for (const p of pages) {
+      if (!p.metaDescription || p.status !== 200) continue
+      const normalised = p.metaDescription.trim().toLowerCase().slice(0, 200)
+      const group = descGroups.get(normalised) ?? []
+      group.push(p.url)
+      descGroups.set(normalised, group)
+    }
+    const duplicates = [...descGroups.values()].filter(g => g.length > 1)
+    if (duplicates.length === 0) return null
+    const affectedUrls = duplicates.flat().slice(0, MAX_SAMPLE_URLS)
+    return {
+      auditId,
+      type: "duplicate_meta_description",
+      severity: "warning" as const,
+      category: "on_page" as const,
+      title: "Duplicate meta descriptions",
+      description: `${duplicates.length} meta description${duplicates.length > 1 ? "s are" : " is"} shared across multiple pages. Unique meta descriptions help search engines understand each page's content and improve click-through rates.`,
+      fixInstructions: "Write a unique meta description for every page. Aim for 120–160 characters. Summarise the page content compellingly — include the primary keyword naturally.",
+      affectedCount: affectedUrls.length,
+      affectedUrls,
+      isFixed: false,
+      fixedAt: null,
+    }
+  },
+
   /* ── Duplicate title tags ───────────────────────────────────────── */
   (pages, _, auditId) => {
     const titleGroups = new Map<string, string[]>()
