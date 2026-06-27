@@ -1,4 +1,4 @@
-import { and, eq, desc, inArray } from "drizzle-orm"
+import { and, eq, desc, inArray, gte } from "drizzle-orm"
 import { db } from "@/db"
 import { audits, auditIssues, type Audit, type NewAudit, type AuditIssue, type NewAuditIssue } from "@/db/schema"
 
@@ -88,6 +88,21 @@ export async function updateIssueAiFields(
   data: { fixInstructions: string; revenueImpactRank: number }
 ): Promise<void> {
   await db.update(auditIssues).set(data).where(eq(auditIssues.id, id))
+}
+
+/** Get audits completed in the last N hours for a set of site IDs */
+export async function getRecentCompletedAudits(siteIds: string[], hoursBack = 24): Promise<Audit[]> {
+  if (siteIds.length === 0) return []
+  const since = new Date(Date.now() - hoursBack * 60 * 60 * 1000)
+  return db.query.audits.findMany({
+    where: and(
+      inArray(audits.siteId, siteIds),
+      eq(audits.status, "complete"),
+      gte(audits.completedAt, since)
+    ),
+    orderBy: [desc(audits.completedAt)],
+    limit: 20,
+  })
 }
 
 /* ── Site health summary (derived — not stored) ──────── */

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ParticleField } from "@/components/ui/ParticleField"
 import { ToastProvider } from "@/components/ui/Toast"
 import { ThemeToggle } from "@/components/ui/ThemeToggle"
+import { NotificationBell } from "@/components/ui/NotificationBell"
 import { getUserById } from "@/db/repositories/users"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -115,6 +116,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               {user.email}
             </div>
           </div>
+          <NotificationBell />
           <ThemeToggle />
           <Link href="/account" style={{ textDecoration: "none", flexShrink: 0 }}>
             <span style={{
