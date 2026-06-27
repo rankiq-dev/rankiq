@@ -5,6 +5,7 @@ import type { CrawledPage, CrawlResult } from "./types"
 export interface CrawlOptions {
   maxPages: number          /* from PLAN_LIMITS[plan].pagesPerCrawl */
   timeoutMs: number         /* overall crawl timeout */
+  crawlDelayMs?: number     /* delay between page fetches in ms (crawl politeness) */
 }
 
 /** Normalize a URL: strip fragment, trailing slash-normalize, lowercase host */
@@ -41,11 +42,15 @@ export async function crawlSite(domain: string, opts: CrawlOptions): Promise<Cra
   /* Use memory storage so the crawler leaves no disk artefacts in the worker process */
   const config = new Configuration({ storageClientOptions: { localDataDirectory: "/tmp/crawlee" } })
 
+  const crawlDelay = opts.crawlDelayMs ?? 500
+
   const crawler = new CheerioCrawler(
     {
       maxRequestsPerCrawl: opts.maxPages,
       navigationTimeoutSecs: 30,
       requestHandlerTimeoutSecs: 60,
+      minConcurrency: 1,
+      maxConcurrency: crawlDelay > 1000 ? 1 : crawlDelay > 500 ? 2 : 3,
       preNavigationHooks: [
         async ({ request }) => {
           request.headers = {

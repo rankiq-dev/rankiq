@@ -13,7 +13,7 @@ import type { Audit } from "@/db/schema"
 import type { EmailJobPayload } from "@/domain/email/service"
 import { fireWebhookEvent } from "@/domain/webhooks/service"
 
-const crawlQueue = createQueue<{ auditId: string; siteId: string; domain: string; maxPages: number }>(
+const crawlQueue = createQueue<{ auditId: string; siteId: string; domain: string; maxPages: number; crawlDelayMs?: number }>(
   QUEUE_NAMES.CRAWL
 )
 const actionPlanQueue = createQueue<{ auditId: string }>(QUEUE_NAMES.ACTION_PLAN)
@@ -29,12 +29,13 @@ export async function triggerAudit(siteId: string, userId: string): Promise<Audi
 
   const planLimit = PLAN_LIMITS[user.plan].pagesPerCrawl
   const maxPages = Math.min(planLimit, site.maxPages ?? planLimit)
+  const crawlDelayMs = (site as typeof site & { crawlDelayMs?: number }).crawlDelayMs ?? 500
 
   const audit = await createAudit({ siteId, status: "queued" })
 
   await crawlQueue.add(
     "crawl",
-    { auditId: audit.id, siteId, domain: site.domain, maxPages },
+    { auditId: audit.id, siteId, domain: site.domain, maxPages, crawlDelayMs },
     { jobId: `crawl-${audit.id}` }  /* idempotency: one job per audit */
   )
 
@@ -51,8 +52,9 @@ export async function processCrawlJob(data: {
   siteId: string
   domain: string
   maxPages: number
+  crawlDelayMs?: number
 }): Promise<void> {
-  const { auditId, domain, maxPages } = data
+  const { auditId, domain, maxPages, crawlDelayMs } = data
 
   await updateAuditStatus(auditId, {
     status: "running",
@@ -60,7 +62,7 @@ export async function processCrawlJob(data: {
   })
 
   try {
-    let result = await crawlSite(domain, { maxPages, timeoutMs: CRAWL_TIMEOUT_MS })
+    let result = await crawlSite(domain, { maxPages, timeoutMs: CRAWL_TIMEOUT_MS, crawlDelayMs })
 
     /* If static crawler got nothing, retry with Playwright (handles React/Next.js/Vue/Angular) */
     if (result.pages.length === 0) {
