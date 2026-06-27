@@ -6,6 +6,7 @@ export interface CrawlOptions {
   maxPages: number          /* from PLAN_LIMITS[plan].pagesPerCrawl */
   timeoutMs: number         /* overall crawl timeout */
   crawlDelayMs?: number     /* delay between page fetches in ms (crawl politeness) */
+  onProgress?: (pagesCount: number) => Promise<void>  /* called every ~10 pages for live progress */
 }
 
 /** Normalize a URL: strip fragment, trailing slash-normalize, lowercase host */
@@ -139,6 +140,11 @@ export async function crawlSite(domain: string, opts: CrawlOptions): Promise<Cra
         })
 
         logger.debug({ url, title, h1Count }, "Page crawled")
+
+        /* Fire progress callback every 10 pages */
+        if (opts.onProgress && pages.length % 10 === 0 && pages.length > 0) {
+          void opts.onProgress(pages.length).catch(() => { /* non-fatal */ })
+        }
       },
 
       failedRequestHandler({ request, log }) {

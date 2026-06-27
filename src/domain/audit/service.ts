@@ -62,7 +62,14 @@ export async function processCrawlJob(data: {
   })
 
   try {
-    let result = await crawlSite(domain, { maxPages, timeoutMs: CRAWL_TIMEOUT_MS, crawlDelayMs })
+    let result = await crawlSite(domain, {
+      maxPages,
+      timeoutMs: CRAWL_TIMEOUT_MS,
+      crawlDelayMs,
+      onProgress: async (pagesCount) => {
+        await updateAuditStatus(auditId, { status: "running", pagesCount })
+      },
+    })
 
     /* If static crawler got nothing, retry with Playwright (handles React/Next.js/Vue/Angular) */
     if (result.pages.length === 0) {
