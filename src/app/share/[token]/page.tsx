@@ -78,10 +78,21 @@ export default async function SharedAuditPage({ params }: { params: Promise<{ to
               Audited {audit.completedAt ? new Date(audit.completedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "recently"} · {audit.pagesCount} pages
             </p>
           </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "52px", fontWeight: 900, color: scoreColor, lineHeight: 1, fontFamily: "monospace", letterSpacing: "-2px" }}>
-              {score}
-            </div>
+          <div style={{ textAlign: "center", position: "relative" }}>
+            {/* SVG score ring */}
+            {(() => {
+              const r = 44, circ = 2 * Math.PI * r
+              const dash = (score / 100) * circ
+              return (
+                <svg width="110" height="110" viewBox="0 0 110 110" style={{ display: "block", margin: "0 auto" }}>
+                  <circle cx="55" cy="55" r={r} fill="none" stroke="oklch(0.20 0.008 230)" strokeWidth="8" />
+                  <circle cx="55" cy="55" r={r} fill="none" stroke={scoreColor} strokeWidth="8"
+                    strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+                    transform="rotate(-90 55 55)" style={{ filter: `drop-shadow(0 0 6px ${scoreColor}80)` }} />
+                  <text x="55" y="60" textAnchor="middle" fontSize="26" fontWeight="900" fill={scoreColor} fontFamily="monospace">{score}</text>
+                </svg>
+              )
+            })()}
             <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "oklch(0.50 0.008 230)", marginTop: "4px" }}>
               Health Score
             </div>
