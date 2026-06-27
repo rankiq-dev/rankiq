@@ -18,5 +18,13 @@ export async function GET(
   const site = await getSiteById(audit.siteId, session.user.id)
   if (!site) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-  return NextResponse.json({ status: audit.status, healthScore: audit.healthScore })
+  return NextResponse.json({
+    data: {
+      status: audit.status,
+      healthScore: audit.healthScore,
+      pagesCount: audit.pagesCount ?? null,
+      maxPages: (site as { maxPages?: number }).maxPages ?? null,
+      stage: audit.status,
+    }
+  })
 }

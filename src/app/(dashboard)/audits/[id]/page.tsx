@@ -8,7 +8,7 @@ import type { Metadata } from "next"
 import type { PageAnalysis } from "@/domain/audit/types"
 import type { AuditIssue } from "@/db/schema"
 import { AnimatedScoreRing } from "@/components/ui/AnimatedScoreRing"
-import { AuditPoller } from "./AuditPoller"
+import { AuditProgress } from "./AuditProgress"
 import { RerunButton } from "./RerunButton"
 import { ShareButton } from "./ShareButton"
 import { ExpandableIssue } from "./ExpandableIssue"
@@ -112,9 +112,9 @@ export default async function AuditPage({
         </div>
       </div>
 
-      {/* Auto-refresh when running or queued */}
+      {/* Live progress bar + auto-refresh when running or queued */}
       {(audit.status === "queued" || audit.status === "running") && (
-        <AuditPoller auditId={id} />
+        <AuditProgress auditId={id} initialStatus={audit.status} />
       )}
 
       {/* Failed state */}
