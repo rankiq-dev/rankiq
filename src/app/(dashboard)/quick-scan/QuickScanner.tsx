@@ -107,6 +107,60 @@ export function QuickScanner() {
             </div>
           </div>
 
+          {/* SERP Preview */}
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "20px 24px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--primary)", marginBottom: "14px" }}>Google SERP Preview</div>
+            <div style={{
+              background: "oklch(1 0 0)", color: "#202124",
+              borderRadius: "8px", padding: "16px 18px", fontFamily: "Arial, sans-serif",
+              maxWidth: "600px",
+            }}>
+              {/* Breadcrumb */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px", fontSize: "12px", color: "#202124" }}>
+                <div style={{
+                  width: "20px", height: "20px", borderRadius: "50%",
+                  background: "#4285f4", display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0,
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <circle cx="6" cy="6" r="5" fill="#4285f4"/>
+                    <text x="6" y="9" textAnchor="middle" fontSize="8" fill="white" fontFamily="Arial">G</text>
+                  </svg>
+                </div>
+                <span style={{ color: "#202124" }}>{new URL(result.url).hostname}</span>
+              </div>
+              {/* Title */}
+              <div style={{ fontSize: "20px", color: "#1a0dab", lineHeight: 1.3, marginBottom: "3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {result.title
+                  ? result.title.length > 60
+                    ? result.title.slice(0, 57) + "…"
+                    : result.title
+                  : <span style={{ color: "#999" }}>No title tag</span>}
+              </div>
+              {/* Meta description */}
+              <div style={{ fontSize: "14px", color: "#4d5156", lineHeight: 1.57 }}>
+                {result.metaDescription
+                  ? result.metaDescription.length > 160
+                    ? result.metaDescription.slice(0, 157) + "…"
+                    : result.metaDescription
+                  : <span style={{ color: "#999" }}>No meta description — Google will auto-generate one</span>}
+              </div>
+              {/* Length warnings */}
+              <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                {result.title && (
+                  <span style={{ fontSize: "10px", color: result.title.length > 60 ? "#e65c00" : result.title.length < 30 ? "#f4a800" : "#188038" }}>
+                    Title: {result.title.length} chars {result.title.length > 60 ? "(too long)" : result.title.length < 30 ? "(short)" : "(good)"}
+                  </span>
+                )}
+                {result.metaDescription && (
+                  <span style={{ fontSize: "10px", color: result.metaDescription.length > 160 ? "#e65c00" : result.metaDescription.length < 70 ? "#f4a800" : "#188038" }}>
+                    Description: {result.metaDescription.length} chars {result.metaDescription.length > 160 ? "(too long)" : result.metaDescription.length < 70 ? "(short)" : "(good)"}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Signals */}
           <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "20px 24px" }}>
             <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--primary)", marginBottom: "14px" }}>Page Signals</div>
