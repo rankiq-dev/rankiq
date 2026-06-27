@@ -66,6 +66,21 @@ const ISSUE_BUILDERS: IssueBuilder[] = [
       predicate: (p) => p.status === 200 && p.h1Count === 0,
     }),
 
+  /* ── Noindex pages (accidental) ──────────────────────────────────── */
+  (pages, _, auditId) => {
+    // Detect pages with noindex that aren't obviously intentional (admin/login/checkout)
+    const INTENTIONAL = /\/(admin|login|signup|register|cart|checkout|account|dashboard|private|wp-admin)/i
+    return pageIssue(auditId, pages, {
+      type: "noindex_page",
+      severity: "critical",
+      category: "technical",
+      title: "Indexable pages blocked with noindex",
+      description: "These pages have a noindex meta tag or X-Robots-Tag header, which tells search engines not to index them. If these are important pages, they will not appear in search results.",
+      fixInstructions: 'Remove the <meta name="robots" content="noindex"> tag (or set it to "index") for any page you want to appear in search. Also check X-Robots-Tag HTTP headers. After fixing, request re-indexing via Google Search Console.',
+      predicate: (p) => p.status === 200 && (p.metaRobots?.includes("noindex") ?? false) && !INTENTIONAL.test(p.url),
+    })
+  },
+
   (pages, result, auditId) => {
     if (result.brokenLinks.length === 0) return null
     const affectedUrls = Array.from(new Set(result.brokenLinks.map((l) => l.from))).slice(0, MAX_SAMPLE_URLS)
