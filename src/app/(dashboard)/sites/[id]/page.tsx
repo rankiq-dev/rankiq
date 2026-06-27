@@ -194,7 +194,10 @@ export default async function SitePage({
             <div style={{ fontSize: "13px", color: "var(--foreground-3)", paddingTop: "4px" }}>No audits yet. Run your first audit.</div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {audits.slice(0, 5).map(a => (
+              {audits.slice(0, 5).map((a, idx) => {
+                const prev = audits.slice(0, 5)[idx + 1]
+                const delta = a.healthScore != null && prev?.healthScore != null ? a.healthScore - prev.healthScore : null
+                return (
                 <div key={a.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div>
                     <div style={{ fontSize: "11px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)" }}>
@@ -203,6 +206,12 @@ export default async function SitePage({
                     <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "1px" }}>{a.pagesCount ?? 0} pages</div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    {delta !== null && (
+                      <span style={{
+                        fontSize: "10px", fontWeight: 700, fontFamily: "var(--font-mono)",
+                        color: delta > 0 ? "var(--success)" : delta < 0 ? "var(--destructive)" : "var(--foreground-3)",
+                      }}>{delta > 0 ? `▲+${delta}` : delta < 0 ? `▼${delta}` : "–"}</span>
+                    )}
                     {a.healthScore != null && (
                       <span style={{
                         fontSize: "14px", fontWeight: 800, fontFamily: "var(--font-mono)",
@@ -227,7 +236,7 @@ export default async function SitePage({
                     )}
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           )}
         </div>
