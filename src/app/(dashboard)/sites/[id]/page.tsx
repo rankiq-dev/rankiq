@@ -224,12 +224,17 @@ export default async function SitePage({
               <p style={{ fontSize: "12px", color: "var(--foreground-3)", lineHeight: 1.65, marginBottom: "14px" }}>
                 Keyword ranking data from the last 28 days is synced and shown below.
               </p>
-              <div style={{ display: "flex", gap: "8px" }}>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <Link href={`/sites/${id}/keywords`} style={{
+                  padding: "7px 12px", background: "var(--primary-soft)",
+                  color: "var(--primary-2)", borderRadius: "var(--radius)", fontSize: "12px",
+                  fontWeight: 600, border: "1px solid oklch(0.55 0.13 178 / 0.3)", textDecoration: "none",
+                }}>View all keywords →</Link>
                 <form action={`/api/v1/sites/${id}/gsc`} method="POST" style={{ display: "inline" }}>
                   <button type="submit" style={{
-                    padding: "7px 12px", background: "var(--primary-soft)",
-                    color: "var(--primary-2)", borderRadius: "var(--radius)", fontSize: "12px",
-                    fontWeight: 600, border: "1px solid oklch(0.55 0.13 178 / 0.3)", cursor: "pointer",
+                    padding: "7px 12px", background: "transparent",
+                    color: "var(--foreground-3)", borderRadius: "var(--radius)", fontSize: "12px",
+                    fontWeight: 600, border: "1px solid var(--glass-border)", cursor: "pointer",
                   }}>
                     Refresh data
                   </button>
