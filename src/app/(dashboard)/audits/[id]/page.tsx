@@ -9,6 +9,7 @@ import type { PageAnalysis } from "@/domain/audit/types"
 import type { AuditIssue } from "@/db/schema"
 import { AnimatedScoreRing } from "@/components/ui/AnimatedScoreRing"
 import { AuditPoller } from "./AuditPoller"
+import { RerunButton } from "./RerunButton"
 
 export const metadata: Metadata = { title: "Audit Results" }
 
@@ -51,9 +52,10 @@ export default async function AuditPage({
             <StatusBadge status={audit.status} />
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
+            {audit.status === "complete" && <RerunButton siteId={audit.siteId} />}
             {audit.status === "complete" && (
               <>
-                <a
+                <
                   href={`/api/v1/audits/${id}/issues/csv`}
                   download
                   style={{
