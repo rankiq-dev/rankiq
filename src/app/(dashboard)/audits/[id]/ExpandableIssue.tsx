@@ -10,6 +10,7 @@ interface Props {
   affectedUrls?: string[]
   fixInstructions?: string | null
   isFixed?: boolean
+  scoreImpact?: number
   children?: React.ReactNode
 }
 
@@ -20,7 +21,7 @@ const SEV_BG: Record<string, string> = {
   critical: "var(--destructive-bg)", warning: "var(--warning-bg)", info: "var(--info-bg)", error: "var(--destructive-bg)",
 }
 
-export function ExpandableIssue({ title, description, severity, category, affectedCount, affectedUrls, fixInstructions, isFixed, children }: Props) {
+export function ExpandableIssue({ title, description, severity, category, affectedCount, affectedUrls, fixInstructions, isFixed, scoreImpact, children }: Props) {
   const [open, setOpen] = useState(false)
   const color = SEV_COLOR[severity] ?? "var(--foreground-3)"
   const bg = SEV_BG[severity] ?? "oklch(0.15 0.006 230)"
@@ -50,6 +51,15 @@ export function ExpandableIssue({ title, description, severity, category, affect
             {affectedCount} page{affectedCount !== 1 ? "s" : ""} · {category.replace(/_/g, " ")}
           </div>
         </div>
+        {scoreImpact != null && scoreImpact > 0 && (
+          <span style={{
+            flexShrink: 0, fontSize: "9px", fontWeight: 700,
+            padding: "2px 6px", borderRadius: "20px",
+            background: "oklch(0.68 0.16 155 / 0.12)",
+            color: "var(--success)", border: "1px solid oklch(0.68 0.16 155 / 0.2)",
+            whiteSpace: "nowrap", marginTop: "2px",
+          }}>+{scoreImpact} pts</span>
+        )}
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: "3px", transition: "transform 200ms", transform: open ? "rotate(180deg)" : "none", color: "var(--foreground-3)" }}>
           <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>

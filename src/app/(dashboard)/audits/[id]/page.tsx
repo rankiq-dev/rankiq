@@ -369,6 +369,13 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter }: { issues: Audi
             affectedUrls={(issue.affectedUrls as string[] | null) ?? undefined}
             fixInstructions={issue.fixInstructions}
             isFixed={issue.isFixed}
+            scoreImpact={
+              issue.severity === "critical"
+                ? Math.min(10 * Math.min(issue.affectedCount, 5), 50)
+                : issue.severity === "warning"
+                  ? Math.min(4 * Math.min(issue.affectedCount, 5), 20)
+                  : Math.min(issue.affectedCount, 5)
+            }
           />
         )))}
       </div>
