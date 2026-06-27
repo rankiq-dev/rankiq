@@ -109,6 +109,25 @@ export default function LandingPage() {
         </p>
       </section>
 
+      {/* Social proof stats bar */}
+      <div style={{ borderTop: "1px solid oklch(0.98 0 0 / 0.06)", borderBottom: "1px solid oklch(0.98 0 0 / 0.06)", padding: "24px 40px", marginBottom: "0" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto", display: "flex", justifyContent: "center", gap: "60px", flexWrap: "wrap" }}>
+          {[
+            { value: "500+", label: "Pages crawled per audit" },
+            { value: "21", label: "SEO issue types detected" },
+            { value: "6", label: "SEO disciplines covered" },
+            { value: "<5 min", label: "From crawl to action plan" },
+          ].map(({ value, label }) => (
+            <div key={label} style={{ textAlign: "center" }}>
+              <div style={{ fontSize: "28px", fontWeight: 900, fontFamily: "var(--font-mono, monospace)", letterSpacing: "-1px", background: "linear-gradient(135deg, oklch(0.72 0.13 178), oklch(0.65 0.13 196))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                {value}
+              </div>
+              <div style={{ fontSize: "12px", color: "oklch(0.50 0.008 230)", marginTop: "2px" }}>{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Features Grid */}
       <section style={{ padding: "0 40px 100px", maxWidth: "1200px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "48px" }}>
