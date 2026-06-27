@@ -104,37 +104,83 @@ function MiniKpi({ label, value, color }: { label: string; value: string; color:
 }
 
 function EmptyState() {
+  const steps = [
+    { num: 1, label: "Sign in with Google", done: true, href: null },
+    { num: 2, label: "Add your first website", done: false, href: "/sites/new" },
+    { num: 3, label: "Review your AI action plan", done: false, href: null },
+  ]
   return (
-    <div style={{
-      background: "var(--glass-bg)", backdropFilter: "blur(20px)",
-      border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
-      padding: "80px 40px", textAlign: "center", maxWidth: "480px",
-    }}>
+    <div style={{ maxWidth: "520px" }}>
       <div style={{
-        width: "64px", height: "64px", borderRadius: "16px",
-        background: "var(--primary-soft)", border: "1px solid oklch(0.55 0.13 178 / 0.3)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        margin: "0 auto 24px",
-        boxShadow: "0 0 24px var(--primary-glow)",
+        background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+        border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+        padding: "36px 32px", marginBottom: "16px",
       }}>
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <circle cx="14" cy="14" r="10" stroke="oklch(0.65 0.13 196)" strokeWidth="1.5" strokeDasharray="3 2"/>
-          <path d="M14 8v6l4 2" stroke="oklch(0.65 0.13 196)" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
+        {/* Icon */}
+        <div style={{
+          width: "52px", height: "52px", borderRadius: "14px",
+          background: "var(--primary-soft)", border: "1px solid oklch(0.55 0.13 178 / 0.3)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          marginBottom: "20px", boxShadow: "0 0 20px var(--primary-glow)",
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L22 12L12 22L2 12L12 2Z" stroke="oklch(0.65 0.13 196)" strokeWidth="1.5" strokeLinejoin="round"/>
+            <path d="M12 7L17 12L12 17L7 12L12 7Z" fill="oklch(0.55 0.13 178)" fillOpacity="0.4"/>
+          </svg>
+        </div>
+
+        <h2 style={{ fontSize: "20px", fontWeight: 800, color: "var(--foreground)", letterSpacing: "-0.4px", marginBottom: "8px" }}>
+          Welcome to RankIQ
+        </h2>
+        <p style={{ fontSize: "13px", color: "var(--foreground-2)", lineHeight: 1.7, marginBottom: "28px" }}>
+          Get started in 3 steps — your first full SEO audit takes less than 5 minutes.
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {steps.map(step => (
+            <div key={step.num} style={{
+              display: "flex", alignItems: "center", gap: "14px",
+              padding: "12px 16px", borderRadius: "var(--radius-lg)",
+              background: step.done ? "var(--success-bg)" : !step.done && step.href ? "var(--primary-soft)" : "oklch(0.14 0.006 230)",
+              border: `1px solid ${step.done ? "oklch(0.68 0.16 155 / 0.3)" : !step.done && step.href ? "oklch(0.55 0.13 178 / 0.3)" : "var(--glass-border)"}`,
+            }}>
+              <div style={{
+                width: "28px", height: "28px", borderRadius: "50%", flexShrink: 0,
+                background: step.done ? "var(--success)" : !step.done && step.href ? "var(--primary)" : "oklch(0.22 0.006 230)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "11px", fontWeight: 800, color: "white",
+              }}>
+                {step.done ? "✓" : step.num}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  fontSize: "13px", fontWeight: 600,
+                  color: step.done ? "var(--success)" : !step.done && step.href ? "var(--foreground)" : "var(--foreground-3)",
+                  textDecoration: step.done ? "line-through" : "none",
+                }}>
+                  {step.label}
+                </div>
+              </div>
+              {step.href && !step.done && (
+                <Link href={step.href} style={{
+                  padding: "5px 12px", fontSize: "11px", fontWeight: 700,
+                  background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
+                  color: "var(--primary-foreground)", borderRadius: "var(--radius)", textDecoration: "none",
+                  boxShadow: "var(--shadow-glow)", flexShrink: 0,
+                }}>Start →</Link>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-      <h2 style={{ fontSize: "20px", fontWeight: 700, color: "var(--foreground)", marginBottom: "10px", letterSpacing: "-0.4px" }}>
-        No sites yet
-      </h2>
-      <p style={{ fontSize: "13px", color: "var(--foreground-2)", lineHeight: 1.7, marginBottom: "28px" }}>
-        Add your first website and RankIQ will crawl it, surface SEO issues, and generate an AI-powered action plan.
-      </p>
-      <Link href="/sites/new" style={{
-        display: "inline-flex", alignItems: "center", gap: "6px",
-        padding: "11px 24px", fontSize: "13px", fontWeight: 700,
-        background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
-        color: "var(--primary-foreground)", borderRadius: "var(--radius-md)",
-        textDecoration: "none", boxShadow: "var(--shadow-glow)",
-      }}>+ Add your first site</Link>
+
+      <div style={{
+        padding: "16px 20px", borderRadius: "var(--radius-xl)",
+        background: "oklch(0.14 0.006 230)", border: "1px solid var(--glass-border)",
+        fontSize: "12px", color: "var(--foreground-3)", lineHeight: 1.6,
+      }}>
+        💡 RankIQ supports static sites, React, Next.js, Vue, and Angular apps — powered by Playwright fallback for JS-rendered pages.
+      </div>
     </div>
   )
 }
