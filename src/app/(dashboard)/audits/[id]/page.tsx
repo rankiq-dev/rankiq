@@ -170,11 +170,16 @@ function ScoreRing({ score }: { score: number }) {
 
 function StatCard({ label, value, color, suffix = "" }: { label: string; value: number; color: string; suffix?: string }) {
   return (
-    <div style={{ background: "oklch(0.12 0.008 230 / 0.60)", border: "1px solid oklch(0.98 0 0 / 0.06)", borderRadius: "10px", padding: "14px 16px" }}>
-      <div style={{ fontSize: "22px", fontWeight: 700, color, fontFamily: "var(--font-mono)", letterSpacing: "-0.5px" }}>
+    <div style={{
+      background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+      border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 16px",
+      position: "relative", overflow: "hidden",
+    }}>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, ${color}, transparent)` }} />
+      <div style={{ fontSize: "24px", fontWeight: 800, color, fontFamily: "var(--font-mono)", letterSpacing: "-0.5px", filter: `drop-shadow(0 0 6px ${color}80)` }}>
         {value}{suffix}
       </div>
-      <div style={{ fontSize: "11px", color: "oklch(0.38 0.008 230)", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "2px" }}>
+      <div style={{ fontSize: "10px", color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "3px" }}>
         {label}
       </div>
     </div>
@@ -183,77 +188,80 @@ function StatCard({ label, value, color, suffix = "" }: { label: string; value: 
 
 function RunningState({ status }: { status: string }) {
   return (
-    <div style={{ textAlign: "center", padding: "48px 0", color: "oklch(0.65 0.008 230)" }}>
-      <div style={{ fontSize: "32px", marginBottom: "12px" }}>⏳</div>
-      <div style={{ fontSize: "15px", fontWeight: 600, color: "oklch(0.92 0.008 230)", marginBottom: "6px" }}>
-        {status === "queued" ? "Audit queued" : "Crawling your site…"}
+    <div style={{
+      background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+      border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+      padding: "64px 40px", textAlign: "center",
+    }}>
+      <div style={{
+        width: "56px", height: "56px", borderRadius: "14px",
+        background: "var(--primary-soft)", border: "1px solid oklch(0.55 0.13 178 / 0.3)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        margin: "0 auto 20px", boxShadow: "0 0 24px var(--primary-glow)", fontSize: "24px",
+      }}>
+        {status === "queued" ? "⏳" : "◎"}
       </div>
-      <div style={{ fontSize: "13px" }}>This usually takes 2–5 minutes. Refresh to check progress.</div>
+      <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--foreground)", marginBottom: "8px", letterSpacing: "-0.3px" }}>
+        {status === "queued" ? "Audit queued — starting soon" : "Crawling your site…"}
+      </div>
+      <div style={{ fontSize: "13px", color: "var(--foreground-2)", lineHeight: 1.7 }}>
+        This usually takes 2–5 minutes. Refresh to check progress.
+      </div>
     </div>
   )
 }
 
 function IssuesSection({ issues }: { issues: AuditIssue[] }) {
   if (issues.length === 0) return null
-  const severityColor: Record<string, string> = {
-    critical: "oklch(0.65 0.20 27)",
-    warning:  "oklch(0.80 0.15 75)",
-    info:     "oklch(0.70 0.12 230)",
-  }
-  const severityBg: Record<string, string> = {
-    critical: "oklch(0.14 0.07 27)",
-    warning:  "oklch(0.14 0.06 75)",
-    info:     "oklch(0.14 0.05 230)",
-  }
+
+  const critical = issues.filter(i => i.severity === "critical")
+  const warnings = issues.filter(i => i.severity === "warning")
+  const info = issues.filter(i => i.severity === "info")
+
+  const groups = [
+    { label: "Critical", color: "var(--destructive)", bg: "var(--destructive-bg)", border: "oklch(0.65 0.20 27 / 0.3)", items: critical },
+    { label: "Warning", color: "var(--warning)", bg: "var(--warning-bg)", border: "oklch(0.80 0.15 75 / 0.3)", items: warnings },
+    { label: "Info", color: "var(--info)", bg: "var(--info-bg)", border: "oklch(0.70 0.12 230 / 0.3)", items: info },
+  ].filter(g => g.items.length > 0)
 
   return (
-    <section style={{ marginBottom: "40px" }}>
-      <h2 style={{ fontSize: "16px", fontWeight: 700, color: "oklch(0.92 0.008 230)", letterSpacing: "-0.3px", marginBottom: "16px" }}>Issues found</h2>
+    <section style={{ marginBottom: "36px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+        <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+          Issues Found
+        </div>
+        <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{issues.length} total</div>
+      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        {issues.map((issue) => (
-          <div
-            key={issue.id}
-            style={{
-              background: "oklch(0.12 0.008 230 / 0.60)",
-              border: "1px solid oklch(0.98 0 0 / 0.06)",
-              borderRadius: "10px",
-              padding: "16px 20px",
-              display: "flex",
-              alignItems: "flex-start",
-              gap: "14px",
-            }}
-          >
-            <span
-              style={{
-                padding: "3px 8px",
-                background: severityBg[issue.severity],
-                color: severityColor[issue.severity],
-                borderRadius: "4px",
-                fontSize: "10px",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                flexShrink: 0,
-                marginTop: "2px",
-              }}
-            >
-              {issue.severity}
-            </span>
+        {groups.map(group => group.items.map((issue) => (
+          <div key={issue.id} style={{
+            background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+            border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+            padding: "14px 18px",
+            display: "flex", alignItems: "flex-start", gap: "12px",
+            borderLeft: `3px solid ${group.color}`,
+          }}>
+            <span style={{
+              padding: "2px 8px", background: group.bg, color: group.color,
+              border: `1px solid ${group.border}`,
+              borderRadius: "4px", fontSize: "9px", fontWeight: 700,
+              textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0, marginTop: "2px",
+            }}>{issue.severity}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "14px", fontWeight: 600, color: "oklch(0.92 0.008 230)", marginBottom: "4px" }}>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--foreground)", marginBottom: "3px" }}>
                 {issue.title}
               </div>
-              <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)", lineHeight: 1.5 }}>
+              <div style={{ fontSize: "12px", color: "var(--foreground-2)", lineHeight: 1.55 }}>
                 {issue.description}
               </div>
               {issue.affectedCount > 0 && (
-                <div style={{ fontSize: "11px", color: "oklch(0.38 0.008 230)", marginTop: "6px" }}>
-                  {issue.affectedCount} page{issue.affectedCount !== 1 ? "s" : ""} affected
+                <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "5px" }}>
+                  {issue.affectedCount} page{issue.affectedCount !== 1 ? "s" : ""} affected · {issue.category.replace(/_/g, " ")}
                 </div>
               )}
             </div>
           </div>
-        ))}
+        )))}
       </div>
     </section>
   )

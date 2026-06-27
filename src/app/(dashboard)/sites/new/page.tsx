@@ -1,8 +1,6 @@
 "use client"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-// Page title is set via the parent layout's template.
 
 export default function NewSitePage() {
   const router = useRouter()
@@ -10,6 +8,7 @@ export default function NewSitePage() {
   const [displayName, setDisplayName] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [step, setStep] = useState<"form" | "crawling">("form")
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -22,55 +21,106 @@ export default function NewSitePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: domain.trim(), displayName: displayName.trim() || undefined }),
       })
-
-      const json = await res.json()
+      const json = await res.json() as { error?: { message?: string }, data?: { site?: { id: string } } }
 
       if (!res.ok) {
         setError(json.error?.message ?? "Failed to add site.")
+        setLoading(false)
         return
       }
 
-      /* Trigger initial audit immediately */
       const siteId = json.data?.site?.id
       if (siteId) {
+        setStep("crawling")
         await fetch("/api/v1/audits", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ siteId }),
         })
+        router.push(`/sites/${siteId}`)
+        router.refresh()
+      } else {
+        router.push("/dashboard")
+        router.refresh()
       }
-
-      router.push("/dashboard")
-      router.refresh()
     } catch {
       setError("Something went wrong. Please try again.")
-    } finally {
       setLoading(false)
     }
   }
 
+  if (step === "crawling") {
+    return (
+      <div style={{ padding: "80px 40px", maxWidth: "520px", textAlign: "center" }}>
+        <div style={{
+          width: "72px", height: "72px", borderRadius: "18px",
+          background: "var(--primary-soft)", border: "1px solid oklch(0.55 0.13 178 / 0.3)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 24px", boxShadow: "0 0 32px var(--primary-glow)",
+          fontSize: "28px", animation: "pulse 2s ease-in-out infinite",
+        }}>◎</div>
+        <h2 style={{ fontSize: "22px", fontWeight: 800, color: "var(--foreground)", marginBottom: "10px", letterSpacing: "-0.5px" }}>
+          Queuing your audit…
+        </h2>
+        <p style={{ fontSize: "13px", color: "var(--foreground-2)", lineHeight: 1.7 }}>
+          <strong style={{ color: "var(--primary-2)" }}>{domain}</strong> has been added.
+          Our crawler is starting — you&apos;ll be redirected to the site page now.
+        </p>
+      </div>
+    )
+  }
+
   return (
-    <div style={{ padding: "32px 40px", maxWidth: "560px" }}>
-      <div style={{ marginBottom: "32px" }}>
-        <h1
-          style={{
-            fontSize: "22px",
-            fontWeight: 800,
-            color: "oklch(0.92 0.008 230)",
-            letterSpacing: "-0.4px",
-            marginBottom: "6px",
-          }}
-        >
-          Add a site
+    <div style={{ padding: "40px", maxWidth: "560px" }}>
+      {/* Header */}
+      <div style={{ marginBottom: "36px" }}>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: "5px",
+          padding: "3px 10px", borderRadius: "20px",
+          background: "var(--primary-soft)", border: "1px solid oklch(0.55 0.13 178 / 0.3)",
+          fontSize: "9px", fontWeight: 700, color: "var(--primary-2)",
+          textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "12px",
+        }}>New Site</div>
+        <h1 style={{ fontSize: "28px", fontWeight: 800, color: "var(--foreground)", letterSpacing: "-0.6px", marginBottom: "8px" }}>
+          Add a website
         </h1>
-        <p style={{ fontSize: "13px", color: "oklch(0.65 0.008 230)" }}>
-          Enter your website domain. RankIQ will crawl it and surface SEO issues.
+        <p style={{ fontSize: "13px", color: "var(--foreground-2)", lineHeight: 1.65 }}>
+          Enter your domain and RankIQ will crawl it, detect SEO issues, and generate an AI-powered action plan — automatically.
         </p>
       </div>
 
+      {/* How it works */}
+      <div style={{
+        background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+        border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+        padding: "18px 20px", marginBottom: "28px", display: "flex", flexDirection: "column", gap: "10px",
+      }}>
+        {[
+          { icon: "◎", label: "Crawl", desc: "We scan up to 100 pages of your site" },
+          { icon: "◈", label: "Analyse", desc: "19 SEO rules checked per page" },
+          { icon: "✦", label: "AI Plan", desc: "Claude ranks issues by revenue impact" },
+        ].map(s => (
+          <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{
+              width: "32px", height: "32px", borderRadius: "8px",
+              background: "var(--primary-soft)", display: "flex",
+              alignItems: "center", justifyContent: "center", flexShrink: 0,
+              fontSize: "14px", color: "var(--primary-2)",
+            }}>{s.icon}</div>
+            <div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--foreground)" }}>{s.label}</div>
+              <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{s.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <form onSubmit={handleSubmit}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <Field label="Domain" hint="e.g. example.com — no https:// needed">
+        <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+          <div>
+            <label style={{ display: "block", fontSize: "11px", fontWeight: 700, color: "var(--foreground-2)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "7px" }}>
+              Domain *
+            </label>
             <input
               type="text"
               value={domain}
@@ -78,72 +128,67 @@ export default function NewSitePage() {
               placeholder="example.com"
               required
               style={inputStyle}
+              onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "var(--primary)" }}
+              onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--glass-border)" }}
             />
-          </Field>
+            <p style={{ fontSize: "11px", color: "var(--foreground-3)", marginTop: "5px" }}>
+              No https:// needed · e.g. esankalpam.com or blog.example.com
+            </p>
+          </div>
 
-          <Field label="Display name" hint="Optional. How you want to label this site.">
+          <div>
+            <label style={{ display: "block", fontSize: "11px", fontWeight: 700, color: "var(--foreground-2)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "7px" }}>
+              Display Name <span style={{ fontWeight: 400, color: "var(--foreground-3)" }}>Optional</span>
+            </label>
             <input
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="My Website"
+              placeholder="My Client's Website"
               style={inputStyle}
+              onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "var(--primary)" }}
+              onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--glass-border)" }}
             />
-          </Field>
+          </div>
 
           {error && (
-            <div
-              style={{
-                padding: "12px 14px",
-                background: "oklch(0.14 0.07 27)",
-                border: "1px solid oklch(0.65 0.20 27 / 0.3)",
-                borderRadius: "8px",
-                fontSize: "13px",
-                color: "oklch(0.80 0.15 27)",
-              }}
-            >
+            <div style={{
+              padding: "12px 16px", background: "var(--destructive-bg)",
+              border: "1px solid oklch(0.65 0.20 27 / 0.3)",
+              borderRadius: "var(--radius-md)", fontSize: "13px", color: "var(--destructive)",
+            }}>
               {error}
             </div>
           )}
 
-          <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+          <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
             <button
               type="button"
               onClick={() => router.back()}
               style={{
-                padding: "10px 18px",
-                background: "oklch(0.22 0.006 230)",
-                color: "oklch(0.65 0.008 230)",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "13px",
-                fontWeight: 600,
-                cursor: "pointer",
+                padding: "11px 18px", background: "var(--glass-bg)", color: "var(--foreground-2)",
+                border: "1px solid var(--glass-border)", borderRadius: "var(--radius-md)",
+                fontSize: "13px", fontWeight: 600, cursor: "pointer",
                 fontFamily: "var(--font-sans), sans-serif",
               }}
-            >
-              Cancel
-            </button>
+            >Cancel</button>
             <button
               type="submit"
               disabled={loading || !domain.trim()}
               style={{
-                flex: 1,
-                padding: "10px 18px",
-                background: loading
-                  ? "oklch(0.40 0.08 178)"
-                  : "linear-gradient(135deg, oklch(0.55 0.13 178), oklch(0.65 0.13 196))",
-                color: "oklch(0.98 0.005 230)",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "13px",
-                fontWeight: 700,
-                cursor: loading ? "not-allowed" : "pointer",
+                flex: 1, padding: "11px 18px",
+                background: loading || !domain.trim()
+                  ? "oklch(0.28 0.06 178)"
+                  : "linear-gradient(135deg, var(--primary), var(--primary-2))",
+                color: "var(--primary-foreground)",
+                border: "none", borderRadius: "var(--radius-md)",
+                fontSize: "13px", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer",
                 fontFamily: "var(--font-sans), sans-serif",
-                opacity: !domain.trim() ? 0.5 : 1,
+                boxShadow: loading || !domain.trim() ? "none" : "var(--shadow-glow)",
+                opacity: !domain.trim() ? 0.6 : 1, transition: "all 200ms",
               }}
             >
-              {loading ? "Adding…" : "Add site + start audit"}
+              {loading ? "Adding site…" : "Add site + start audit →"}
             </button>
           </div>
         </div>
@@ -154,45 +199,14 @@ export default function NewSitePage() {
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "10px 12px",
-  background: "oklch(0.13 0.008 230)",
-  border: "1px solid oklch(0.22 0.006 230)",
-  borderRadius: "8px",
-  color: "oklch(0.92 0.008 230)",
+  padding: "11px 14px",
+  background: "var(--glass-bg)",
+  border: "1px solid var(--glass-border)",
+  borderRadius: "var(--radius-md)",
+  color: "var(--foreground)",
   fontSize: "14px",
-  fontFamily: "var(--font-sans), sans-serif",
+  fontFamily: "var(--font-mono), monospace",
   outline: "none",
   boxSizing: "border-box",
-}
-
-function Field({
-  label,
-  hint,
-  children,
-}: {
-  label: string
-  hint?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div>
-      <label
-        style={{
-          display: "block",
-          fontSize: "12px",
-          fontWeight: 700,
-          color: "oklch(0.65 0.008 230)",
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
-          marginBottom: "6px",
-        }}
-      >
-        {label}
-      </label>
-      {children}
-      {hint && (
-        <p style={{ fontSize: "11px", color: "oklch(0.38 0.008 230)", marginTop: "4px" }}>{hint}</p>
-      )}
-    </div>
-  )
+  transition: "border-color 150ms",
 }
