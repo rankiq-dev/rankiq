@@ -12,6 +12,7 @@ import { GscRefreshButton, GscDisconnectButton } from "./GscButtons"
 import { SiteNameEditor } from "./SiteNameEditor"
 import { SiteSettingsPanel } from "./SiteSettingsPanel"
 import { ScoreHistory } from "./ScoreHistory"
+import { RobotsChecker } from "./RobotsChecker"
 import type { Metadata } from "next"
 import type { GscKeywordMetric } from "@/db/schema"
 
@@ -269,8 +270,13 @@ export default async function SitePage({
       {/* Keyword Table */}
       {site.gscConnected && keywords.length > 0 && <KeywordTable keywords={keywords as KeywordWithChange[]} siteId={id} />}
 
+      {/* Robots & Sitemap Checker */}
+      <div style={{ marginTop: "24px", maxWidth: "500px", marginBottom: "24px" }}>
+        <RobotsChecker siteId={id} />
+      </div>
+
       {/* Site Settings */}
-      <div style={{ marginTop: "24px", maxWidth: "500px" }}>
+      <div style={{ maxWidth: "500px" }}>
         <SiteSettingsPanel
           siteId={id}
           auditSchedule={site.auditSchedule ?? "weekly"}
