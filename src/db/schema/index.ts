@@ -214,6 +214,24 @@ export const gscKeywordMetrics = pgTable(
   ]
 )
 
+/* ── API Keys ────────────────────────────────────────────────────────────── */
+export const apiKeys = pgTable(
+  "api_keys",
+  {
+    id:     uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    name:   text("name").notNull(),
+    /* keyHash: SHA-256 of the actual key; never store plaintext */
+    keyHash: text("key_hash").notNull().unique(),
+    /* keyPrefix: first 8 chars of the plaintext key shown in UI for identification */
+    keyPrefix: text("key_prefix").notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    expiresAt:  timestamp("expires_at",   { withTimezone: true }),
+    createdAt:  timestamp("created_at",   { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("api_keys_user_idx").on(t.userId)]
+)
+
 /* ── Inferred types (schema ↔ code contract) ─────────────────────────────── */
 export type User               = typeof users.$inferSelect
 export type NewUser            = typeof users.$inferInsert
@@ -223,5 +241,7 @@ export type Audit              = typeof audits.$inferSelect
 export type NewAudit           = typeof audits.$inferInsert
 export type AuditIssue         = typeof auditIssues.$inferSelect
 export type NewAuditIssue      = typeof auditIssues.$inferInsert
-export type GscKeywordMetric   = typeof gscKeywordMetrics.$inferSelect
+export type GscKeywordMetric    = typeof gscKeywordMetrics.$inferSelect
 export type NewGscKeywordMetric = typeof gscKeywordMetrics.$inferInsert
+export type ApiKey              = typeof apiKeys.$inferSelect
+export type NewApiKey           = typeof apiKeys.$inferInsert

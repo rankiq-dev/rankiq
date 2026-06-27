@@ -7,6 +7,10 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { PLAN_LIMITS } from "@/lib/constants"
 import { NotificationSettings } from "./NotificationSettings"
+import { ApiKeyManager } from "./ApiKeyManager"
+import { db } from "@/db"
+import { apiKeys } from "@/db/schema"
+import { eq } from "drizzle-orm"
 
 export const metadata: Metadata = { title: "Account" }
 
@@ -14,9 +18,14 @@ export default async function AccountPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const [user, sites] = await Promise.all([
+  const [user, sites, userApiKeys] = await Promise.all([
     getUserById(session.user.id),
     getSitesByUser(session.user.id),
+    db.query.apiKeys.findMany({
+      where: eq(apiKeys.userId, session.user.id),
+      columns: { keyHash: false },
+      orderBy: (k, { desc }) => [desc(k.createdAt)],
+    }),
   ])
   if (!user) redirect("/login")
 
@@ -139,6 +148,14 @@ export default async function AccountPage() {
         border: "1px solid oklch(0.65 0.20 27 / 0.2)", borderRadius: "var(--radius-xl)",
         padding: "20px 28px",
       }}>
+        <ApiKeyManager initialKeys={userApiKeys.map(k => ({
+          id: k.id,
+          name: k.name,
+          keyPrefix: k.keyPrefix,
+          lastUsedAt: k.lastUsedAt ? k.lastUsedAt.toISOString() : null,
+          createdAt: k.createdAt.toISOString(),
+        }))} />
+
         <NotificationSettings
           notifyAuditComplete={user.notifyAuditComplete ?? true}
           notifyWeeklyDigest={user.notifyWeeklyDigest ?? true}
