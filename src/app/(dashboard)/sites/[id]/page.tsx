@@ -55,6 +55,12 @@ export default async function SitePage({
   const prevScore = completedAudits.length >= 2 ? completedAudits[completedAudits.length - 2].healthScore : null
   const trend = latestScore != null && prevScore != null ? latestScore - prevScore : null
 
+  // Keyword drops: keywords that fell 5+ positions
+  const keywordDrops = keywords
+    .filter(k => k.positionChange != null && k.positionChange <= -5)
+    .sort((a, b) => (a.positionChange ?? 0) - (b.positionChange ?? 0))
+    .slice(0, 5)
+
   // Top pages by incoming internal links
   const topPages = latestAudit?.pageAnalyses
     ? (latestAudit.pageAnalyses as PageAnalysis[])
@@ -328,6 +334,31 @@ export default async function SitePage({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Keyword drop alerts */}
+      {keywordDrops.length > 0 && (
+        <div style={{
+          background: "oklch(0.14 0.07 27 / 0.4)", border: "1px solid oklch(0.65 0.20 27 / 0.3)",
+          borderRadius: "var(--radius-xl)", padding: "14px 20px", marginBottom: "16px",
+        }}>
+          <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "10px" }}>
+            ⚠ Keyword drops detected since last snapshot
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            {keywordDrops.map(k => (
+              <div key={k.query} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px" }}>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground)", fontFamily: "var(--font-mono)" }}>{k.query}</span>
+                <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>was #{parseFloat(k.prevPosition ?? "0").toFixed(1)} →</span>
+                <span style={{ color: "var(--warning)", fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>#{parseFloat(k.position).toFixed(1)}</span>
+                <span style={{ color: "var(--destructive)", fontWeight: 700, fontSize: "11px", flexShrink: 0 }}>↓ {Math.abs(k.positionChange ?? 0)}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: "8px" }}>
+            <a href={`/sites/${id}/keywords`} style={{ fontSize: "11px", color: "var(--primary-2)", textDecoration: "none" }}>View all keywords →</a>
+          </div>
         </div>
       )}
 
