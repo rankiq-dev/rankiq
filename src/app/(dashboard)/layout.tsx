@@ -4,11 +4,13 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ParticleField } from "@/components/ui/ParticleField"
 import { ToastProvider } from "@/components/ui/Toast"
+import { getUserById } from "@/db/repositories/users"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
-  if (!session?.user) redirect("/login")
+  if (!session?.user?.id) redirect("/login")
   const user = session.user
+  const dbUser = await getUserById(session.user.id)
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--background)", fontFamily: "var(--font-sans), sans-serif", color: "var(--foreground)", position: "relative" }}>
@@ -97,13 +99,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </div>
           )}
           <div style={{ overflow: "hidden", flex: 1 }}>
-            <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {user.name ?? "Account"}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {user.name ?? "Account"}
+              </span>
             </div>
             <div style={{ fontSize: "10px", color: "var(--foreground-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: "1px" }}>
               {user.email}
             </div>
           </div>
+          <Link href="/account" style={{ textDecoration: "none", flexShrink: 0 }}>
+            <span style={{
+              fontSize: "8px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em",
+              padding: "2px 6px", borderRadius: "20px",
+              color: "var(--primary-2)", background: "var(--primary-soft)",
+              border: "1px solid oklch(0.55 0.13 178 / 0.25)",
+            }}>
+              {dbUser?.plan ?? "starter"}
+            </span>
+          </Link>
         </div>
       </aside>
 
