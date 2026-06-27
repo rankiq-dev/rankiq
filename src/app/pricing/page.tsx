@@ -152,6 +152,52 @@ export default async function PricingPage() {
           ))}
         </div>
 
+        {/* Feature comparison table */}
+        <div style={{ marginBottom: "80px", overflowX: "auto" }}>
+          <h2 style={{ fontSize: "22px", fontWeight: 800, color: "oklch(0.92 0.008 230)", letterSpacing: "-0.5px", marginBottom: "24px", textAlign: "center" }}>
+            Compare plans
+          </h2>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+            <thead>
+              <tr>
+                <th style={{ padding: "10px 16px", textAlign: "left", color: "oklch(0.55 0.008 230)", fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid oklch(0.98 0 0 / 0.08)" }}>Feature</th>
+                {["Starter", "Growth", "Agency"].map(p => (
+                  <th key={p} style={{ padding: "10px 16px", textAlign: "center", color: p === "Growth" ? "oklch(0.75 0.13 196)" : "oklch(0.80 0.008 230)", fontWeight: 800, fontSize: "13px", borderBottom: "1px solid oklch(0.98 0 0 / 0.08)" }}>{p}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ["Sites", "1", "10", "50"],
+                ["Pages per crawl", "50", "200", "500"],
+                ["Audits / month", "5", "30", "Unlimited"],
+                ["Technical SEO audit", "✓", "✓", "✓"],
+                ["AI action plan", "✓", "✓", "✓"],
+                ["PDF report export", "✓", "✓", "✓"],
+                ["CSV issue export", "✓", "✓", "✓"],
+                ["Competitor analysis", "✓", "✓", "✓"],
+                ["Quick Scan tool", "✓", "✓", "✓"],
+                ["Share audit links", "✓", "✓", "✓"],
+                ["Weekly auto-audits", "—", "✓", "✓"],
+                ["Google Search Console", "—", "✓", "✓"],
+                ["Score history charts", "—", "✓", "✓"],
+                ["Agency portfolio view", "—", "—", "✓"],
+                ["Client labels", "—", "—", "✓"],
+                ["Bulk audit triggers", "—", "—", "✓"],
+                ["API access", "—", "—", "✓"],
+                ["Priority support", "—", "—", "✓"],
+              ].map(([feature, ...vals], i) => (
+                <tr key={feature} style={{ background: i % 2 === 0 ? "oklch(0.11 0.008 230 / 0.4)" : "transparent" }}>
+                  <td style={{ padding: "10px 16px", color: "oklch(0.72 0.008 230)", borderBottom: "1px solid oklch(0.98 0 0 / 0.04)" }}>{feature}</td>
+                  {vals.map((v, vi) => (
+                    <td key={vi} style={{ padding: "10px 16px", textAlign: "center", borderBottom: "1px solid oklch(0.98 0 0 / 0.04)", color: v === "—" ? "oklch(0.35 0.008 230)" : v === "✓" ? "oklch(0.72 0.13 178)" : "oklch(0.85 0.008 230)", fontWeight: v === "—" ? 400 : 700 }}>{v}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
         {/* FAQ */}
         <div style={{ maxWidth: "700px", margin: "0 auto" }}>
           <h2 style={{ fontSize: "24px", fontWeight: 800, color: "oklch(0.92 0.008 230)", letterSpacing: "-0.5px", marginBottom: "32px", textAlign: "center" }}>
