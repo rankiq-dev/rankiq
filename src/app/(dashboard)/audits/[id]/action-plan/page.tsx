@@ -36,6 +36,8 @@ export default async function ActionPlanPage({
   const hasActionPlan = ranked.some((i) => i.fixInstructions != null)
   const critical = ranked.filter(i => i.severity === "critical").length
   const warnings = ranked.filter(i => i.severity === "warning").length
+  const fixedCount = ranked.filter(i => i.isFixed).length
+  const fixPct = ranked.length > 0 ? Math.round((fixedCount / ranked.length) * 100) : 0
 
   return (
     <div style={{ padding: "32px 40px", maxWidth: "900px" }}>
@@ -108,6 +110,27 @@ export default async function ActionPlanPage({
             <div style={{ fontSize: "28px", fontWeight: 800, color: "var(--success)", fontFamily: "var(--font-mono)", lineHeight: 1 }}>
               {ranked.filter(i => i.fixInstructions).length}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Progress bar */}
+      {fixedCount > 0 && (
+        <div style={{
+          background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+          border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+          padding: "16px 20px", marginBottom: "20px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              Fix Progress
+            </div>
+            <span style={{ fontSize: "12px", color: "var(--success)", fontWeight: 700 }}>
+              {fixedCount} / {ranked.length} issues fixed ({fixPct}%)
+            </span>
+          </div>
+          <div style={{ height: "4px", background: "var(--border)", borderRadius: "2px", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${fixPct}%`, background: "linear-gradient(90deg, var(--primary), var(--success))", borderRadius: "2px", transition: "width 0.5s ease-out" }} />
           </div>
         </div>
       )}
