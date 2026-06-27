@@ -8,6 +8,7 @@ import type { Metadata } from "next"
 import type { PageAnalysis } from "@/domain/audit/types"
 import type { AuditIssue } from "@/db/schema"
 import { AnimatedScoreRing } from "@/components/ui/AnimatedScoreRing"
+import { AuditPoller } from "./AuditPoller"
 
 export const metadata: Metadata = { title: "Audit Results" }
 
@@ -82,6 +83,11 @@ export default async function AuditPage({
           </div>
         </div>
       </div>
+
+      {/* Auto-refresh when running or queued */}
+      {(audit.status === "queued" || audit.status === "running") && (
+        <AuditPoller auditId={id} />
+      )}
 
       {/* Failed state */}
       {audit.status === "failed" && (
