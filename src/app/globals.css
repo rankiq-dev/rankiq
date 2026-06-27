@@ -94,6 +94,20 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
 
+@media print {
+  /* Hide sidebar, nav, and action buttons when printing */
+  nav, aside, [data-sidebar], [data-no-print] { display: none !important; }
+  body { background: white !important; color: black !important; }
+  * { color: black !important; background: white !important; border-color: #ccc !important; box-shadow: none !important; }
+  a { color: #1a0dab !important; text-decoration: underline !important; }
+  h1, h2, h3 { color: black !important; }
+  /* Score ring: keep visible */
+  svg circle, svg path, svg text { color: unset !important; }
+  /* Page break control */
+  section { page-break-inside: avoid; }
+  .issue-card { page-break-inside: avoid; margin-bottom: 8px; }
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
