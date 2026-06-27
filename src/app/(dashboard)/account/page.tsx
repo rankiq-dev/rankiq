@@ -8,8 +8,9 @@ import type { Metadata } from "next"
 import { PLAN_LIMITS } from "@/lib/constants"
 import { NotificationSettings } from "./NotificationSettings"
 import { ApiKeyManager } from "./ApiKeyManager"
+import { WebhookManager } from "./WebhookManager"
 import { db } from "@/db"
-import { apiKeys } from "@/db/schema"
+import { apiKeys, webhooks } from "@/db/schema"
 import { eq } from "drizzle-orm"
 
 export const metadata: Metadata = { title: "Account" }
@@ -18,13 +19,17 @@ export default async function AccountPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const [user, sites, userApiKeys] = await Promise.all([
+  const [user, sites, userApiKeys, userWebhooks] = await Promise.all([
     getUserById(session.user.id),
     getSitesByUser(session.user.id),
     db.query.apiKeys.findMany({
       where: eq(apiKeys.userId, session.user.id),
       columns: { keyHash: false },
       orderBy: (k, { desc }) => [desc(k.createdAt)],
+    }),
+    db.query.webhooks.findMany({
+      where: eq(webhooks.userId, session.user.id),
+      orderBy: (w, { desc }) => [desc(w.createdAt)],
     }),
   ])
   if (!user) redirect("/login")
@@ -140,6 +145,24 @@ export default async function AccountPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Webhooks */}
+      <div style={{
+        background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+        border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+        padding: "24px 28px", marginBottom: "16px",
+      }}>
+        <WebhookManager initialWebhooks={userWebhooks.map(w => ({
+          id: w.id,
+          url: w.url,
+          secret: `${w.secret.slice(0, 8)}…`,
+          events: w.events,
+          isActive: w.isActive,
+          lastFiredAt: w.lastFiredAt?.toISOString() ?? null,
+          lastStatus: w.lastStatus ?? null,
+          failureCount: w.failureCount,
+        }))} />
       </div>
 
       {/* Danger zone */}
