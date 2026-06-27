@@ -141,6 +141,11 @@ export default async function AuditPage({
         </div>
       </div>
 
+      {/* Category breakdown */}
+      {audit.status === "complete" && issues.length > 0 && (
+        <CategoryBreakdown issues={issues} auditId={id} />
+      )}
+
       {audit.status === "queued" || audit.status === "running" ? (
         <RunningState status={audit.status} />
       ) : (
@@ -249,6 +254,49 @@ function RunningState({ status }: { status: string }) {
             animation: `pulse 1.4s ease-in-out ${i * 0.2}s infinite`,
           }} />
         ))}
+      </div>
+    </div>
+  )
+}
+
+function CategoryBreakdown({ issues, auditId }: { issues: AuditIssue[]; auditId: string }) {
+  const cats = new Map<string, { total: number; critical: number }>()
+  for (const i of issues) {
+    const entry = cats.get(i.category) ?? { total: 0, critical: 0 }
+    cats.set(i.category, { total: entry.total + 1, critical: entry.critical + (i.severity === "critical" ? 1 : 0) })
+  }
+  const sorted = [...cats.entries()].sort((a, b) => b[1].total - a[1].total)
+  const maxCount = sorted[0]?.[1].total ?? 1
+
+  const LABELS: Record<string, string> = {
+    technical: "Technical", on_page: "On-Page", off_page: "Off-Page",
+    local: "Local SEO", ecommerce: "eCommerce", content: "Content",
+  }
+
+  return (
+    <div style={{
+      background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+      borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "24px",
+    }}>
+      <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>
+        By Category
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {sorted.map(([cat, { total, critical }]) => {
+          const pct = (total / maxCount) * 100
+          return (
+            <Link key={cat} href={`/audits/${auditId}?cat=${cat}`} style={{ display: "block", textDecoration: "none" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--foreground-2)", width: "80px", flexShrink: 0 }}>{LABELS[cat] ?? cat}</span>
+                <div style={{ flex: 1, height: "6px", background: "oklch(0.20 0.006 230)", borderRadius: "3px", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${pct}%`, background: critical > 0 ? "linear-gradient(90deg, var(--destructive), var(--warning))" : "var(--primary)", borderRadius: "3px", transition: "width 0.5s ease-out" }} />
+                </div>
+                <span style={{ fontSize: "11px", color: "var(--foreground-3)", width: "20px", textAlign: "right" }}>{total}</span>
+                {critical > 0 && <span style={{ fontSize: "10px", color: "var(--destructive)", fontWeight: 700 }}>!{critical}</span>}
+              </div>
+            </Link>
+          )
+        })}
       </div>
     </div>
   )
