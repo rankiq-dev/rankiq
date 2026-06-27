@@ -157,6 +157,32 @@ export function QuickScanner() {
               <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--success)" }}>No issues found! This page looks great.</div>
             </div>
           )}
+
+          {/* CTA */}
+          <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+            <button onClick={async () => {
+              const text = [
+                `Quick Scan Report — ${result.url}`,
+                `Score: ${result.score}/100`,
+                "",
+                "Issues:",
+                ...result.issues.map(i => `[${i.severity.toUpperCase()}] ${i.message}`),
+                result.issues.length === 0 ? "No issues found." : "",
+              ].join("\n")
+              await navigator.clipboard.writeText(text)
+            }} style={{
+              padding: "8px 16px", fontSize: "12px", fontWeight: 600,
+              background: "var(--glass-bg)", color: "var(--foreground-2)",
+              border: "1px solid var(--glass-border)", borderRadius: "var(--radius-md)",
+              cursor: "pointer", fontFamily: "var(--font-sans), sans-serif",
+            }}>Copy results</button>
+            <a href="/sites/new" style={{
+              padding: "8px 16px", fontSize: "12px", fontWeight: 700,
+              background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
+              color: "var(--primary-foreground)", borderRadius: "var(--radius-md)",
+              textDecoration: "none", boxShadow: "var(--shadow-glow)",
+            }}>Run full audit →</a>
+          </div>
         </div>
       )}
     </div>
