@@ -1,4 +1,4 @@
-import { and, eq, desc } from "drizzle-orm"
+import { and, eq, desc, inArray } from "drizzle-orm"
 import { db } from "@/db"
 import { audits, auditIssues, type Audit, type NewAudit, type AuditIssue, type NewAuditIssue } from "@/db/schema"
 
@@ -73,6 +73,14 @@ export async function markIssueFixed(id: string, fixed = true): Promise<AuditIss
     .returning()
   if (!row) throw new Error(`markIssueFixed: no issue found with id ${id}`)
   return row
+}
+
+export async function bulkMarkIssuesFixed(auditId: string, ids: string[], fixed: boolean): Promise<number> {
+  const result = await db
+    .update(auditIssues)
+    .set({ isFixed: fixed, fixedAt: fixed ? new Date() : null })
+    .where(and(eq(auditIssues.auditId, auditId), inArray(auditIssues.id, ids)))
+  return (result as { rowCount?: number }).rowCount ?? ids.length
 }
 
 export async function updateIssueAiFields(

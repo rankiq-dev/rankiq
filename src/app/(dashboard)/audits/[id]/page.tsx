@@ -12,6 +12,7 @@ import { AuditPoller } from "./AuditPoller"
 import { RerunButton } from "./RerunButton"
 import { ShareButton } from "./ShareButton"
 import { ExpandableIssue } from "./ExpandableIssue"
+import { BulkFixButton } from "./BulkFixButton"
 
 export const metadata: Metadata = { title: "Audit Results" }
 
@@ -332,7 +333,10 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter }: { issues: Audi
         <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
           Issues Found
         </div>
-        <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{filtered.length} of {issues.length}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{filtered.length} of {issues.length}</span>
+          <BulkFixButton auditId={auditId} totalCount={issues.length} fixedCount={issues.filter(i => i.isFixed).length} />
+        </div>
       </div>
       {/* Filter pills */}
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "14px" }}>

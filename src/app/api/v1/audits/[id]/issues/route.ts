@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
-import { getAuditById, getIssuesByAudit } from "@/db/repositories/audits"
+import { getAuditById, getIssuesByAudit, bulkMarkIssuesFixed } from "@/db/repositories/audits"
 import { getSiteById } from "@/db/repositories/sites"
 import { listIssuesQuerySchema } from "@/validators/audits"
 import type { ListIssuesResponse, AuditIssueDto } from "@/lib/types/api"
@@ -71,4 +71,33 @@ export async function GET(
   }
 
   return NextResponse.json(response)
+}
+
+/** PATCH /api/v1/audits/:id/issues — bulk mark issues fixed/unfixed */
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const { id } = await params
+  const audit = await getAuditById(id)
+  if (!audit) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  const site = await getSiteById(audit.siteId, session.user.id)
+  if (!site) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  const body = await req.json().catch(() => ({})) as { ids?: string[]; fixed?: boolean; all?: boolean }
+  const fixed = body.fixed !== false
+
+  let ids: string[] = body.ids ?? []
+  if (body.all) {
+    const all = await getIssuesByAudit(id, { limit: 1000 })
+    ids = all.map(i => i.id)
+  }
+
+  if (ids.length === 0) return NextResponse.json({ data: { updated: 0 } })
+  const updated = await bulkMarkIssuesFixed(id, ids, fixed)
+  return NextResponse.json({ data: { updated } })
 }
