@@ -361,6 +361,8 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter }: { issues: Audi
         {groups.map(group => group.items.map((issue) => (
           <ExpandableIssue
             key={issue.id}
+            issueId={issue.id}
+            auditId={auditId}
             title={issue.title}
             description={issue.description}
             severity={issue.severity}

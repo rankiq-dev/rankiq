@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 interface Props {
   title: string
@@ -11,6 +12,8 @@ interface Props {
   fixInstructions?: string | null
   isFixed?: boolean
   scoreImpact?: number
+  issueId?: string
+  auditId?: string
   children?: React.ReactNode
 }
 
@@ -21,10 +24,32 @@ const SEV_BG: Record<string, string> = {
   critical: "var(--destructive-bg)", warning: "var(--warning-bg)", info: "var(--info-bg)", error: "var(--destructive-bg)",
 }
 
-export function ExpandableIssue({ title, description, severity, category, affectedCount, affectedUrls, fixInstructions, isFixed, scoreImpact, children }: Props) {
+export function ExpandableIssue({ title, description, severity, category, affectedCount, affectedUrls, fixInstructions, isFixed: initialFixed, scoreImpact, issueId, auditId, children }: Props) {
   const [open, setOpen] = useState(false)
+  const [fixed, setFixed] = useState(initialFixed ?? false)
+  const [toggling, setToggling] = useState(false)
+  const router = useRouter()
   const color = SEV_COLOR[severity] ?? "var(--foreground-3)"
   const bg = SEV_BG[severity] ?? "oklch(0.15 0.006 230)"
+
+  async function toggleFixed(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!issueId || !auditId || toggling) return
+    setToggling(true)
+    try {
+      const res = await fetch(`/api/v1/audits/${auditId}/issues`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [issueId], fixed: !fixed }),
+      })
+      if (res.ok) {
+        setFixed(!fixed)
+        router.refresh()
+      }
+    } finally {
+      setToggling(false)
+    }
+  }
 
   return (
     <div style={{
@@ -100,6 +125,22 @@ export function ExpandableIssue({ title, description, severity, category, affect
                   <span style={{ fontSize: "10px", color: "var(--foreground-3)" }}>+{affectedUrls.length - 8} more</span>
                 )}
               </div>
+            </div>
+          )}
+
+          {issueId && auditId && (
+            <div style={{ marginTop: "12px", display: "flex", justifyContent: "flex-end" }}>
+              <button onClick={toggleFixed} disabled={toggling} style={{
+                padding: "5px 12px", fontSize: "11px", fontWeight: 600,
+                background: fixed ? "oklch(0.68 0.16 155 / 0.12)" : "var(--glass-bg)",
+                color: fixed ? "var(--success)" : "var(--foreground-3)",
+                border: fixed ? "1px solid oklch(0.68 0.16 155 / 0.3)" : "1px solid var(--glass-border)",
+                borderRadius: "var(--radius-md)", cursor: toggling ? "default" : "pointer",
+                fontFamily: "var(--font-sans), sans-serif", transition: "all 150ms",
+                opacity: toggling ? 0.6 : 1,
+              }}>
+                {toggling ? "…" : fixed ? "✓ Fixed — click to unmark" : "Mark as fixed"}
+              </button>
             </div>
           )}
 
