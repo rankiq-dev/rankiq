@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ParticleField } from "@/components/ui/ParticleField"
 import { ToastProvider } from "@/components/ui/Toast"
+import { ThemeToggle } from "@/components/ui/ThemeToggle"
 import { getUserById } from "@/db/repositories/users"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -114,6 +115,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               {user.email}
             </div>
           </div>
+          <ThemeToggle />
           <Link href="/account" style={{ textDecoration: "none", flexShrink: 0 }}>
             <span style={{
               fontSize: "8px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em",
