@@ -7,6 +7,25 @@ export const metadata: Metadata = { title: "What's New" }
 
 const CHANGELOG = [
   {
+    version: "1.9",
+    date: "June 2026",
+    tag: "New",
+    tagColor: "var(--primary-2)",
+    tagBg: "var(--primary-soft)",
+    items: [
+      "Dark/light mode toggle — saved as a cookie, no flash on load",
+      "Side-by-side site comparison for agency users — compare health scores and issue counts",
+      "Score impact badge on each issue (e.g. +20 pts) so you prioritise the highest-impact fixes first",
+      "Per-issue Mark as Fixed button directly in the expandable issue panel",
+      "Crawl delay setting per site (250ms–2s) for polite crawling",
+      "Top pages by internal link equity on site overview",
+      "Audit JSON export — download full audit data for integrations",
+      "Noindex page detector — critical alert when indexable pages are accidentally noindexed",
+      "Orphaned page detector + no JSON-LD schema detector",
+      "Bulk audit trigger for agency plan — audit all sites in one click",
+    ],
+  },
+  {
     version: "1.8",
     date: "June 2025",
     tag: "New",
