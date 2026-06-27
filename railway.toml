@@ -1,0 +1,6 @@
+[build]
+buildCommand = "npm ci"
+
+[deploy]
+startCommand = "npm run worker"
+restartPolicyType = "always"
