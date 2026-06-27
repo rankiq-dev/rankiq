@@ -10,8 +10,8 @@ import { NotificationSettings } from "./NotificationSettings"
 import { ApiKeyManager } from "./ApiKeyManager"
 import { WebhookManager } from "./WebhookManager"
 import { db } from "@/db"
-import { apiKeys, webhooks } from "@/db/schema"
-import { eq } from "drizzle-orm"
+import { apiKeys, webhooks, audits } from "@/db/schema"
+import { eq, and, gte, inArray } from "drizzle-orm"
 
 export const metadata: Metadata = { title: "Account" }
 
@@ -33,6 +33,17 @@ export default async function AccountPage() {
     }),
   ])
   if (!user) redirect("/login")
+
+  // Count audits in the last 30 days
+  const since30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const siteIds = sites.map(s => s.id)
+  const audits30d = siteIds.length > 0
+    ? await db.query.audits.findMany({
+        where: and(inArray(audits.siteId, siteIds), gte(audits.createdAt, since30d)),
+        columns: { id: true, status: true },
+      })
+    : []
+  const completedAudits30d = audits30d.filter(a => a.status === "complete").length
 
   const limits = PLAN_LIMITS[user.plan]
   const planColor = user.plan === "agency" ? "var(--primary-2)" : user.plan === "growth" ? "var(--success)" : "var(--foreground-2)"
@@ -113,7 +124,7 @@ export default async function AccountPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
           <LimitCard label="Sites" used={sites.length} max={limits.sites} />
           <LimitCard label="Pages / crawl" used={null} max={limits.pagesPerCrawl} />
-          <LimitCard label="Audits / month" used={null} max={limits.auditsPerMonth} />
+          <LimitCard label="Audits this month" used={completedAudits30d} max={limits.auditsPerMonth} />
         </div>
       </div>
 
