@@ -128,19 +128,34 @@ export default async function AuditPage({
               </>
             )}
             {audit.status === "complete" && (
-              <a
-                href={`/api/v1/audits/${id}/export`}
-                download
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: "6px",
-                  padding: "7px 14px", fontSize: "12px", fontWeight: 600,
-                  background: "var(--glass-bg)", color: "var(--foreground-2)",
-                  border: "1px solid var(--glass-border)", borderRadius: "var(--radius-md)",
-                  textDecoration: "none",
-                }}>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 6l3 3 3-3M1 10h10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                Export JSON
-              </a>
+              <>
+                <a
+                  href={`/api/v1/audits/${id}/pages-export`}
+                  download
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "6px",
+                    padding: "7px 14px", fontSize: "12px", fontWeight: 600,
+                    background: "var(--glass-bg)", color: "var(--foreground-2)",
+                    border: "1px solid var(--glass-border)", borderRadius: "var(--radius-md)",
+                    textDecoration: "none",
+                  }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 6l3 3 3-3M1 10h10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Pages CSV
+                </a>
+                <a
+                  href={`/api/v1/audits/${id}/export`}
+                  download
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "6px",
+                    padding: "7px 14px", fontSize: "12px", fontWeight: 600,
+                    background: "var(--glass-bg)", color: "var(--foreground-2)",
+                    border: "1px solid var(--glass-border)", borderRadius: "var(--radius-md)",
+                    textDecoration: "none",
+                  }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 6l3 3 3-3M1 10h10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Export JSON
+                </a>
+              </>
             )}
             <Link
               href={`/audits/${id}/action-plan`}
