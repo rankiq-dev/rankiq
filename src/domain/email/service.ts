@@ -47,6 +47,11 @@ export async function sendAuditReportEmail(auditId: string, userId: string): Pro
     return
   }
 
+  if (!user.notifyAuditComplete) {
+    logger.info({ userId, auditId }, "sendAuditReportEmail: user opted out of audit notifications")
+    return
+  }
+
   const site = sites.find((s) => s.id === audit.siteId)
   if (!site) {
     logger.warn({ auditId, userId }, "sendAuditReportEmail: site not found for user")
@@ -62,6 +67,11 @@ export async function sendAuditReportEmail(auditId: string, userId: string): Pro
 
   const issues = await getIssuesByAudit(auditId, { limit: 50 })
   const criticalCount = issues.filter((i) => i.severity === "critical").length
+
+  if (user.notifyCriticalOnly && criticalCount === 0) {
+    logger.info({ userId, auditId }, "sendAuditReportEmail: no critical issues, skipping (notifyCriticalOnly)")
+    return
+  }
   const warningCount  = issues.filter((i) => i.severity === "warning").length
   const topIssues     = issues.slice(0, 5).map((i) => ({
     title: i.title,
