@@ -79,14 +79,23 @@ export default async function KeywordsPage({
             <h1 style={{ fontSize: "26px", fontWeight: 800, color: "var(--foreground)", letterSpacing: "-0.5px", marginBottom: "4px" }}>Keywords</h1>
             <p style={{ fontSize: "13px", color: "var(--foreground-2)" }}>{allKeywords.length} keywords tracked via Google Search Console</p>
           </div>
-          {!site.gscSiteUrl && (
-            <Link href={`/sites/${id}`} style={{
-              padding: "8px 16px", fontSize: "12px", fontWeight: 700,
-              background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
-              color: "var(--primary-foreground)", borderRadius: "var(--radius-md)", textDecoration: "none",
-              boxShadow: "var(--shadow-glow)",
-            }}>Connect GSC →</Link>
-          )}
+          <div style={{ display: "flex", gap: "8px" }}>
+            {allKeywords.length > 0 && (
+              <a href={`/api/v1/sites/${id}/keywords-export`} download style={{
+                padding: "8px 14px", fontSize: "11px", fontWeight: 600,
+                background: "var(--glass-bg)", color: "var(--foreground-2)",
+                border: "1px solid var(--glass-border)", borderRadius: "var(--radius-md)", textDecoration: "none",
+              }}>↓ CSV</a>
+            )}
+            {!site.gscSiteUrl && (
+              <Link href={`/sites/${id}`} style={{
+                padding: "8px 16px", fontSize: "12px", fontWeight: 700,
+                background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
+                color: "var(--primary-foreground)", borderRadius: "var(--radius-md)", textDecoration: "none",
+                boxShadow: "var(--shadow-glow)",
+              }}>Connect GSC →</Link>
+            )}
+          </div>
         </div>
       </div>
 
