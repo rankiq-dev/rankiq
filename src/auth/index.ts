@@ -6,6 +6,7 @@ import { authConfig } from "./config"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  // @ts-ignore — our schema uses camelCase JS names mapping to snake_case DB columns; works at runtime
   adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,
