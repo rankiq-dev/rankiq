@@ -28,21 +28,38 @@ export default async function DashboardPage() {
   return (
     <div style={{ padding: "32px 40px", maxWidth: "1100px" }}>
       {/* Header */}
-      <div style={{ marginBottom: "40px" }}>
-        <h1
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "40px" }}>
+        <div>
+          <h1
+            style={{
+              fontSize: "26px",
+              fontWeight: 800,
+              color: "oklch(0.92 0.008 230)",
+              letterSpacing: "-0.5px",
+              marginBottom: "6px",
+            }}
+          >
+            Dashboard
+          </h1>
+          <p style={{ fontSize: "13px", color: "oklch(0.65 0.008 230)" }}>
+            Welcome back{user.name ? `, ${user.name}` : ""}. Here&apos;s your SEO overview.
+          </p>
+        </div>
+        <Link
+          href="/sites/new"
           style={{
-            fontSize: "26px",
-            fontWeight: 800,
-            color: "oklch(0.92 0.008 230)",
-            letterSpacing: "-0.5px",
-            marginBottom: "6px",
+            padding: "9px 18px",
+            background: "linear-gradient(135deg, oklch(0.55 0.13 178), oklch(0.65 0.13 196))",
+            color: "oklch(0.98 0.005 230)",
+            borderRadius: "8px",
+            fontSize: "13px",
+            fontWeight: 700,
+            textDecoration: "none",
+            letterSpacing: "0.02em",
           }}
         >
-          Dashboard
-        </h1>
-        <p style={{ fontSize: "13px", color: "oklch(0.65 0.008 230)" }}>
-          Welcome back{user.name ? `, ${user.name}` : ""}. Here&apos;s your SEO overview.
-        </p>
+          + Add Site
+        </Link>
       </div>
 
       {/* Plan badge */}
