@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
-import { getAuditById, getIssuesByAudit, getHealthSummary } from "@/db/repositories/audits"
+import { getAuditById, getIssuesByAudit, getHealthSummary, getAuditsForSite } from "@/db/repositories/audits"
 import { getSiteById } from "@/db/repositories/sites"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
@@ -36,10 +36,17 @@ export default async function AuditPage({
   const site = await getSiteById(audit.siteId, session.user.id)
   if (!site) notFound()
 
-  const [summary, issues] = await Promise.all([
+  const [summary, issues, siteAudits] = await Promise.all([
     getHealthSummary(id),
     getIssuesByAudit(id, { limit: 200 }),
+    getAuditsForSite(audit.siteId, 5),
   ])
+
+  // Find the previous completed audit before this one
+  const prevAudit = siteAudits.find(a => a.id !== id && a.status === "complete" && a.healthScore != null)
+  const scoreDelta = audit.healthScore != null && prevAudit?.healthScore != null
+    ? audit.healthScore - prevAudit.healthScore
+    : null
 
   const pageAnalyses = (audit.pageAnalyses as PageAnalysis[] | null) ?? []
   const sortedPages = [...pageAnalyses].sort((a, b) => a.onPageScore - b.onPageScore).slice(0, 30)
@@ -147,7 +154,20 @@ export default async function AuditPage({
 
       {/* Score + counts row */}
       <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: "20px", marginBottom: "40px" }}>
-        <AnimatedScoreRing score={audit.healthScore ?? 0} size={160} />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+          <AnimatedScoreRing score={audit.healthScore ?? 0} size={160} />
+          {scoreDelta !== null && (
+            <span style={{
+              fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "6px",
+              background: scoreDelta > 0 ? "var(--success-bg)" : scoreDelta < 0 ? "var(--destructive-bg)" : "var(--glass-bg)",
+              color: scoreDelta > 0 ? "var(--success)" : scoreDelta < 0 ? "var(--destructive)" : "var(--foreground-3)",
+              border: `1px solid ${scoreDelta > 0 ? "var(--success)" : scoreDelta < 0 ? "var(--destructive)" : "var(--glass-border)"}20`,
+              fontFamily: "var(--font-mono)",
+            }}>
+              {scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta === 0 ? "No change" : `${scoreDelta}`} vs prev
+            </span>
+          )}
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", alignContent: "start" }}>
           <StatCard label="Critical" value={summary.criticalCount} color="oklch(0.65 0.20 27)" />
           <StatCard label="Warnings" value={summary.warningCount} color="oklch(0.80 0.15 75)" />
