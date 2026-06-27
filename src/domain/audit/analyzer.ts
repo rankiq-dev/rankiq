@@ -274,7 +274,7 @@ const ISSUE_BUILDERS: IssueBuilder[] = [
     title: "Thin content pages",
     description: "Pages with fewer than 300 words may not rank for competitive queries and can dilute your site's overall authority.",
     fixInstructions: "Expand these pages with useful content — detailed explanations, FAQs, examples, or related information. Aim for 600+ words for informational pages.",
-    predicate: (p) => (p.wordCount ?? 0) > 0 && (p.wordCount ?? 0) < 300 && p.status === 200 && !p.url.match(/\?(|#)/) && p.canonicalUrl === p.url,
+    predicate: (p) => (p.wordCount ?? 0) > 0 && (p.wordCount ?? 0) < 300 && p.status === 200 && !p.url.match(/[?#]/),
   }),
 
   /* ── Missing alt text on images ─────────────────────────────────────── */
@@ -287,6 +287,42 @@ const ISSUE_BUILDERS: IssueBuilder[] = [
     fixInstructions: 'Add descriptive alt attributes to all <img> tags. Describe what the image shows — avoid keyword stuffing. Example: alt="Team photo at RankIQ office 2024"',
     predicate: (p) => (p.imagesMissingAlt ?? 0) > 0 && p.status === 200,
   }),
+
+  /* ── Orphaned pages (no internal links pointing to them) ─────────────── */
+  (pages, _result, auditId) => {
+    // Only flag orphans when site has at least 5 pages (small sites can have sparse linking)
+    if (pages.length < 5) return null
+    return pageIssue(auditId, pages, {
+      type: "orphaned_page",
+      severity: "warning",
+      category: "on_page",
+      title: "Orphaned pages (no internal links)",
+      description: "Pages with no internal links pointing to them are hard for search engines to discover and accumulate no PageRank from the rest of the site.",
+      fixInstructions: "Add links to these pages from relevant pages on your site — navigation menus, related content sections, or contextual inline links. Every important page should be reachable within 3 clicks from the home page.",
+      predicate: (p) => p.status === 200 && p.incomingInternalLinks === 0 && p.url !== `https://${_result.domain}/` && p.url !== `https://${_result.domain}`,
+    })
+  },
+
+  /* ── No JSON-LD schema markup ────────────────────────────────────────── */
+  (pages, _result, auditId) => {
+    // Only flag if none of the pages have JSON-LD (global absence, not per-page)
+    const hasAnySchema = pages.some(p => p.hasJsonLd)
+    if (hasAnySchema) return null
+    if (pages.length === 0) return null
+    return {
+      auditId,
+      type: "no_schema_markup",
+      severity: "info" as const,
+      category: "on_page" as const,
+      title: "No structured data (JSON-LD) detected",
+      description: "None of your pages use JSON-LD schema markup. Structured data helps search engines understand page content and can unlock rich results in SERPs.",
+      fixInstructions: 'Add JSON-LD to your key pages. At minimum: Organization and WebSite on your home page. For articles, use Article schema. For products, use Product+Offer. Use Google\'s Rich Results Test to validate.',
+      affectedCount: pages.length,
+      affectedUrls: pages.slice(0, MAX_SAMPLE_URLS).map(p => p.url),
+      isFixed: false,
+      fixedAt: null,
+    }
+  },
 ]
 
 /**
