@@ -9,6 +9,7 @@ import Link from "next/link"
 import { RunAuditButton } from "./RunAuditButton"
 import { DeleteSiteButton } from "./DeleteSiteButton"
 import { GscRefreshButton, GscDisconnectButton } from "./GscButtons"
+import { SiteNameEditor } from "./SiteNameEditor"
 import type { Metadata } from "next"
 import type { GscKeywordMetric } from "@/db/schema"
 
@@ -64,9 +65,9 @@ export default async function SitePage({
           <Link href="/dashboard" style={{ fontSize: "12px", color: "var(--foreground-3)", textDecoration: "none" }}>
             ← All sites
           </Link>
-          <h1 style={{ fontSize: "28px", fontWeight: 800, color: "var(--foreground)", letterSpacing: "-0.6px", marginTop: "10px", marginBottom: "4px" }}>
-            {site.displayName ?? site.domain}
-          </h1>
+          <div style={{ marginTop: "10px", marginBottom: "4px" }}>
+            <SiteNameEditor siteId={id} displayName={site.displayName} domain={site.domain} />
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <span style={{ fontSize: "12px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)" }}>{site.domain}</span>
             {site.gscConnected && (
