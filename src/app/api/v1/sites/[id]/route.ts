@@ -16,9 +16,22 @@ export async function PATCH(
   const site = await getSiteById(id, session.user.id)
   if (!site) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-  const body = await req.json().catch(() => ({})) as { displayName?: string | null }
+  const body = await req.json().catch(() => ({})) as {
+    displayName?: string | null
+    auditSchedule?: string
+    maxPages?: number
+    crawlDelayMs?: number
+    clientLabel?: string | null
+  }
 
-  await updateSite(id, session.user.id, { displayName: body.displayName ?? null })
+  const update: Record<string, unknown> = {}
+  if ("displayName" in body) update.displayName = body.displayName
+  if ("auditSchedule" in body) update.auditSchedule = body.auditSchedule
+  if ("maxPages" in body && typeof body.maxPages === "number") update.maxPages = Math.min(Math.max(body.maxPages, 10), 1000)
+  if ("crawlDelayMs" in body && typeof body.crawlDelayMs === "number") update.crawlDelayMs = Math.min(Math.max(body.crawlDelayMs, 100), 5000)
+  if ("clientLabel" in body) update.clientLabel = body.clientLabel
+
+  await updateSite(id, session.user.id, update as Parameters<typeof updateSite>[2])
 
   return NextResponse.json({ data: { updated: true } })
 }

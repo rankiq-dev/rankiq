@@ -11,17 +11,25 @@ const SCHEDULE_OPTIONS = [
 ]
 
 const PAGE_OPTIONS = [50, 100, 200, 500]
+const DELAY_OPTIONS = [
+  { ms: 250, label: "250ms", desc: "Fast (aggressive)" },
+  { ms: 500, label: "500ms", desc: "Normal" },
+  { ms: 1000, label: "1s", desc: "Polite" },
+  { ms: 2000, label: "2s", desc: "Very polite" },
+]
 
 interface Props {
   siteId: string
   auditSchedule: string
   maxPages: number
+  crawlDelayMs: number
   clientLabel: string | null
 }
 
-export function SiteSettingsPanel({ siteId, auditSchedule, maxPages, clientLabel }: Props) {
+export function SiteSettingsPanel({ siteId, auditSchedule, maxPages, crawlDelayMs, clientLabel }: Props) {
   const [schedule, setSchedule] = useState(auditSchedule)
   const [pages, setPages] = useState(maxPages)
+  const [delay, setDelay] = useState(crawlDelayMs)
   const [label, setLabel] = useState(clientLabel ?? "")
   const [saving, setSaving] = useState(false)
   const [changed, setChanged] = useState(false)
@@ -30,6 +38,7 @@ export function SiteSettingsPanel({ siteId, auditSchedule, maxPages, clientLabel
 
   function onSchedule(v: string) { setSchedule(v); setChanged(true) }
   function onPages(v: number) { setPages(v); setChanged(true) }
+  function onDelay(v: number) { setDelay(v); setChanged(true) }
   function onLabel(v: string) { setLabel(v); setChanged(true) }
 
   async function save() {
@@ -38,7 +47,7 @@ export function SiteSettingsPanel({ siteId, auditSchedule, maxPages, clientLabel
       const res = await fetch(`/api/v1/sites/${siteId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ auditSchedule: schedule, maxPages: pages, clientLabel: label.trim() || null }),
+        body: JSON.stringify({ auditSchedule: schedule, maxPages: pages, crawlDelayMs: delay, clientLabel: label.trim() || null }),
       })
       if (res.ok) {
         toast("Settings saved", "success")
@@ -93,6 +102,18 @@ export function SiteSettingsPanel({ siteId, auditSchedule, maxPages, clientLabel
         </div>
         <div style={{ fontSize: "11px", color: "var(--foreground-3)", marginTop: "6px" }}>
           Crawl up to {pages} pages per run
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "20px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--foreground-3)", marginBottom: "10px" }}>
+          Crawl delay
+        </div>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {DELAY_OPTIONS.map(opt => pill(opt.label, delay === opt.ms, () => onDelay(opt.ms)))}
+        </div>
+        <div style={{ fontSize: "11px", color: "var(--foreground-3)", marginTop: "6px" }}>
+          {DELAY_OPTIONS.find(o => o.ms === delay)?.desc} — time between page fetches
         </div>
       </div>
 

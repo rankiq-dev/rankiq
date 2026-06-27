@@ -126,6 +126,8 @@ export const sites = pgTable(
     auditSchedule:  text("audit_schedule").default("weekly").notNull(),
     /* Max pages to crawl per audit */
     maxPages:       integer("max_pages").default(200).notNull(),
+    /* Delay between page fetches in milliseconds (crawl politeness) */
+    crawlDelayMs:   integer("crawl_delay_ms").default(500).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

@@ -346,6 +346,7 @@ export default async function SitePage({
           siteId={id}
           auditSchedule={site.auditSchedule ?? "weekly"}
           maxPages={site.maxPages ?? 200}
+          crawlDelayMs={(site as typeof site & { crawlDelayMs?: number }).crawlDelayMs ?? 500}
           clientLabel={site.clientLabel ?? null}
         />
       </div>
