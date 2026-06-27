@@ -8,6 +8,7 @@ import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { RunAuditButton } from "./RunAuditButton"
 import { DeleteSiteButton } from "./DeleteSiteButton"
+import { GscRefreshButton, GscDisconnectButton } from "./GscButtons"
 import type { Metadata } from "next"
 import type { GscKeywordMetric } from "@/db/schema"
 
@@ -224,31 +225,14 @@ export default async function SitePage({
               <p style={{ fontSize: "12px", color: "var(--foreground-3)", lineHeight: 1.65, marginBottom: "14px" }}>
                 Keyword ranking data from the last 28 days is synced and shown below.
               </p>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                 <Link href={`/sites/${id}/keywords`} style={{
                   padding: "7px 12px", background: "var(--primary-soft)",
                   color: "var(--primary-2)", borderRadius: "var(--radius)", fontSize: "12px",
                   fontWeight: 600, border: "1px solid oklch(0.55 0.13 178 / 0.3)", textDecoration: "none",
                 }}>View all keywords →</Link>
-                <form action={`/api/v1/sites/${id}/gsc`} method="POST" style={{ display: "inline" }}>
-                  <button type="submit" style={{
-                    padding: "7px 12px", background: "transparent",
-                    color: "var(--foreground-3)", borderRadius: "var(--radius)", fontSize: "12px",
-                    fontWeight: 600, border: "1px solid var(--glass-border)", cursor: "pointer",
-                  }}>
-                    Refresh data
-                  </button>
-                </form>
-                <form action={`/api/v1/sites/${id}/gsc`} method="POST" style={{ display: "inline" }}>
-                  <input type="hidden" name="_method" value="DELETE" />
-                  <button type="submit" style={{
-                    padding: "7px 12px", background: "transparent",
-                    color: "var(--foreground-3)", borderRadius: "var(--radius)", fontSize: "12px",
-                    fontWeight: 600, border: "1px solid var(--glass-border)", cursor: "pointer",
-                  }}>
-                    Disconnect
-                  </button>
-                </form>
+                <GscRefreshButton siteId={id} />
+                <GscDisconnectButton siteId={id} />
               </div>
             </div>
           ) : (
