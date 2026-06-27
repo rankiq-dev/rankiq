@@ -52,22 +52,39 @@ export default async function AuditPage({
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             {audit.status === "complete" && (
-              <a
-                href={`/api/v1/audits/${id}/pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: "6px",
-                  padding: "7px 14px", fontSize: "12px", fontWeight: 600,
-                  background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
-                  borderRadius: "var(--radius-md)", color: "var(--foreground-2)",
-                  textDecoration: "none",
-                }}>
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                  <path d="M6.5 1v7M4 6l2.5 2.5L9 6M2 11h9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Download PDF
-              </a>
+              <>
+                <a
+                  href={`/api/v1/audits/${id}/issues/csv`}
+                  download
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "5px",
+                    padding: "7px 12px", fontSize: "12px", fontWeight: 600,
+                    background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+                    borderRadius: "var(--radius-md)", color: "var(--foreground-3)",
+                    textDecoration: "none",
+                  }}>
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <path d="M5.5 1v6M3.5 5.5l2 2 2-2M1 9.5h9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  CSV
+                </a>
+                <a
+                  href={`/api/v1/audits/${id}/pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "6px",
+                    padding: "7px 14px", fontSize: "12px", fontWeight: 600,
+                    background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+                    borderRadius: "var(--radius-md)", color: "var(--foreground-2)",
+                    textDecoration: "none",
+                  }}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M6.5 1v7M4 6l2.5 2.5L9 6M2 11h9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  PDF
+                </a>
+              </>
             )}
             <Link
               href={`/audits/${id}/action-plan`}
