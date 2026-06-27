@@ -176,8 +176,17 @@ export default async function AgencyPage() {
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "oklch(0.98 0 0 / 0.02)"}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
                     <td style={{ padding: "14px 16px" }}>
-                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)", marginBottom: "2px" }}>
-                        {site.displayName ?? site.domain}
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "2px" }}>
+                        <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>
+                          {site.displayName ?? site.domain}
+                        </span>
+                        {site.clientLabel && (
+                          <span style={{
+                            padding: "1px 7px", borderRadius: "20px", fontSize: "9px", fontWeight: 700,
+                            background: "var(--primary-soft)", color: "var(--primary-2)",
+                            border: "1px solid oklch(0.55 0.13 178 / 0.25)", whiteSpace: "nowrap",
+                          }}>{site.clientLabel}</span>
+                        )}
                       </div>
                       <div style={{ fontSize: "11px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)" }}>
                         {site.domain}
