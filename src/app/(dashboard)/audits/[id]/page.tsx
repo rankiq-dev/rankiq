@@ -51,6 +51,18 @@ export default async function AuditPage({
   const pageAnalyses = (audit.pageAnalyses as PageAnalysis[] | null) ?? []
   const sortedPages = [...pageAnalyses].sort((a, b) => a.onPageScore - b.onPageScore).slice(0, 30)
 
+  // Fix time estimates per issue type
+  const FIX_TIME: Record<string, string> = {
+    missing_title_tag: "5 min", missing_h1: "5 min", missing_meta_description: "5 min",
+    title_too_long: "2 min", title_too_short: "2 min", meta_description_too_long: "2 min",
+    multiple_h1_tags: "10 min", no_canonical_tag: "15 min", duplicate_title: "30 min",
+    duplicate_meta_description: "30 min", broken_internal_link: "30 min",
+    thin_content: "2 h", poor_internal_linking: "1 h", no_heading_hierarchy: "30 min",
+    images_missing_alt: "1 h", missing_schema_markup: "2 h", no_schema_markup: "2 h",
+    redirect_chain: "1 h", robots_noindex: "30 min", noindex_page: "15 min",
+    orphan_page: "1 h", orphaned_page: "1 h", mixed_content_links: "30 min",
+  }
+
   // Opportunity pages: low score but indexable (not noindex) — most to gain from fixes
   const opportunityPages = [...pageAnalyses]
     .filter(p => p.status === 200 && p.onPageScore < 80 && p.onPageScore > 0)
@@ -473,6 +485,7 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter }: { issues: Audi
             affectedUrls={(issue.affectedUrls as string[] | null) ?? undefined}
             fixInstructions={issue.fixInstructions}
             isFixed={issue.isFixed}
+            fixTimeLabel={FIX_TIME[issue.type]}
             scoreImpact={
               issue.severity === "critical"
                 ? Math.min(10 * Math.min(issue.affectedCount, 5), 50)

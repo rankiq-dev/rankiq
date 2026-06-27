@@ -14,6 +14,7 @@ interface Props {
   scoreImpact?: number
   issueId?: string
   auditId?: string
+  fixTimeLabel?: string
   children?: React.ReactNode
 }
 
@@ -24,7 +25,7 @@ const SEV_BG: Record<string, string> = {
   critical: "var(--destructive-bg)", warning: "var(--warning-bg)", info: "var(--info-bg)", error: "var(--destructive-bg)",
 }
 
-export function ExpandableIssue({ title, description, severity, category, affectedCount, affectedUrls, fixInstructions, isFixed: initialFixed, scoreImpact, issueId, auditId, children }: Props) {
+export function ExpandableIssue({ title, description, severity, category, affectedCount, affectedUrls, fixInstructions, isFixed: initialFixed, scoreImpact, issueId, auditId, fixTimeLabel, children }: Props) {
   const [open, setOpen] = useState(false)
   const [fixed, setFixed] = useState(initialFixed ?? false)
   const [toggling, setToggling] = useState(false)
@@ -84,6 +85,15 @@ export function ExpandableIssue({ title, description, severity, category, affect
             color: "var(--success)", border: "1px solid oklch(0.68 0.16 155 / 0.2)",
             whiteSpace: "nowrap", marginTop: "2px",
           }}>+{scoreImpact} pts</span>
+        )}
+        {fixTimeLabel && (
+          <span style={{
+            flexShrink: 0, fontSize: "9px", fontWeight: 600,
+            padding: "2px 6px", borderRadius: "20px",
+            background: "var(--glass-bg)",
+            color: "var(--foreground-3)", border: "1px solid var(--glass-border)",
+            whiteSpace: "nowrap", marginTop: "2px",
+          }}>⏱ {fixTimeLabel}</span>
         )}
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: "3px", transition: "transform 200ms", transform: open ? "rotate(180deg)" : "none", color: "var(--foreground-3)" }}>
           <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
