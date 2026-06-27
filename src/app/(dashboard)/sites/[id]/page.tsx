@@ -16,6 +16,7 @@ import { RobotsChecker } from "./RobotsChecker"
 import { PageSpeedPanel } from "./PageSpeedPanel"
 import type { Metadata } from "next"
 import type { GscKeywordMetric } from "@/db/schema"
+import type { PageAnalysis } from "@/domain/audit/types"
 
 type KeywordWithChange = GscKeywordMetric & { prevPosition: string | null; positionChange: number | null }
 
@@ -53,6 +54,13 @@ export default async function SitePage({
   const latestScore = latestAudit?.healthScore ?? null
   const prevScore = completedAudits.length >= 2 ? completedAudits[completedAudits.length - 2].healthScore : null
   const trend = latestScore != null && prevScore != null ? latestScore - prevScore : null
+
+  // Top pages by incoming internal links
+  const topPages = latestAudit?.pageAnalyses
+    ? (latestAudit.pageAnalyses as PageAnalysis[])
+        .sort((a, b) => (b.incomingInternalLinks ?? 0) - (a.incomingInternalLinks ?? 0))
+        .slice(0, 8)
+    : []
 
   const scoreColor = latestScore == null ? "var(--foreground-3)"
     : latestScore >= 90 ? "var(--success)"
@@ -267,6 +275,61 @@ export default async function SitePage({
           )}
         </div>
       </div>
+
+      {/* Top Pages by Internal Link Equity */}
+      {topPages.length > 0 && (
+        <div style={{
+          background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+          border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+          overflow: "hidden", marginBottom: "16px",
+        }}>
+          <div style={{ padding: "16px 22px 12px", borderBottom: "1px solid var(--glass-border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              Top Pages by Internal Link Equity
+            </div>
+            <Link href={`/audits/${latestAudit?.id}`} style={{ fontSize: "11px", color: "var(--foreground-3)", textDecoration: "none" }}>
+              View all issues →
+            </Link>
+          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                {["Page URL", "Internal Links In", "On-Page Score", "Words"].map(h => (
+                  <th key={h} style={{
+                    padding: "9px 18px", fontSize: "10px", fontWeight: 700,
+                    color: "var(--foreground-3)", textAlign: h === "Page URL" ? "left" : "right",
+                    textTransform: "uppercase", letterSpacing: "0.06em",
+                    borderBottom: "1px solid var(--glass-border)",
+                  }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {topPages.map((page, i) => (
+                <tr key={page.url} style={{ borderBottom: i < topPages.length - 1 ? "1px solid oklch(0.98 0 0 / 0.04)" : "none" }}>
+                  <td style={{ padding: "9px 18px", fontSize: "12px", color: "var(--foreground)", maxWidth: "380px" }}>
+                    <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-mono)" }}>
+                      {page.url.replace(/^https?:\/\/[^/]+/, "") || "/"}
+                    </span>
+                  </td>
+                  <td style={{ padding: "9px 18px", textAlign: "right", fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 700, color: "var(--primary-2)" }}>
+                    {page.incomingInternalLinks ?? 0}
+                  </td>
+                  <td style={{ padding: "9px 18px", textAlign: "right" }}>
+                    <span style={{
+                      fontSize: "12px", fontWeight: 700, fontFamily: "var(--font-mono)",
+                      color: page.onPageScore >= 80 ? "var(--success)" : page.onPageScore >= 60 ? "var(--warning)" : "var(--destructive)",
+                    }}>{page.onPageScore}</span>
+                  </td>
+                  <td style={{ padding: "9px 18px", textAlign: "right", fontSize: "12px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)" }}>
+                    {page.wordCount?.toLocaleString() ?? "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Keyword Table */}
       {site.gscConnected && keywords.length > 0 && <KeywordTable keywords={keywords as KeywordWithChange[]} siteId={id} />}
