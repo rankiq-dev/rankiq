@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
 import Link from "next/link"
 import type { Metadata } from "next"

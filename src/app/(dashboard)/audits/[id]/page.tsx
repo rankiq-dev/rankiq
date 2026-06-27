@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
 import { getAuditById, getIssuesByAudit, getHealthSummary } from "@/db/repositories/audits"
 import { getSiteById } from "@/db/repositories/sites"
