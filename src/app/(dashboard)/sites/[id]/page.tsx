@@ -7,6 +7,7 @@ import { getGscAuthUrl } from "@/domain/sites/gsc"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { RunAuditButton } from "./RunAuditButton"
+import { DeleteSiteButton } from "./DeleteSiteButton"
 import type { Metadata } from "next"
 import type { GscKeywordMetric } from "@/db/schema"
 
@@ -98,7 +99,14 @@ export default async function SitePage({
               Latest Audit
             </Link>
           )}
+          <Link href={`/sites/${id}/compare`} style={{
+            padding: "9px 16px", background: "var(--glass-bg)",
+            color: "var(--foreground-3)", borderRadius: "var(--radius-md)",
+            fontSize: "12px", fontWeight: 600, textDecoration: "none",
+            border: "1px solid var(--glass-border)",
+          }}>Compare</Link>
           <RunAuditButton siteId={id} />
+          <DeleteSiteButton siteId={id} domain={site.domain} />
         </div>
       </div>
 
