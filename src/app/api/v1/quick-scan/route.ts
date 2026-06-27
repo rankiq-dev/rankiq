@@ -10,6 +10,10 @@ interface QuickScanResult {
   wordCount: number
   hasCanonical: boolean
   hasJsonLd: boolean
+  hasOgTitle: boolean
+  hasOgDesc: boolean
+  hasOgImage: boolean
+  hasTwitterCard: boolean
   imagesMissingAlt: number
   issues: Array<{ type: string; severity: "critical" | "warning" | "info"; message: string }>
   score: number
@@ -43,6 +47,10 @@ export async function POST(req: NextRequest) {
     const words = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(w => w.length > 3).length
     const hasCanonical = /<link[^>]+rel=["']canonical["']/i.test(html)
     const hasJsonLd = html.includes('type="application/ld+json"') || html.includes("type='application/ld+json'")
+    const hasOgTitle = /<meta[^>]+property=["']og:title["']/i.test(html)
+    const hasOgDesc = /<meta[^>]+property=["']og:description["']/i.test(html)
+    const hasOgImage = /<meta[^>]+property=["']og:image["']/i.test(html)
+    const hasTwitterCard = /<meta[^>]+name=["']twitter:card["']/i.test(html)
     const imgTags = (html.match(/<img[^>]*/gi) ?? [])
     const imgMissingAlt = imgTags.filter(t => !t.includes("alt=") || /alt=["']\s*["']/.test(t)).length
 
@@ -66,12 +74,20 @@ export async function POST(req: NextRequest) {
     if (!hasJsonLd) { issues.push({ type: "no_schema", severity: "info", message: "No JSON-LD schema markup" }); penalty += 2 }
     if (imgMissingAlt > 0) { issues.push({ type: "missing_alt", severity: "warning", message: `${imgMissingAlt} image(s) missing alt text` }); penalty += Math.min(imgMissingAlt * 2, 10) }
 
+    const missingOg: string[] = []
+    if (!hasOgTitle) missingOg.push("og:title")
+    if (!hasOgDesc) missingOg.push("og:description")
+    if (!hasOgImage) missingOg.push("og:image")
+    if (!hasTwitterCard) missingOg.push("twitter:card")
+    if (missingOg.length > 0) { issues.push({ type: "missing_social_meta", severity: "info", message: `Missing social meta tags: ${missingOg.join(", ")}` }); penalty += Math.min(missingOg.length, 3) }
+
     const score = Math.max(0, Math.min(100, 100 - penalty))
 
     const result: QuickScanResult = {
       url: res.url,
       title, metaDescription: desc, h1Count: h1s, h1Text, wordCount: words,
-      hasCanonical, hasJsonLd, imagesMissingAlt: imgMissingAlt,
+      hasCanonical, hasJsonLd, hasOgTitle, hasOgDesc, hasOgImage, hasTwitterCard,
+      imagesMissingAlt: imgMissingAlt,
       issues, score,
     }
 

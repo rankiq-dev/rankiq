@@ -11,6 +11,10 @@ interface Result {
   wordCount: number
   hasCanonical: boolean
   hasJsonLd: boolean
+  hasOgTitle: boolean
+  hasOgDesc: boolean
+  hasOgImage: boolean
+  hasTwitterCard: boolean
   imagesMissingAlt: number
   issues: Issue[]
   score: number
@@ -171,6 +175,9 @@ export function QuickScanner() {
                 { label: "H1", value: result.h1Text ?? (result.h1Count === 0 ? "Missing" : "None extracted"), ok: result.h1Count === 1 },
                 { label: "Canonical", value: result.hasCanonical ? "Present" : "Missing", ok: result.hasCanonical },
                 { label: "JSON-LD Schema", value: result.hasJsonLd ? "Present" : "Missing", ok: result.hasJsonLd },
+                { label: "OG Title", value: result.hasOgTitle ? "Present" : "Missing", ok: result.hasOgTitle },
+                { label: "OG Image", value: result.hasOgImage ? "Present" : "Missing", ok: result.hasOgImage },
+                { label: "Twitter Card", value: result.hasTwitterCard ? "Present" : "Missing", ok: result.hasTwitterCard },
               ].map(({ label, value, ok }) => (
                 <div key={label} style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
                   <span style={{ width: "14px", height: "14px", borderRadius: "50%", background: ok ? "var(--success)" : "var(--destructive)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "1px", fontSize: "8px", color: "white", fontWeight: 900 }}>{ok ? "✓" : "✗"}</span>
