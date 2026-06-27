@@ -234,6 +234,24 @@ export const apiKeys = pgTable(
   (t) => [index("api_keys_user_idx").on(t.userId)]
 )
 
+/* ── Webhooks ────────────────────────────────────────────────────────────── */
+export const webhooks = pgTable(
+  "webhooks",
+  {
+    id:           uuid("id").primaryKey().defaultRandom(),
+    userId:       uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    url:          text("url").notNull(),
+    secret:       text("secret").notNull(),
+    events:       text("events").notNull().default("audit.complete"),
+    isActive:     boolean("is_active").notNull().default(true),
+    createdAt:    timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    lastFiredAt:  timestamp("last_fired_at", { withTimezone: true }),
+    lastStatus:   integer("last_status"),
+    failureCount: integer("failure_count").notNull().default(0),
+  },
+  (t) => [index("webhooks_user_id_idx").on(t.userId)]
+)
+
 /* ── Inferred types (schema ↔ code contract) ─────────────────────────────── */
 export type User               = typeof users.$inferSelect
 export type NewUser            = typeof users.$inferInsert
@@ -247,3 +265,5 @@ export type GscKeywordMetric    = typeof gscKeywordMetrics.$inferSelect
 export type NewGscKeywordMetric = typeof gscKeywordMetrics.$inferInsert
 export type ApiKey              = typeof apiKeys.$inferSelect
 export type NewApiKey           = typeof apiKeys.$inferInsert
+export type Webhook             = typeof webhooks.$inferSelect
+export type NewWebhook          = typeof webhooks.$inferInsert

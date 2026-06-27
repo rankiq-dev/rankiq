@@ -11,6 +11,7 @@ import { db } from "@/db"
 import type { Audit } from "@/db/schema"
 
 import type { EmailJobPayload } from "@/domain/email/service"
+import { fireWebhookEvent } from "@/domain/webhooks/service"
 
 const crawlQueue = createQueue<{ auditId: string; siteId: string; domain: string; maxPages: number }>(
   QUEUE_NAMES.CRAWL
@@ -109,6 +110,10 @@ export async function processCrawlJob(data: {
         { type: "audit_report", auditId, userId: siteForEmail.userId },
         { jobId: `email-report-${auditId}`, delay: 30_000 }
       )
+      /* Fire webhooks for audit.complete */
+      await fireWebhookEvent(siteForEmail.userId, "audit.complete", {
+        auditId, siteId: data.siteId, domain: data.domain, healthScore, pagesCount: result.pages.length, issueCount: issues.length,
+      }).catch(err => logger.warn({ err }, "Webhook fire error (non-fatal)"))
     }
 
     logger.info(
