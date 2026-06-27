@@ -4,6 +4,7 @@ import { createAudit, updateAuditStatus, bulkInsertIssues } from "@/db/repositor
 import { getSiteById } from "@/db/repositories/sites"
 import { getUserById } from "@/db/repositories/users"
 import { crawlSite } from "./crawler"
+import { crawlSiteWithPlaywright } from "./playwrightCrawler"
 import { analyzePages, computeHealthScore, buildPageAnalyses } from "./analyzer"
 import { PLAN_LIMITS, CRAWL_TIMEOUT_MS } from "@/lib/constants"
 import { db } from "@/db"
@@ -57,15 +58,25 @@ export async function processCrawlJob(data: {
   })
 
   try {
-    const result = await crawlSite(domain, { maxPages, timeoutMs: CRAWL_TIMEOUT_MS })
+    let result = await crawlSite(domain, { maxPages, timeoutMs: CRAWL_TIMEOUT_MS })
+
+    /* If static crawler got nothing, retry with Playwright (handles React/Next.js/Vue/Angular) */
+    if (result.pages.length === 0) {
+      logger.info({ auditId, domain }, "CheerioCrawler returned 0 pages — retrying with Playwright")
+      try {
+        result = await crawlSiteWithPlaywright(domain, { maxPages, timeoutMs: CRAWL_TIMEOUT_MS })
+      } catch (playwrightErr) {
+        logger.warn({ auditId, domain, playwrightErr }, "Playwright crawl also failed")
+      }
+    }
 
     if (result.pages.length === 0) {
       await updateAuditStatus(auditId, {
         status: "failed",
-        errorMessage: "No pages could be crawled. The site may be blocking crawlers, require JavaScript rendering, or be unreachable.",
+        errorMessage: "No pages could be crawled. The site may be blocking crawlers or be unreachable. If it's a JavaScript-heavy site, ensure Playwright is installed on the worker.",
         completedAt: new Date(),
       })
-      logger.warn({ auditId, domain }, "Crawl returned 0 pages — marking as failed")
+      logger.warn({ auditId, domain }, "Both crawlers returned 0 pages — marking as failed")
       return
     }
 

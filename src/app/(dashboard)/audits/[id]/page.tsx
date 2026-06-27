@@ -44,9 +44,42 @@ export default async function AuditPage({
         <h1 style={{ fontSize: "24px", fontWeight: 800, color: "oklch(0.92 0.008 230)", letterSpacing: "-0.5px", marginTop: "8px", marginBottom: "4px" }}>
           {site.displayName ?? site.domain}
         </h1>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "12px", color: "oklch(0.38 0.008 230)" }}>{site.domain}</span>
-          <StatusBadge status={audit.status} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ fontSize: "12px", color: "oklch(0.38 0.008 230)" }}>{site.domain}</span>
+            <StatusBadge status={audit.status} />
+          </div>
+          <div style={{ display: "flex", gap: "8px" }}>
+            {audit.status === "complete" && (
+              <a
+                href={`/api/v1/audits/${id}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "6px",
+                  padding: "7px 14px", fontSize: "12px", fontWeight: 600,
+                  background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+                  borderRadius: "var(--radius-md)", color: "var(--foreground-2)",
+                  textDecoration: "none",
+                }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                  <path d="M6.5 1v7M4 6l2.5 2.5L9 6M2 11h9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Download PDF
+              </a>
+            )}
+            <Link
+              href={`/audits/${id}/action-plan`}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "7px 14px", fontSize: "12px", fontWeight: 700,
+                background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
+                color: "var(--primary-foreground)", borderRadius: "var(--radius-md)",
+                textDecoration: "none", boxShadow: "var(--shadow-glow)",
+              }}>
+              View Action Plan →
+            </Link>
+          </div>
         </div>
       </div>
 

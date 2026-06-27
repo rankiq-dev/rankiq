@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
     "puppeteer",
     "playwright",
     "undici",
+    "@react-pdf/renderer",
   ],
 }
 

@@ -1,5 +1,5 @@
 [build]
-buildCommand = "npm ci"
+buildCommand = "npm ci && npx playwright install chromium --with-deps"
 
 [deploy]
 startCommand = "npm run worker"
