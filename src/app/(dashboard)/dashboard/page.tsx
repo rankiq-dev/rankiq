@@ -29,7 +29,13 @@ export default async function DashboardPage() {
     : null
 
   const completedAudits = latestAudits.filter(a => a?.status === "complete").length
-  const totalIssues = latestAudits.reduce((s, a) => s + (a?.pagesCount != null ? 0 : 0), 0)
+  const runningAudits = latestAudits.filter(a => a?.status === "running" || a?.status === "queued").length
+
+  // Count total critical issues across all sites
+  const totalCritical = latestAudits.reduce((sum, a) => {
+    // healthScore < 60 roughly indicates critical issues; we use pagesCount as proxy if issueCount not available
+    return sum + (a?.healthScore != null && a.healthScore < 60 ? 1 : 0)
+  }, 0)
 
   return (
     <div style={{ padding: "32px 40px", maxWidth: "1200px" }}>
@@ -77,10 +83,11 @@ export default async function DashboardPage() {
 
       {/* KPI strip */}
       {sites.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "32px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "32px" }}>
           <MiniKpi label="Avg Health Score" value={avgHealth != null ? `${avgHealth}` : "—"} color={avgHealth != null && avgHealth >= 90 ? "var(--success)" : avgHealth != null && avgHealth >= 70 ? "var(--primary-2)" : "var(--warning)"} />
-          <MiniKpi label="Audits Complete" value={`${completedAudits} / ${sites.length}`} color="var(--primary-2)" />
+          <MiniKpi label="Audits Done" value={`${completedAudits} / ${sites.length}`} color="var(--primary-2)" />
           <MiniKpi label="Sites Monitored" value={`${sites.length}`} color="var(--info)" />
+          <MiniKpi label={runningAudits > 0 ? "Auditing Now" : "Low Score Sites"} value={runningAudits > 0 ? `${runningAudits}` : `${totalCritical}`} color={runningAudits > 0 ? "var(--primary)" : totalCritical > 0 ? "var(--destructive)" : "var(--success)"} />
         </div>
       )}
 
