@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
 import { getSiteById } from "@/db/repositories/sites"
-import { getKeywordPositionChanges } from "@/db/repositories/gsc"
+import { getKeywordPositionChanges, getKeywordMetricsBySite } from "@/db/repositories/gsc"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import type { Metadata } from "next"
@@ -24,7 +24,18 @@ export default async function KeywordsPage({
   const site = await getSiteById(id, session.user.id)
   if (!site) notFound()
 
-  const allKeywords = await getKeywordPositionChanges(id, 200)
+  const [allKeywords, allMetrics] = await Promise.all([
+    getKeywordPositionChanges(id, 200),
+    getKeywordMetricsBySite(id, 200),
+  ])
+
+  // Compute quick-win opportunities: position 4-20, impressions > 10
+  const maxImpressions = Math.max(...allMetrics.map(m => m.impressions), 1)
+  const opportunities = allMetrics
+    .filter(m => { const p = parseFloat(m.positionAvg); return p > 3 && p <= 20 && m.impressions > 10 })
+    .map(m => ({ keyword: m.keyword, position: parseFloat(m.positionAvg), impressions: m.impressions, clicks: m.clicks }))
+    .sort((a, b) => (b.impressions / maxImpressions * (1 / a.position)) - (a.impressions / maxImpressions * (1 / b.position)))
+    .slice(0, 5)
 
   // Filter
   const filtered = q
@@ -78,6 +89,22 @@ export default async function KeywordsPage({
           )}
         </div>
       </div>
+
+      {opportunities.length > 0 && (
+        <div style={{ background: "var(--primary-soft)", border: "1px solid oklch(0.55 0.13 178 / 0.25)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "20px" }}>
+          <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--primary-2)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>✦ Quick-Win Opportunities — high impressions, not yet page 1</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            {opportunities.map(o => (
+              <div key={o.keyword} style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "12px" }}>
+                <span style={{ fontFamily: "var(--font-mono)", color: "var(--foreground)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.keyword}</span>
+                <span style={{ fontFamily: "var(--font-mono)", color: "var(--warning)", fontWeight: 700, flexShrink: 0 }}>#{o.position.toFixed(1)}</span>
+                <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{o.impressions.toLocaleString()} impr</span>
+                <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{o.clicks} clicks</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {allKeywords.length > 0 && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "20px" }}>
