@@ -234,6 +234,37 @@ const ISSUE_BUILDERS: IssueBuilder[] = [
         "These pages have body content but no H2 subheadings. A clear heading hierarchy helps users scan content and gives search engines additional context about topics covered.",
       predicate: (p) => p.status === 200 && p.wordCount >= 300 && p.h2Count === 0,
     }),
+
+  /* ── Schema Markup ────────────────────────────────────────────────── */
+
+  (pages, _, auditId) =>
+    pageIssue(auditId, pages, {
+      type: "missing_schema_markup",
+      severity: "info",
+      category: "technical",
+      title: "Pages missing structured data (Schema.org / JSON-LD)",
+      description:
+        "These pages have no JSON-LD structured data. Schema markup helps search engines better understand your content and can unlock rich results (star ratings, FAQs, breadcrumbs) that improve click-through rates.",
+      fixInstructions:
+        "Add a <script type=\"application/ld+json\"> block to these pages. For a business website, start with Organization or LocalBusiness schema. Use Google's Rich Results Test to validate.",
+      predicate: (p) => p.status === 200 && !p.hasJsonLd && p.wordCount > 100,
+    }),
+
+  /* ── Orphan pages ─────────────────────────────────────────────────── */
+
+  (pages, _, auditId) =>
+    pageIssue(auditId, pages, {
+      type: "orphan_page",
+      severity: "warning",
+      category: "on_page",
+      title: "Orphaned pages (0 incoming internal links)",
+      description:
+        "These pages cannot be reached from any other page on the site via internal links. Orphaned pages are rarely discovered by search engine crawlers and receive no internal PageRank.",
+      fixInstructions:
+        "Link to each orphaned page from at least one relevant page — ideally from a navigation menu, sitemap page, or contextually-relevant content page.",
+      predicate: (p) =>
+        p.status === 200 && p.incomingInternalLinks === 0 && !p.url.match(/\/$/),
+    }),
 ]
 
 /**

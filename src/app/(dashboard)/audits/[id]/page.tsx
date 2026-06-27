@@ -211,7 +211,18 @@ function RunningState({ status }: { status: string }) {
         {status === "queued" ? "Audit queued — starting soon" : "Crawling your site…"}
       </div>
       <div style={{ fontSize: "13px", color: "var(--foreground-2)", lineHeight: 1.7 }}>
-        This usually takes 2–5 minutes. Refresh to check progress.
+        This usually takes 2–5 minutes. This page will update automatically when ready.
+      </div>
+      {/* Animated dots */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "5px", marginTop: "20px" }}>
+        {[0, 1, 2].map(i => (
+          <span key={i} style={{
+            width: "6px", height: "6px", borderRadius: "50%",
+            background: "var(--primary)",
+            display: "inline-block",
+            animation: `pulse 1.4s ease-in-out ${i * 0.2}s infinite`,
+          }} />
+        ))}
       </div>
     </div>
   )
