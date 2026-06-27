@@ -8,10 +8,14 @@ export function MarkFixedButton({ issueId, isFixed }: { issueId: string; isFixed
   async function toggle() {
     setLoading(true)
     try {
-      const res = await fetch(`/api/v1/issues/${issueId}/fix`, { method: "POST" })
+      const res = await fetch(`/api/v1/issues/${issueId}/fix`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fixed: !fixed }),
+      })
       if (res.ok) {
-        const data = await res.json() as { isFixed: boolean }
-        setFixed(data.isFixed)
+        const data = await res.json() as { data?: { isFixed: boolean } }
+        setFixed(data.data?.isFixed ?? !fixed)
       }
     } finally {
       setLoading(false)
