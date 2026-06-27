@@ -131,9 +131,23 @@ export default function NewSitePage() {
               onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "var(--primary)" }}
               onBlur={e => { (e.target as HTMLInputElement).style.borderColor = "var(--glass-border)" }}
             />
-            <p style={{ fontSize: "11px", color: "var(--foreground-3)", marginTop: "5px" }}>
-              No https:// needed · e.g. esankalpam.com or blog.example.com
-            </p>
+            {domain.trim() && (
+              <div style={{
+                marginTop: "6px", padding: "7px 12px",
+                background: "oklch(0.14 0.006 230)", borderRadius: "var(--radius-md)",
+                display: "flex", alignItems: "center", gap: "6px",
+              }}>
+                <span style={{ fontSize: "10px", color: "var(--foreground-3)" }}>Will crawl:</span>
+                <code style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--primary-2)" }}>
+                  https://{domain.trim().replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                </code>
+              </div>
+            )}
+            {!domain.trim() && (
+              <p style={{ fontSize: "11px", color: "var(--foreground-3)", marginTop: "5px" }}>
+                No https:// needed · e.g. esankalpam.com or blog.example.com
+              </p>
+            )}
           </div>
 
           <div>
