@@ -265,6 +265,28 @@ const ISSUE_BUILDERS: IssueBuilder[] = [
       predicate: (p) =>
         p.status === 200 && p.incomingInternalLinks === 0 && !p.url.match(/\/$/),
     }),
+
+  /* ── Low-word-count pages ───────────────────────────────────────────── */
+  (pages, _result, auditId) => pageIssue(auditId, pages, {
+    type: "thin_content",
+    severity: "warning",
+    category: "content",
+    title: "Thin content pages",
+    description: "Pages with fewer than 300 words may not rank for competitive queries and can dilute your site's overall authority.",
+    fixInstructions: "Expand these pages with useful content — detailed explanations, FAQs, examples, or related information. Aim for 600+ words for informational pages.",
+    predicate: (p) => (p.wordCount ?? 0) > 0 && (p.wordCount ?? 0) < 300 && p.status === 200 && !p.url.match(/\?(|#)/) && p.canonicalUrl === p.url,
+  }),
+
+  /* ── Missing alt text on images ─────────────────────────────────────── */
+  (pages, _result, auditId) => pageIssue(auditId, pages, {
+    type: "missing_image_alt",
+    severity: "warning",
+    category: "on_page",
+    title: "Images missing alt text",
+    description: "Pages with images that lack alt attributes miss important accessibility and image-search signals.",
+    fixInstructions: 'Add descriptive alt attributes to all <img> tags. Describe what the image shows — avoid keyword stuffing. Example: alt="Team photo at RankIQ office 2024"',
+    predicate: (p) => (p.imagesMissingAlt ?? 0) > 0 && p.status === 200,
+  }),
 ]
 
 /**
