@@ -26,26 +26,39 @@ export async function registerWeeklyAuditJob() {
 }
 
 /**
+ * Determine if a site's auditSchedule should run today.
+ * The cron fires every Monday; biweekly = alternate Mondays; monthly = first Monday.
+ */
+function shouldAuditToday(schedule: string): boolean {
+  const now = new Date()
+  const week = Math.floor(now.getDate() / 7)
+  if (schedule === "off") return false
+  if (schedule === "weekly") return true
+  if (schedule === "biweekly") return week % 2 === 0
+  if (schedule === "monthly") return now.getDate() <= 7   /* first week of month */
+  return true
+}
+
+/**
  * Run weekly audits for all sites whose plan allows it.
- * Called by the scheduled-audit worker.
+ * Called by the scheduled-audit worker every Monday at 2am UTC.
  */
 export async function runScheduledAudits() {
   logger.info("Running scheduled weekly audits")
 
   const allSites = await db
-    .select({ id: sites.id, userId: sites.userId, domain: sites.domain })
+    .select({ id: sites.id, userId: sites.userId, domain: sites.domain, auditSchedule: sites.auditSchedule })
     .from(sites)
     .innerJoin(users, eq(sites.userId, users.id))
-    .where(eq(users.plan, "growth"))  /* Growth + Agency plans get weekly audits */
+    .where(eq(users.plan, "growth"))
 
-  /* Also include agency plan users */
   const agencySites = await db
-    .select({ id: sites.id, userId: sites.userId, domain: sites.domain })
+    .select({ id: sites.id, userId: sites.userId, domain: sites.domain, auditSchedule: sites.auditSchedule })
     .from(sites)
     .innerJoin(users, eq(sites.userId, users.id))
     .where(eq(users.plan, "agency"))
 
-  const allToAudit = [...allSites, ...agencySites]
+  const allToAudit = [...allSites, ...agencySites].filter(s => shouldAuditToday(s.auditSchedule))
   logger.info({ count: allToAudit.length }, "Scheduled audit: triggering for sites")
 
   let success = 0
