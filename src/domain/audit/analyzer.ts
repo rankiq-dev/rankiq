@@ -394,6 +394,28 @@ const ISSUE_BUILDERS: IssueBuilder[] = [
       fixedAt: null,
     }
   },
+  /* ── HTTP links on HTTPS site (mixed-content risk) ─────────────── */
+  (pages, _, auditId) => {
+    const httpsPages = pages.filter(p => p.status === 200 && p.url.startsWith("https://"))
+    if (httpsPages.length === 0) return null
+    const affected = httpsPages.filter(p =>
+      p.externalLinks.some(l => l.startsWith("http://"))
+    )
+    if (affected.length === 0) return null
+    return {
+      auditId,
+      type: "mixed_content_links" as NewAuditIssue["type"],
+      severity: "info" as const,
+      category: "technical" as const,
+      title: "Pages with HTTP (non-secure) external links",
+      description: `${affected.length} HTTPS page${affected.length > 1 ? "s link" : " links"} to external resources over HTTP. While not a direct ranking factor, linking to non-secure sites can affect user trust and trigger browser security warnings for resources loaded on the page.`,
+      fixInstructions: "Review external links on these pages and update any HTTP links to HTTPS equivalents where available. For external resources (images, scripts), load them over HTTPS to avoid mixed-content warnings.",
+      affectedCount: affected.length,
+      affectedUrls: affected.slice(0, MAX_SAMPLE_URLS).map(p => p.url),
+      isFixed: false,
+      fixedAt: null,
+    }
+  },
 ]
 
 /**
