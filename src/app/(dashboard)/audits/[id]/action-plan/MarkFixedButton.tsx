@@ -1,9 +1,11 @@
 "use client"
 import { useState } from "react"
+import { useOptionalToast } from "@/components/ui/Toast"
 
 export function MarkFixedButton({ issueId, isFixed }: { issueId: string; isFixed: boolean }) {
   const [fixed, setFixed] = useState(isFixed)
   const [loading, setLoading] = useState(false)
+  const { toast } = useOptionalToast()
 
   async function toggle() {
     setLoading(true)
@@ -15,7 +17,11 @@ export function MarkFixedButton({ issueId, isFixed }: { issueId: string; isFixed
       })
       if (res.ok) {
         const data = await res.json() as { data?: { isFixed: boolean } }
-        setFixed(data.data?.isFixed ?? !fixed)
+        const newFixed = data.data?.isFixed ?? !fixed
+        setFixed(newFixed)
+        toast(newFixed ? "Issue marked as fixed ✓" : "Issue reopened", newFixed ? "success" : "info")
+      } else {
+        toast("Failed to update issue", "error")
       }
     } finally {
       setLoading(false)

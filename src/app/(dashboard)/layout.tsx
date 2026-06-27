@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ParticleField } from "@/components/ui/ParticleField"
+import { ToastProvider } from "@/components/ui/Toast"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
@@ -12,6 +13,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--background)", fontFamily: "var(--font-sans), sans-serif", color: "var(--foreground)", position: "relative" }}>
       <ParticleField />
+      <ToastProvider>
 
       {/* Sidebar */}
       <aside style={{
@@ -109,6 +111,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <main style={{ flex: 1, overflow: "auto", position: "relative", zIndex: 1 }}>
         {children}
       </main>
+      </ToastProvider>
     </div>
   )
 }
