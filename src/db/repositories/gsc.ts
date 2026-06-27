@@ -86,6 +86,24 @@ export async function deleteKeywordMetricsByDate(siteId: string, dateRangeEnd: s
   )
 }
 
+/** Get position history for a single keyword across all snapshots */
+export async function getKeywordHistory(siteId: string, keyword: string): Promise<Array<{ date: string; position: number; clicks: number; impressions: number }>> {
+  const rows = await db.query.gscKeywordMetrics.findMany({
+    where: and(
+      eq(gscKeywordMetrics.siteId, siteId),
+      eq(gscKeywordMetrics.keyword, keyword),
+    ),
+    orderBy: [desc(gscKeywordMetrics.dateRangeEnd)],
+    columns: { dateRangeEnd: true, positionAvg: true, clicks: true, impressions: true },
+  })
+  return rows.map(r => ({
+    date: r.dateRangeEnd,
+    position: Number(r.positionAvg),
+    clicks: r.clicks,
+    impressions: r.impressions,
+  })).reverse()
+}
+
 export async function bulkInsertKeywordMetrics(rows: NewGscKeywordMetric[]): Promise<void> {
   if (rows.length === 0) return
   const BATCH = 100

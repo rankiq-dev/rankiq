@@ -79,6 +79,33 @@ export default async function KeywordsPage({
         </div>
       </div>
 
+      {allKeywords.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "20px" }}>
+          {(() => {
+            const totalClicks = allKeywords.reduce((s, k) => s + k.clicks, 0)
+            const totalImpressions = allKeywords.reduce((s, k) => s + k.impressions, 0)
+            const avgPosition = allKeywords.length > 0
+              ? (allKeywords.reduce((s, k) => s + parseFloat(k.position), 0) / allKeywords.length).toFixed(1)
+              : "—"
+            const avgCtr = allKeywords.length > 0
+              ? ((allKeywords.reduce((s, k) => s + parseFloat(k.ctr), 0) / allKeywords.length) * 100).toFixed(2)
+              : "—"
+            return [
+              { label: "Total Clicks", value: totalClicks.toLocaleString(), color: "var(--primary-2)" },
+              { label: "Total Impressions", value: totalImpressions.toLocaleString(), color: "var(--info)" },
+              { label: "Avg Position", value: avgPosition, color: "var(--warning)" },
+              { label: "Avg CTR", value: `${avgCtr}%`, color: "var(--success)" },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, ${color}, transparent)` }} />
+                <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "6px" }}>{label}</div>
+                <div style={{ fontSize: "22px", fontWeight: 800, color, fontFamily: "var(--font-mono)", lineHeight: 1 }}>{value}</div>
+              </div>
+            ))
+          })()}
+        </div>
+      )}
+
       {allKeywords.length === 0 ? (
         <div style={{
           background: "var(--glass-bg)", backdropFilter: "blur(20px)",
