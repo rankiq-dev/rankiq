@@ -26,7 +26,8 @@ export async function triggerAudit(siteId: string, userId: string): Promise<Audi
   const user = await getUserById(userId)
   if (!user) throw new Error(`User ${userId} not found`)
 
-  const maxPages = PLAN_LIMITS[user.plan].pagesPerCrawl
+  const planLimit = PLAN_LIMITS[user.plan].pagesPerCrawl
+  const maxPages = Math.min(planLimit, site.maxPages ?? planLimit)
 
   const audit = await createAudit({ siteId, status: "queued" })
 
