@@ -51,6 +51,17 @@ export default async function AuditPage({
   const pageAnalyses = (audit.pageAnalyses as PageAnalysis[] | null) ?? []
   const sortedPages = [...pageAnalyses].sort((a, b) => a.onPageScore - b.onPageScore).slice(0, 30)
 
+  // Opportunity pages: low score but indexable (not noindex) — most to gain from fixes
+  const opportunityPages = [...pageAnalyses]
+    .filter(p => p.status === 200 && p.onPageScore < 80 && p.onPageScore > 0)
+    .sort((a, b) => {
+      // Prioritize pages with incoming links + low score (high visibility, low quality)
+      const aScore = a.incomingInternalLinks * (80 - a.onPageScore)
+      const bScore = b.incomingInternalLinks * (80 - b.onPageScore)
+      return bScore - aScore
+    })
+    .slice(0, 5)
+
   return (
     <div style={{ padding: "32px 40px", maxWidth: "1100px" }}>
       {/* Header */}
@@ -217,6 +228,34 @@ export default async function AuditPage({
         <>
           <IssuesSection issues={issues} auditId={id} sevFilter={sevFilter} catFilter={catFilter} />
           {sortedPages.length > 0 && <PagesSection pages={sortedPages} />}
+
+          {/* Opportunity pages panel */}
+          {opportunityPages.length > 0 && (
+            <div style={{ background: "var(--glass-bg)", backdropFilter: "blur(20px)", border: "1px solid oklch(0.55 0.13 178 / 0.25)", borderRadius: "var(--radius-xl)", padding: "18px 22px", marginTop: "24px" }}>
+              <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>
+                ✦ Pages with highest SEO opportunity
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {opportunityPages.map(p => (
+                  <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ flex: 1, overflow: "hidden" }}>
+                      <div style={{ fontSize: "12px", color: "var(--foreground)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.url}</div>
+                      <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "1px" }}>
+                        {p.incomingInternalLinks} internal links · {p.wordCount} words
+                      </div>
+                    </div>
+                    <span style={{
+                      fontSize: "13px", fontWeight: 800, fontFamily: "var(--font-mono)",
+                      color: p.onPageScore >= 60 ? "var(--warning)" : "var(--destructive)", flexShrink: 0,
+                    }}>{p.onPageScore}/100</span>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary-2)", flexShrink: 0 }}>
+                      +{Math.round(80 - p.onPageScore)}pts potential
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
