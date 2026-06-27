@@ -5,6 +5,7 @@ import { getLatestAuditForSite, getIssuesByAudit } from "@/db/repositories/audit
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { BulkAuditButton } from "./BulkAuditButton"
 
 export const metadata: Metadata = { title: "Agency Dashboard" }
 
@@ -56,16 +57,19 @@ export default async function AgencyPage() {
               Real-time SEO health across all your client sites.
             </p>
           </div>
-          <Link href="/sites/new" style={{
-            padding: "10px 20px",
-            background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
-            color: "var(--primary-foreground)",
-            borderRadius: "var(--radius-md)", fontSize: "13px", fontWeight: 700,
-            textDecoration: "none", letterSpacing: "0.02em",
-            boxShadow: "var(--shadow-glow)",
-          }}>
-            + Add Client Site
-          </Link>
+          <div style={{ display: "flex", gap: "8px" }}>
+            {totalSites > 0 && <BulkAuditButton siteCount={totalSites} />}
+            <Link href="/sites/new" style={{
+              padding: "10px 20px",
+              background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
+              color: "var(--primary-foreground)",
+              borderRadius: "var(--radius-md)", fontSize: "13px", fontWeight: 700,
+              textDecoration: "none", letterSpacing: "0.02em",
+              boxShadow: "var(--shadow-glow)",
+            }}>
+              + Add Client Site
+            </Link>
+          </div>
         </div>
       </div>
 
