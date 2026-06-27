@@ -120,6 +120,10 @@ export const sites = pgTable(
     gscConnected:    boolean("gsc_connected").default(false).notNull(),
     /* Sensitive — GSC OAuth refresh token; redacted in logs */
     gscRefreshToken: text("gsc_refresh_token"),
+    /* Audit schedule: "off" | "weekly" | "biweekly" | "monthly" */
+    auditSchedule:  text("audit_schedule").default("weekly").notNull(),
+    /* Max pages to crawl per audit */
+    maxPages:       integer("max_pages").default(200).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

@@ -10,6 +10,7 @@ import { RunAuditButton } from "./RunAuditButton"
 import { DeleteSiteButton } from "./DeleteSiteButton"
 import { GscRefreshButton, GscDisconnectButton } from "./GscButtons"
 import { SiteNameEditor } from "./SiteNameEditor"
+import { SiteSettingsPanel } from "./SiteSettingsPanel"
 import type { Metadata } from "next"
 import type { GscKeywordMetric } from "@/db/schema"
 
@@ -261,6 +262,15 @@ export default async function SitePage({
 
       {/* Keyword Table */}
       {site.gscConnected && keywords.length > 0 && <KeywordTable keywords={keywords as KeywordWithChange[]} siteId={id} />}
+
+      {/* Site Settings */}
+      <div style={{ marginTop: "24px", maxWidth: "500px" }}>
+        <SiteSettingsPanel
+          siteId={id}
+          auditSchedule={site.auditSchedule ?? "weekly"}
+          maxPages={site.maxPages ?? 200}
+        />
+      </div>
     </div>
   )
 }
