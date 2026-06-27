@@ -11,6 +11,7 @@ import { DeleteSiteButton } from "./DeleteSiteButton"
 import { GscRefreshButton, GscDisconnectButton } from "./GscButtons"
 import { SiteNameEditor } from "./SiteNameEditor"
 import { SiteSettingsPanel } from "./SiteSettingsPanel"
+import { ScoreHistory } from "./ScoreHistory"
 import type { Metadata } from "next"
 import type { GscKeywordMetric } from "@/db/schema"
 
@@ -158,6 +159,11 @@ export default async function SitePage({
           </div>
         </div>
       )}
+
+      {/* Score History sparkline */}
+      <div style={{ marginBottom: "20px", maxWidth: "380px" }}>
+        <ScoreHistory siteId={id} />
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
         {/* Audit History */}
