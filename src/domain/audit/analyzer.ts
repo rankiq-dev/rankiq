@@ -66,6 +66,34 @@ const ISSUE_BUILDERS: IssueBuilder[] = [
       predicate: (p) => p.status === 200 && p.h1Count === 0,
     }),
 
+  /* ── Duplicate title tags ───────────────────────────────────────── */
+  (pages, _, auditId) => {
+    const titleGroups = new Map<string, string[]>()
+    for (const p of pages) {
+      if (!p.title || p.status !== 200) continue
+      const normalised = p.title.trim().toLowerCase()
+      const group = titleGroups.get(normalised) ?? []
+      group.push(p.url)
+      titleGroups.set(normalised, group)
+    }
+    const duplicates = [...titleGroups.values()].filter(g => g.length > 1)
+    if (duplicates.length === 0) return null
+    const affectedUrls = duplicates.flat().slice(0, MAX_SAMPLE_URLS)
+    return {
+      auditId,
+      type: "duplicate_title",
+      severity: "warning" as const,
+      category: "on_page" as const,
+      title: "Duplicate title tags",
+      description: `${duplicates.length} title tag${duplicates.length > 1 ? "s are" : " is"} used on multiple pages. Each page should have a unique title that accurately describes its specific content.`,
+      fixInstructions: "Write a unique, descriptive title for every page. Include the primary keyword near the front. Avoid template titles like 'Home | Brand' reused across sections.",
+      affectedCount: affectedUrls.length,
+      affectedUrls,
+      isFixed: false,
+      fixedAt: null,
+    }
+  },
+
   /* ── Noindex pages (accidental) ──────────────────────────────────── */
   (pages, _, auditId) => {
     // Detect pages with noindex that aren't obviously intentional (admin/login/checkout)
