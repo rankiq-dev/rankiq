@@ -149,6 +149,8 @@ export const audits = pgTable(
     pageAnalyses: jsonb("page_analyses").$type<import("@/domain/audit/types").PageAnalysis[]>(),
     startedAt:    timestamp("started_at",   { withTimezone: true }),
     completedAt:  timestamp("completed_at", { withTimezone: true }),
+    /* Public share token — set to generate a shareable read-only URL */
+    shareToken:   text("share_token").unique(),
     createdAt:    timestamp("created_at",   { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [

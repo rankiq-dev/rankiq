@@ -10,6 +10,7 @@ import type { AuditIssue } from "@/db/schema"
 import { AnimatedScoreRing } from "@/components/ui/AnimatedScoreRing"
 import { AuditPoller } from "./AuditPoller"
 import { RerunButton } from "./RerunButton"
+import { ShareButton } from "./ShareButton"
 
 export const metadata: Metadata = { title: "Audit Results" }
 
@@ -53,6 +54,7 @@ export default async function AuditPage({
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             {audit.status === "complete" && <RerunButton siteId={audit.siteId} />}
+            {audit.status === "complete" && <ShareButton auditId={id} initialToken={audit.shareToken ?? null} />}
             {audit.status === "complete" && (
               <>
                 <
