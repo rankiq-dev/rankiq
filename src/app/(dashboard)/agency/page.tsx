@@ -21,7 +21,7 @@ export default async function AgencyPage() {
       const issues = audit ? await getIssuesByAudit(audit.id, { limit: 100 }) : []
       const criticalCount = issues.filter(i => i.severity === "critical").length
       const warningCount = issues.filter(i => i.severity === "warning").length
-      return { site, audit, criticalCount, warningCount, issueCount: issues.length }
+      return { site, audit, criticalCount, warningCount, issueCount: issues.length, issues }
     })
   )
 
@@ -129,6 +129,37 @@ export default async function AgencyPage() {
           </div>
         </div>
       )}
+
+      {/* Top issue types across portfolio */}
+      {siteData.some(d => d.issueCount > 0) && (() => {
+        const allIssues = siteData.flatMap(d => d.issues ?? [])
+        const typeCounts = new Map<string, { title: string; count: number; critical: number }>()
+        for (const issue of allIssues) {
+          const existing = typeCounts.get(issue.type) ?? { title: issue.title, count: 0, critical: 0 }
+          existing.count++
+          if (issue.severity === "critical") existing.critical++
+          typeCounts.set(issue.type, existing)
+        }
+        const top = [...typeCounts.values()].sort((a, b) => b.count - a.count).slice(0, 5)
+        return (
+          <div style={{ background: "var(--glass-bg)", backdropFilter: "blur(20px)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 22px", marginBottom: "24px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>Most common issues across portfolio</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {top.map(issue => (
+                <div key={issue.title} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ flex: 1, fontSize: "12px", color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{issue.title}</div>
+                  {issue.critical > 0 && (
+                    <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 6px", borderRadius: "3px", background: "var(--destructive-bg)", color: "var(--destructive)", flexShrink: 0 }}>
+                      {issue.critical} critical
+                    </span>
+                  )}
+                  <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--foreground-3)", flexShrink: 0 }}>{issue.count} sites</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Sites Table */}
       <div style={{
