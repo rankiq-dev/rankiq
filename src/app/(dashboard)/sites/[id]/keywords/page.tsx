@@ -133,6 +133,37 @@ export default async function KeywordsPage({
         </div>
       )}
 
+      {/* Position distribution bar */}
+      {allKeywords.length > 0 && (() => {
+        const buckets = [
+          { label: "Top 3", color: "var(--success)", count: allKeywords.filter(k => parseFloat(k.position) <= 3).length },
+          { label: "4–10", color: "var(--primary)", count: allKeywords.filter(k => { const p = parseFloat(k.position); return p > 3 && p <= 10 }).length },
+          { label: "11–20", color: "var(--warning)", count: allKeywords.filter(k => { const p = parseFloat(k.position); return p > 10 && p <= 20 }).length },
+          { label: "21–50", color: "oklch(0.65 0.12 40)", count: allKeywords.filter(k => { const p = parseFloat(k.position); return p > 20 && p <= 50 }).length },
+          { label: "50+", color: "var(--foreground-3)", count: allKeywords.filter(k => parseFloat(k.position) > 50).length },
+        ]
+        const total = allKeywords.length
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "20px" }}>
+            <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "10px" }}>Position Distribution</div>
+            <div style={{ display: "flex", height: "6px", borderRadius: "3px", overflow: "hidden", gap: "2px", marginBottom: "8px" }}>
+              {buckets.map(b => b.count > 0 && (
+                <div key={b.label} style={{ flex: b.count, background: b.color, minWidth: "4px", borderRadius: "2px" }} title={`${b.label}: ${b.count}`} />
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "16px" }}>
+              {buckets.map(b => (
+                <div key={b.label} style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "10px", color: "var(--foreground-3)" }}>
+                  <div style={{ width: "6px", height: "6px", borderRadius: "1px", background: b.color, flexShrink: 0 }} />
+                  <span style={{ color: b.color, fontWeight: 700 }}>{b.count}</span>
+                  <span>{b.label} ({total > 0 ? Math.round(b.count / total * 100) : 0}%)</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {allKeywords.length === 0 ? (
         <div style={{
           background: "var(--glass-bg)", backdropFilter: "blur(20px)",
