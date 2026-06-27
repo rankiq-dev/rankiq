@@ -64,6 +64,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <NavItem href="/audits" label="All Audits" icon={
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="2" y="3" width="11" height="2" rx="1" fill="currentColor" opacity="0.8"/><rect x="2" y="6.5" width="8" height="1.5" rx="0.75" fill="currentColor" opacity="0.5"/><rect x="2" y="10" width="9.5" height="1.5" rx="0.75" fill="currentColor" opacity="0.5"/></svg>
           } />
+          <NavItem href="/quick-scan" label="Quick Scan" icon={
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" strokeWidth="1.2" opacity="0.8"/><path d="M9.5 9.5L13 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/><path d="M4 6h4M6 4v4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.6"/></svg>
+          } />
           <NavItem href="/compete" label="Competitor" icon={
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 12V5l5-3 5 3v7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.8"/><rect x="5.5" y="8" width="4" height="4" rx="1" fill="currentColor" opacity="0.5"/><path d="M2 8h3M10 8h3" stroke="currentColor" strokeWidth="1" opacity="0.5"/></svg>
           } />
