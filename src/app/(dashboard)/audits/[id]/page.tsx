@@ -290,6 +290,53 @@ export default async function AuditPage({
       {/* Category breakdown */}
       {audit.status === "complete" && issues.length > 0 && (
         <CategoryBreakdown issues={issues} auditId={id} />
+
+        {/* Priority matrix: severity × fix time */}
+        {issues.filter(i => !i.isFixed).length > 0 && (() => {
+          function parseMin(label: string | undefined): number {
+            if (!label) return 999
+            if (label.endsWith("min")) return parseInt(label)
+            if (label.endsWith("h")) return parseInt(label) * 60
+            return 999
+          }
+          const open = issues.filter(i => !i.isFixed)
+          const FT: Record<string, string> = {
+            missing_title_tag: "5 min", missing_h1: "5 min", missing_meta_description: "5 min",
+            title_too_long: "2 min", title_too_short: "2 min", meta_description_too_long: "2 min",
+            multiple_h1_tags: "10 min", no_canonical_tag: "15 min", noindex_page: "15 min",
+            thin_content: "2 h", poor_internal_linking: "1 h", images_missing_alt: "1 h",
+            missing_schema_markup: "2 h", no_schema_markup: "2 h", broken_internal_link: "30 min",
+            redirect_chain: "1 h", robots_noindex: "30 min", orphan_page: "1 h",
+          }
+          const quick = open.filter(i => parseMin(FT[i.type]) <= 15)
+          const quickCrit = quick.filter(i => i.severity === "critical")
+          const quickWarn = quick.filter(i => i.severity !== "critical")
+          const slow = open.filter(i => parseMin(FT[i.type]) > 15)
+          const slowCrit = slow.filter(i => i.severity === "critical")
+          const slowWarn = slow.filter(i => i.severity !== "critical")
+          const cells = [
+            { label: "Do first", sub: "Critical + quick", items: quickCrit, accent: "var(--destructive)", bg: "oklch(0.14 0.05 27 / 0.4)" },
+            { label: "Schedule", sub: "Critical + slow", items: slowCrit, accent: "var(--warning)", bg: "oklch(0.14 0.04 70 / 0.3)" },
+            { label: "Quick wins", sub: "Non-critical + quick", items: quickWarn, accent: "var(--primary-2)", bg: "oklch(0.14 0.04 196 / 0.3)" },
+            { label: "Later", sub: "Non-critical + slow", items: slowWarn, accent: "var(--foreground-3)", bg: "oklch(0.15 0.006 230 / 0.5)" },
+          ]
+          return (
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+                Issue priority matrix
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                {cells.map(cell => (
+                  <div key={cell.label} style={{ background: cell.bg, border: `1px solid ${cell.accent}40`, borderRadius: "var(--radius-xl)", padding: "12px 16px" }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: cell.accent, marginBottom: "2px" }}>{cell.label}</div>
+                    <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginBottom: "6px" }}>{cell.sub}</div>
+                    <div style={{ fontSize: "20px", fontWeight: 800, color: cell.accent, fontFamily: "var(--font-mono)" }}>{cell.items.length}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
       )}
 
       {/* Content quality strip */}
