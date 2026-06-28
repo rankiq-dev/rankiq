@@ -206,6 +206,34 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* Page 2 opportunity keywords */}
+      {allKeywords.length > 0 && (() => {
+        const page2 = allKeywords
+          .filter(k => k.position != null && k.position > 10 && k.position <= 20)
+          .sort((a, b) => parseInt(b.impressions) - parseInt(a.impressions))
+          .slice(0, 5)
+        if (page2.length === 0) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.04 196 / 0.3)", border: "1px solid oklch(0.55 0.13 178 / 0.25)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "20px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary-2)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+              ⚡ Page 2 opportunities — push to page 1
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {page2.map(k => (
+                <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "12px" }}>
+                  <span style={{ fontWeight: 700, color: "var(--foreground)" }}>{k.keyword}</span>
+                  <span style={{ color: "var(--warning)", fontFamily: "var(--font-mono)", fontSize: "11px" }}>pos {k.position?.toFixed(0)}</span>
+                  <span style={{ color: "var(--foreground-3)", fontSize: "11px" }}>{parseInt(k.impressions).toLocaleString()} impr/mo</span>
+                  <div style={{ flex: 1, height: "3px", background: "oklch(0.20 0.006 230)", borderRadius: "2px" }}>
+                    <div style={{ height: "100%", width: `${Math.min((parseInt(k.impressions) / (parseInt(page2[0].impressions) || 1)) * 100, 100)}%`, background: "var(--primary)", borderRadius: "2px" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {allKeywords.length === 0 ? (
         <div style={{
           background: "var(--glass-bg)", backdropFilter: "blur(20px)",
