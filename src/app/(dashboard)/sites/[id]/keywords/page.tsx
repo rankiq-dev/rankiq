@@ -362,6 +362,7 @@ export default async function KeywordsPage({
                     { label: "Impressions", key: "impressions", align: "right" },
                     { label: "CTR", key: "ctr", align: "right" },
                     { label: "Est. Value", key: "value", align: "right" },
+                    { label: "Opp. Score", key: "opp", align: "right" },
                   ].map(col => (
                     <th key={col.key} style={{
                       padding: "10px 20px", textAlign: col.align as "left" | "right",
@@ -437,6 +438,14 @@ export default async function KeywordsPage({
                         <span title="Estimated monthly value (clicks × $1.50 avg CPC proxy)">
                           ${(kw.clicks * 1.5).toFixed(0)}
                         </span>
+                      </td>
+                      <td style={{ padding: "10px 20px", fontSize: "11px", textAlign: "right" }}>
+                        {(() => {
+                          const pos = typeof kw.position === "number" ? kw.position : parseFloat(String(kw.position))
+                          const oppScore = kw.impressions > 0 && pos > 0 ? Math.round(Math.min(100, (kw.impressions / Math.max(kw.clicks, 1)) * (pos / 10) * 10)) : 0
+                          const oppColor = oppScore >= 70 ? "var(--success)" : oppScore >= 40 ? "var(--warning)" : "var(--foreground-3)"
+                          return <span style={{ color: oppColor, fontWeight: oppScore >= 70 ? 700 : 400 }} title="Opportunity score: high impressions + poor CTR = high potential">{oppScore > 0 ? oppScore : "—"}</span>
+                        })()}
                       </td>
                     </tr>
                   )
