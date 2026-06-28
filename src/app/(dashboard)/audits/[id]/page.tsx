@@ -747,6 +747,29 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* H1 missing on high-authority pages */}
+          {pageAnalyses.length > 3 && (() => {
+            const highAuthNoH1 = pageAnalyses.filter(p => (p.incomingInternalLinks ?? 0) >= 3 && (!p.h1Text || p.h1Count === 0) && !p.isNoindex)
+            if (highAuthNoH1.length === 0) return null
+            return (
+              <div style={{ background: "oklch(0.14 0.05 27 / 0.25)", border: "1px solid oklch(0.65 0.20 27 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginTop: "16px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                  ⚠ {highAuthNoH1.length} high-authority page{highAuthNoH1.length !== 1 ? "s" : ""} missing H1 (has 3+ links in)
+                </div>
+                <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>
+                  These pages receive the most internal link equity but lack an H1 tag. Fixing these has high SEO impact.
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "3px", marginTop: "8px" }}>
+                  {highAuthNoH1.slice(0, 3).map(p => (
+                    <div key={p.url} style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: "var(--primary-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {p.url.replace(/^https?:\/\/[^/]+/, "") || "/"} — {p.incomingInternalLinks} links in
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Underperforming over-structured pages */}
           {pageAnalyses.length > 5 && (() => {
             const overStructured = pageAnalyses.filter(p => !p.isNoindex && p.h2Count >= 5 && p.onPageScore < 60)
