@@ -13,6 +13,7 @@ import { RerunButton } from "./RerunButton"
 import { ShareButton } from "./ShareButton"
 import { ExpandableIssue } from "./ExpandableIssue"
 import { BulkFixButton } from "./BulkFixButton"
+import { CopyIssuesButton } from "./CopyIssuesButton"
 import { AiTitleSuggester } from "./AiTitleSuggester"
 
 export const metadata: Metadata = { title: "Audit Results" }
@@ -779,6 +780,7 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter }: 
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <span style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{filtered.length} of {issues.length}</span>
+          <CopyIssuesButton auditId={auditId} />
           <BulkFixButton auditId={auditId} totalCount={issues.length} fixedCount={issues.filter(i => i.isFixed).length} />
         </div>
       </div>
