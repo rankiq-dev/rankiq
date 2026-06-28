@@ -757,6 +757,34 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* Duplicate title tags */}
+          {pageAnalyses.length > 3 && (() => {
+            const titleMap = new Map<string, string[]>()
+            for (const p of pageAnalyses) {
+              if (!p.title) continue
+              const norm = p.title.trim().toLowerCase()
+              if (!titleMap.has(norm)) titleMap.set(norm, [])
+              titleMap.get(norm)!.push(p.url)
+            }
+            const dupes = [...titleMap.entries()].filter(([, urls]) => urls.length > 1)
+            if (dupes.length === 0) return null
+            return (
+              <div style={{ background: "oklch(0.14 0.05 27 / 0.25)", border: "1px solid oklch(0.65 0.20 27 / 0.25)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginTop: "16px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                  ⚠ Duplicate title tags ({dupes.length} groups)
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {dupes.slice(0, 3).map(([title, urls]) => (
+                    <div key={title} style={{ fontSize: "10px", color: "var(--foreground-3)" }}>
+                      <div style={{ color: "var(--foreground-2)", marginBottom: "2px", fontWeight: 600 }}>{title.slice(0, 70)}{title.length > 70 ? "…" : ""}</div>
+                      <div style={{ fontFamily: "var(--font-mono)" }}>{urls.slice(0, 2).join(", ")}{urls.length > 2 ? ` +${urls.length - 2} more` : ""}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Duplicate meta descriptions */}
           {pageAnalyses.length > 3 && (() => {
             const metaMap = new Map<string, string[]>()
