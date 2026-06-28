@@ -751,10 +751,11 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter }: 
   const openCount = issues.filter(i => !i.isFixed).length
   const fixedCount = issues.filter(i => i.isFixed).length
 
+  const QUICK_WIN_TYPES = new Set(["missing_title_tag","missing_h1","missing_meta_description","title_too_long","title_too_short","meta_description_too_long","no_canonical_tag","noindex_page","robots_noindex"])
   const filtered = issues.filter(i =>
     (!sevFilter || i.severity === sevFilter) &&
     (!catFilter || i.category === catFilter) &&
-    (statusFilter === "open" ? !i.isFixed : statusFilter === "fixed" ? i.isFixed : true)
+    (statusFilter === "open" ? !i.isFixed : statusFilter === "fixed" ? i.isFixed : statusFilter === "quick" ? !i.isFixed && QUICK_WIN_TYPES.has(i.type) : true)
   )
 
   const critical = filtered.filter(i => i.severity === "critical")
@@ -790,10 +791,11 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter }: 
           { label: `All (${issues.length})`, value: null },
           { label: `Open (${openCount})`, value: "open" },
           { label: `Fixed (${fixedCount})`, value: "fixed" },
+          { label: `⚡ Quick wins`, value: "quick" },
         ].map(({ label, value }) => {
           const isActive = statusFilter === value
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const href = (value ? `/audits/${auditId}?status=${value}` : `/audits/${auditId}`) as any
+          const href = (value ? `/audits/${auditId}?status=${value}${catFilter ? `&cat=${catFilter}` : ""}${sevFilter ? `&sev=${sevFilter}` : ""}` : `/audits/${auditId}`) as any
           return (
             <Link key={label} href={href} style={{
               padding: "4px 12px", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
