@@ -9,9 +9,7 @@ import Google from "next-auth/providers/google"
 const isProd = process.env.NODE_ENV === "production"
 
 export const authConfig: NextAuthConfig = {
-  /* trustHost is set via AUTH_TRUST_HOST=true env var in Vercel.
-   * Do NOT set it to true in code — it causes NextAuth to trust the
-   * x-forwarded-host header which can override AUTH_URL unexpectedly. */
+  trustHost: true,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
