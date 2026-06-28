@@ -335,6 +335,38 @@ export default async function AuditPage({
               </div>
             )
           })()}
+          {/* Meta description length distribution */}
+          {pageAnalyses.length > 0 && (() => {
+            const withMeta = pageAnalyses.filter(p => p.metaDescription)
+            if (withMeta.length < 3) return null
+            const buckets = [
+              { label: "None", count: pageAnalyses.length - withMeta.length, color: "var(--destructive)" },
+              { label: "<70", count: withMeta.filter(p => p.metaDescriptionLength < 70).length, color: "var(--warning)" },
+              { label: "70–160", count: withMeta.filter(p => p.metaDescriptionLength >= 70 && p.metaDescriptionLength <= 160).length, color: "var(--success)" },
+              { label: ">160", count: withMeta.filter(p => p.metaDescriptionLength > 160).length, color: "var(--warning)" },
+            ]
+            const maxCount = Math.max(...buckets.map(b => b.count), 1)
+            return (
+              <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "18px 22px", marginBottom: "20px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "14px" }}>
+                  Meta description length distribution
+                </div>
+                <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", height: "50px" }}>
+                  {buckets.map(b => (
+                    <div key={b.label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", height: "100%", justifyContent: "flex-end" }}>
+                      <div style={{ fontSize: "10px", fontWeight: 700, color: b.color, fontFamily: "var(--font-mono)" }}>{b.count}</div>
+                      <div style={{ width: "100%", height: `${Math.max((b.count / maxCount) * 36, b.count > 0 ? 4 : 0)}px`, background: b.color, borderRadius: "3px 3px 0 0", opacity: 0.8 }} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: "12px", marginTop: "6px" }}>
+                  {buckets.map(b => (
+                    <div key={b.label} style={{ flex: 1, textAlign: "center", fontSize: "9px", color: "var(--foreground-3)" }}>{b.label}</div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
           {sortedPages.length > 0 && <PagesSection pages={sortedPages} auditId={id} />}
 
           {/* Top 10 most-broken pages */}
@@ -762,10 +794,12 @@ function PagesSection({ pages, auditId }: { pages: PageAnalysis[]; auditId: stri
           const scoreColor = page.onPageScore >= 80 ? "oklch(0.68 0.16 155)" : page.onPageScore >= 50 ? "oklch(0.80 0.15 75)" : "oklch(0.65 0.20 27)"
           const needsTitle = !page.title || page.titleLength < 10 || page.titleLength > 65
           // Score breakdown indicators
+          const h1MatchesTitle = !!page.h1Text && !!page.title && page.h1Text.toLowerCase().trim() === page.title.toLowerCase().trim()
           const checks = [
             { label: "Title", ok: !!page.title && page.titleLength >= 20 && page.titleLength <= 60 },
             { label: "Meta", ok: !!page.metaDescription && page.metaDescriptionLength <= 160 },
             { label: "H1", ok: page.h1Count === 1 },
+            ...(page.h1Count === 1 && page.title ? [{ label: "H1≠Title", ok: !h1MatchesTitle }] : []),
             { label: "Words", ok: page.wordCount >= 300 },
             { label: "H2s", ok: page.h2Count > 0 },
             { label: "Canon", ok: page.hasCanonical },
