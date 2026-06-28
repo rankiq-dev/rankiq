@@ -376,6 +376,42 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* Page issue lists: noindex, thin, duplicate H1, orphans */}
+          {pageAnalyses.length > 0 && (() => {
+            const noindex = pageAnalyses.filter(p => p.isNoindex)
+            const thin = pageAnalyses.filter(p => !p.isNoindex && p.wordCount > 0 && p.wordCount < 300)
+            const multiH1 = pageAnalyses.filter(p => p.h1Count > 1)
+            const orphans = pageAnalyses.filter(p => !p.isNoindex && p.incomingInternalLinks === 0)
+            const sections = [
+              { title: "Noindex pages", items: noindex, color: "var(--warning)", icon: "⊗" },
+              { title: "Thin content (<300w)", items: thin, color: "var(--destructive)", icon: "📄" },
+              { title: "Multiple H1 tags", items: multiH1, color: "var(--warning)", icon: "H1" },
+              { title: "Orphan pages (no inbound links)", items: orphans, color: "var(--foreground-3)", icon: "⊘" },
+            ].filter(s => s.items.length > 0)
+            if (sections.length === 0) return null
+            return (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginTop: "20px" }}>
+                {sections.map(sec => (
+                  <div key={sec.title} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
+                      <span style={{ fontSize: "10px", color: sec.color }}>{sec.icon}</span>
+                      <span style={{ fontSize: "10px", fontWeight: 700, color: sec.color, textTransform: "uppercase", letterSpacing: "0.07em" }}>{sec.title}</span>
+                      <span style={{ fontSize: "10px", fontWeight: 700, fontFamily: "var(--font-mono)", color: "var(--foreground-3)", marginLeft: "auto" }}>{sec.items.length}</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "3px", maxHeight: "120px", overflowY: "auto" }}>
+                      {sec.items.slice(0, 20).map(p => (
+                        <div key={p.url} style={{ fontSize: "10px", fontFamily: "var(--font-mono)", color: "var(--foreground-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {p.url.replace(/^https?:\/\//, "")}
+                        </div>
+                      ))}
+                      {sec.items.length > 20 && <div style={{ fontSize: "9px", color: "var(--foreground-3)" }}>+{sec.items.length - 20} more</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
+
           {/* Opportunity pages panel */}
           {opportunityPages.length > 0 && (
             <div style={{ background: "var(--glass-bg)", backdropFilter: "blur(20px)", border: "1px solid oklch(0.55 0.13 178 / 0.25)", borderRadius: "var(--radius-xl)", padding: "18px 22px", marginTop: "24px" }}>
