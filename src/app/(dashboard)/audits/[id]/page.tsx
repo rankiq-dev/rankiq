@@ -15,6 +15,7 @@ import { ExpandableIssue } from "./ExpandableIssue"
 import { BulkFixButton } from "./BulkFixButton"
 import { CopyIssuesButton } from "./CopyIssuesButton"
 import { AiTitleSuggester } from "./AiTitleSuggester"
+import { PageSpeedPanel } from "@/app/(dashboard)/sites/[id]/PageSpeedPanel"
 
 export const metadata: Metadata = { title: "Audit Results" }
 
@@ -425,6 +426,14 @@ export default async function AuditPage({
               </div>
             )
           })()}
+          {/* Core Web Vitals */}
+          <div style={{ marginBottom: "28px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+              Core Web Vitals (via PageSpeed Insights)
+            </div>
+            <PageSpeedPanel siteId={audit.siteId} />
+          </div>
+
           {sortedPages.length > 0 && <PagesSection pages={sortedPages} auditId={id} />}
 
           {/* Top 10 most-broken pages */}
