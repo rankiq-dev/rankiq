@@ -65,6 +65,18 @@ export default async function DashboardPage() {
     })
   )).flat().slice(0, 6)
 
+  // Recently fixed issues across all sites
+  const recentlyFixed = (await Promise.all(
+    completeAuditsWithSite.map(async ({ audit, site }) => {
+      const issues = await getIssuesByAudit(audit!.id, { limit: 50 })
+      return issues
+        .filter(i => i.isFixed && i.fixedAt != null)
+        .sort((a, b) => new Date(b.fixedAt!).getTime() - new Date(a.fixedAt!).getTime())
+        .slice(0, 2)
+        .map(i => ({ ...i, siteDomain: site.displayName ?? site.domain, auditId: audit!.id }))
+    })
+  )).flat().sort((a, b) => new Date(b.fixedAt!).getTime() - new Date(a.fixedAt!).getTime()).slice(0, 5)
+
   // Recent audit activity feed (last 5 audits across all sites)
   const recentActivity = latestAudits
     .map((a, i) => ({ audit: a, site: sites[i]! }))
@@ -287,6 +299,31 @@ export default async function DashboardPage() {
                     </Link>
                   )
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Recently fixed issues */}
+          {recentlyFixed.length > 0 && (
+            <div style={{ marginTop: "24px" }}>
+              <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "10px" }}>
+                ✓ Recently fixed
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                {recentlyFixed.map((issue) => (
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  <Link key={issue.id} href={`/audits/${issue.auditId}` as any} style={{
+                    display: "flex", alignItems: "center", gap: "10px",
+                    padding: "8px 12px",
+                    background: "oklch(0.16 0.05 155 / 0.12)",
+                    border: "1px solid oklch(0.68 0.16 155 / 0.15)",
+                    borderRadius: "var(--radius-md)", textDecoration: "none",
+                  }}>
+                    <span style={{ fontSize: "10px", color: "var(--success)", flexShrink: 0 }}>✓</span>
+                    <span style={{ fontSize: "12px", color: "var(--foreground-2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{issue.title}</span>
+                    <span style={{ fontSize: "10px", color: "var(--foreground-3)", flexShrink: 0 }}>{issue.siteDomain}</span>
+                  </Link>
+                ))}
               </div>
             </div>
           )}
