@@ -48,6 +48,7 @@ export default async function SitePage({
     .sort((a, b) => (a.completedAt?.getTime() ?? 0) - (b.completedAt?.getTime() ?? 0))
 
   const latestAudit = audits.find((a) => a.status === "complete")
+  const failedAudit = audits[0]?.status === "failed" ? audits[0] : null
   const runningAudit = audits.find((a) => a.status === "running" || a.status === "queued")
   const authUrl = site.gscConnected ? null : getGscAuthUrl(id, session.user.id)
 
@@ -82,6 +83,31 @@ export default async function SitePage({
 
   return (
     <div style={{ padding: "32px 40px", maxWidth: "1000px" }}>
+
+      {/* Failed audit banner */}
+      {failedAudit && (
+        <div style={{
+          background: "oklch(0.14 0.05 27 / 0.5)", border: "1px solid oklch(0.65 0.20 27 / 0.4)",
+          borderRadius: "var(--radius-xl)", padding: "12px 18px", marginBottom: "20px",
+          display: "flex", alignItems: "center", gap: "12px",
+        }}>
+          <span style={{ fontSize: "18px" }}>⚠</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--destructive)" }}>Last audit failed</div>
+            <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>
+              {failedAudit.completedAt ? `Failed on ${new Date(failedAudit.completedAt).toLocaleDateString()}. ` : ""}
+              The crawl may have been blocked. Check your site&apos;s robots.txt and retry.
+            </div>
+          </div>
+          <form action={`/api/v1/sites/${id}/audit`} method="POST">
+            <button type="submit" style={{
+              padding: "6px 14px", fontSize: "11px", fontWeight: 700,
+              background: "var(--destructive)", color: "#fff", border: "none",
+              borderRadius: "var(--radius-md)", cursor: "pointer", fontFamily: "var(--font-sans), sans-serif",
+            }}>Retry audit</button>
+          </form>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "32px" }}>
