@@ -9,6 +9,7 @@ import type { Metadata } from "next"
 import type { Site, Audit } from "@/db/schema"
 import { WhatsNew } from "./WhatsNew"
 import { SiteFilter } from "./SiteFilter"
+import { OnboardingChecklist } from "./OnboardingChecklist"
 import { PLAN_LIMITS } from "@/lib/constants"
 
 export const metadata: Metadata = { title: "Dashboard" }
@@ -128,6 +129,12 @@ export default async function DashboardPage() {
       </div>
 
       <WhatsNew />
+      <OnboardingChecklist
+        hasSite={sites.length > 0}
+        hasAudit={completedAudits > 0}
+        hasGsc={sites.some(s => s.gscConnected)}
+        hasKeywords={false}
+      />
 
       {/* Stale sites alert */}
       {staleSites.length > 0 && (
