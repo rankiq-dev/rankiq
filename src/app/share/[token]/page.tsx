@@ -13,7 +13,23 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
   const audit = await db.query.audits.findFirst({ where: eq(audits.shareToken, token) })
   if (!audit) return { title: "Shared Report" }
   const site = await db.query.sites.findFirst({ where: eq(sites.id, audit.siteId) })
-  return { title: `SEO Report – ${site?.displayName ?? site?.domain ?? "Site"}` }
+  const siteName = site?.displayName ?? site?.domain ?? "Site"
+  const score = audit.healthScore ?? 0
+  const desc = `SEO health score: ${score}/100 · ${audit.pagesCount ?? 0} pages audited · Powered by RankIQ`
+  return {
+    title: `SEO Report – ${siteName}`,
+    description: desc,
+    openGraph: {
+      title: `SEO Report – ${siteName}`,
+      description: desc,
+      type: "website",
+    },
+    twitter: {
+      card: "summary",
+      title: `SEO Report – ${siteName}`,
+      description: desc,
+    },
+  }
 }
 
 export default async function SharedAuditPage({ params }: { params: Promise<{ token: string }> }) {

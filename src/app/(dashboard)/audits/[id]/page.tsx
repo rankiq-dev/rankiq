@@ -68,6 +68,16 @@ export default async function AuditPage({
     orphan_page: "1 h", orphaned_page: "1 h", mixed_content_links: "30 min",
   }
 
+  // Total fix time estimate for unfixed issues
+  function parseMinutes(label: string): number {
+    if (label.endsWith("min")) return parseInt(label)
+    if (label.endsWith("h")) return parseInt(label) * 60
+    return 0
+  }
+  const unfixedIssues = issues.filter(i => !i.isFixed)
+  const totalFixMinutes = unfixedIssues.reduce((sum, i) => sum + parseMinutes(FIX_TIME[i.type] ?? "0"), 0)
+  const totalFixLabel = totalFixMinutes === 0 ? null : totalFixMinutes < 60 ? `${totalFixMinutes} min` : `${Math.round(totalFixMinutes / 60 * 10) / 10} h`
+
   // Opportunity pages: low score but indexable (not noindex) — most to gain from fixes
   const opportunityPages = [...pageAnalyses]
     .filter(p => !p.isNoindex && p.onPageScore < 80 && p.onPageScore > 0)
@@ -228,8 +238,15 @@ export default async function AuditPage({
               borderRadius: "3px", transition: "width 600ms ease",
             }} />
           </div>
-          <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--foreground-2)", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
-            {fixedIssues}/{issues.length} fixed ({fixPct}%)
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "1px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--foreground-2)", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
+              {fixedIssues}/{issues.length} fixed ({fixPct}%)
+            </div>
+            {totalFixLabel && (
+              <div style={{ fontSize: "10px", color: "var(--foreground-3)", whiteSpace: "nowrap" }}>
+                ~{totalFixLabel} remaining
+              </div>
+            )}
           </div>
         </div>
       )}
