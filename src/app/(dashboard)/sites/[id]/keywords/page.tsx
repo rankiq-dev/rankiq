@@ -13,13 +13,13 @@ export default async function KeywordsPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ q?: string; sort?: string; page?: string }>
+  searchParams: Promise<{ q?: string; sort?: string; page?: string; filter?: string }>
 }) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
   const { id } = await params
-  const { q, sort = "clicks", page: pageParam } = await searchParams
+  const { q, sort = "clicks", page: pageParam, filter: kwFilter } = await searchParams
 
   const site = await getSiteById(id, session.user.id)
   if (!site) notFound()
@@ -45,9 +45,13 @@ export default async function KeywordsPage({
     .slice(0, 5)
 
   // Filter
-  const filtered = q
-    ? allKeywords.filter(k => k.query.toLowerCase().includes(q.toLowerCase()))
+  const kwFiltered = kwFilter === "drops" ? allKeywords.filter(k => (k.positionChange ?? 0) < -3)
+    : kwFilter === "gains" ? allKeywords.filter(k => (k.positionChange ?? 0) > 3)
+    : kwFilter === "page1" ? allKeywords.filter(k => k.position != null && k.position <= 10)
     : allKeywords
+  const filtered = q
+    ? kwFiltered.filter(k => k.query.toLowerCase().includes(q.toLowerCase()))
+    : kwFiltered
 
   // Sort
   const sorted = [...filtered].sort((a, b) => {
@@ -291,6 +295,25 @@ export default async function KeywordsPage({
               />
               <input type="hidden" name="sort" value={sort} />
             </form>
+          </div>
+
+          {/* Filter tabs */}
+          <div style={{ display: "flex", gap: "4px", marginBottom: "12px" }}>
+            {[
+              { label: "All", value: undefined },
+              { label: "↓ Drops", value: "drops" },
+              { label: "↑ Gains", value: "gains" },
+              { label: "Page 1", value: "page1" },
+            ].map(({ label, value }) => (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              <Link key={label} href={value ? `/sites/${id}/keywords?filter=${value}${q ? `&q=${q}` : ""}&sort=${sort}` : `/sites/${id}/keywords?sort=${sort}` as any} style={{
+                padding: "4px 12px", fontSize: "11px", fontWeight: 600,
+                background: kwFilter === value ? "var(--glass-bg)" : "transparent",
+                border: `1px solid ${kwFilter === value ? "oklch(0.55 0.13 178 / 0.4)" : "var(--glass-border)"}`,
+                borderRadius: "20px", textDecoration: "none",
+                color: kwFilter === value ? "var(--primary-2)" : "var(--foreground-3)",
+              }}>{label}</Link>
+            ))}
           </div>
 
           {/* Table */}
