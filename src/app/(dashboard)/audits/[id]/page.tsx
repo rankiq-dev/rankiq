@@ -368,6 +368,9 @@ export default async function AuditPage({
         const withWords = pageAnalyses.filter(p => (p.wordCount ?? 0) > 0)
         const avgWords = withWords.length > 0 ? Math.round(withWords.reduce((s, p) => s + (p.wordCount ?? 0), 0) / withWords.length) : 0
         const pagesWithH2 = pageAnalyses.filter(p => p.h2Count > 0)
+        const pagesWithH1 = pageAnalyses.filter(p => p.h1Text)
+        const uniqueH1s = new Set(pagesWithH1.map(p => p.h1Text?.toLowerCase().trim())).size
+        const h1DiversityPct = pagesWithH1.length > 0 ? Math.round(uniqueH1s / pagesWithH1.length * 100) : 100
         const avgWordsPerH2Section = pagesWithH2.length > 0 ? Math.round(pagesWithH2.reduce((s, p) => s + Math.round(p.wordCount / Math.max(p.h2Count, 1)), 0) / pagesWithH2.length) : 0
         const thin = pageAnalyses.filter(p => (p.wordCount ?? 0) > 0 && (p.wordCount ?? 0) < 300).length
         const rich = pageAnalyses.filter(p => (p.wordCount ?? 0) >= 600).length
@@ -381,6 +384,7 @@ export default async function AuditPage({
             {[
               { label: "Avg word count", value: avgWords.toLocaleString(), sub: "per page", color: avgWords > 500 ? "var(--success)" : avgWords > 200 ? "var(--warning)" : "var(--destructive)" },
               ...(avgWordsPerH2Section > 0 ? [{ label: "Avg words/section", value: avgWordsPerH2Section.toLocaleString(), sub: "per H2", color: avgWordsPerH2Section > 150 ? "var(--success)" : "var(--warning)" }] : []),
+              ...(pagesWithH1.length > 1 ? [{ label: "H1 diversity", value: `${h1DiversityPct}%`, sub: `${uniqueH1s}/${pagesWithH1.length} unique`, color: h1DiversityPct >= 95 ? "var(--success)" : h1DiversityPct >= 80 ? "var(--warning)" : "var(--destructive)" }] : []),
               { label: "Thin pages (<300w)", value: thin.toString(), sub: `${pct(thin)} of pages`, color: thin === 0 ? "var(--success)" : thin < pageAnalyses.length * 0.2 ? "var(--warning)" : "var(--destructive)" },
               { label: "Rich pages (600w+)", value: rich.toString(), sub: `${pct(rich)} of pages`, color: "var(--success)" },
               { label: "JSON-LD schema", value: withSchema.toString(), sub: `${pct(withSchema)} coverage`, color: withSchema > 0 ? "var(--primary-2)" : "var(--destructive)" },
