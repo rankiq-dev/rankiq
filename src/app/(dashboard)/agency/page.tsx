@@ -208,12 +208,9 @@ export default async function AgencyPage() {
                   : "var(--destructive)"
 
                 return (
-                  <tr key={site.id} style={{
+                  <tr key={site.id} className="table-row-hover" style={{
                     borderBottom: i < siteData.length - 1 ? "1px solid var(--glass-border)" : "none",
-                    transition: "background 150ms",
-                  }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "oklch(0.98 0 0 / 0.02)"}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
+                  }}>
                     <td style={{ padding: "14px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "2px" }}>
                         <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>

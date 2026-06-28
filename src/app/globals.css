@@ -94,6 +94,25 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
 
+/* Hover utility classes used in Server Components (no JS handlers allowed) */
+.card-hover {
+  transition: border-color 200ms, box-shadow 200ms;
+}
+.card-hover:hover {
+  border-color: oklch(0.55 0.13 178 / 0.4) !important;
+  box-shadow: 0 0 24px oklch(0.55 0.13 178 / 0.12) !important;
+}
+.table-row-hover { transition: background 150ms; }
+.table-row-hover:hover { background: oklch(0.98 0 0 / 0.02) !important; }
+
+.add-card-hover {
+  transition: border-color 200ms, background 200ms;
+}
+.add-card-hover:hover {
+  border-color: oklch(0.55 0.13 178 / 0.5) !important;
+  background: var(--primary-soft) !important;
+}
+
 @media print {
   /* Hide sidebar, nav, and action buttons when printing */
   nav, aside, [data-sidebar], [data-no-print] { display: none !important; }

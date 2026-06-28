@@ -210,22 +210,11 @@ function SiteGrid({ sites, latestAudits }: { sites: Site[]; latestAudits: (Audit
           : "Last audit failed"
 
         return (
-          <Link key={site.id} href={`/sites/${site.id}`} style={{
+          <Link key={site.id} href={`/sites/${site.id}`} className="card-hover" style={{
             display: "block", padding: "22px",
             background: "var(--glass-bg)", backdropFilter: "blur(20px)",
             border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
             textDecoration: "none", position: "relative", overflow: "hidden",
-            transition: "border-color 200ms, box-shadow 200ms",
-          }}
-          onMouseEnter={e => {
-            const el = e.currentTarget as HTMLElement
-            el.style.borderColor = "oklch(0.55 0.13 178 / 0.4)"
-            el.style.boxShadow = "0 0 24px oklch(0.55 0.13 178 / 0.12)"
-          }}
-          onMouseLeave={e => {
-            const el = e.currentTarget as HTMLElement
-            el.style.borderColor = "var(--glass-border)"
-            el.style.boxShadow = "none"
           }}>
             {/* Top accent line */}
             {score != null && (
@@ -300,24 +289,13 @@ function SiteGrid({ sites, latestAudits }: { sites: Site[]; latestAudits: (Audit
       })}
 
       {/* Add new site card */}
-      <Link href="/sites/new" style={{
+      <Link href="/sites/new" className="add-card-hover" style={{
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "22px", minHeight: "120px",
         background: "oklch(0.12 0.008 230 / 0.3)",
         border: "1px dashed oklch(0.55 0.13 178 / 0.25)",
         borderRadius: "var(--radius-xl)", textDecoration: "none",
         flexDirection: "column", gap: "8px",
-        transition: "border-color 200ms, background 200ms",
-      }}
-      onMouseEnter={e => {
-        const el = e.currentTarget as HTMLElement
-        el.style.borderColor = "oklch(0.55 0.13 178 / 0.5)"
-        el.style.background = "var(--primary-soft)"
-      }}
-      onMouseLeave={e => {
-        const el = e.currentTarget as HTMLElement
-        el.style.borderColor = "oklch(0.55 0.13 178 / 0.25)"
-        el.style.background = "oklch(0.12 0.008 230 / 0.3)"
       }}>
         <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--primary-soft)", border: "1px solid oklch(0.55 0.13 178 / 0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
