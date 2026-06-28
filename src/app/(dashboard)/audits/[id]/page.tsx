@@ -575,6 +575,31 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* Content expansion opportunities */}
+          {pageAnalyses.length > 3 && (() => {
+            const expandable = [...pageAnalyses]
+              .filter(p => !p.isNoindex && p.wordCount >= 300 && p.wordCount < 600)
+              .sort((a, b) => (b.incomingInternalLinks - a.incomingInternalLinks) || (a.onPageScore - b.onPageScore))
+              .slice(0, 5)
+            if (expandable.length === 0) return null
+            return (
+              <div style={{ background: "oklch(0.14 0.04 196 / 0.25)", border: "1px solid oklch(0.55 0.13 178 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginTop: "16px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary-2)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+                  ✎ Content expansion opportunities ({expandable.length} pages with 300–600 words)
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                  {expandable.map(p => (
+                    <div key={p.url} style={{ display: "flex", gap: "10px", alignItems: "center", fontSize: "11px" }}>
+                      <span style={{ color: "var(--foreground-3)", fontFamily: "var(--font-mono)", width: "50px", flexShrink: 0 }}>{p.wordCount}w</span>
+                      <span style={{ color: "var(--foreground-2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "")}</span>
+                      <span style={{ color: "var(--foreground-3)", fontSize: "10px", flexShrink: 0 }}>{p.incomingInternalLinks} links in</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Crawl budget waste alert */}
           {pageAnalyses.length > 0 && (() => {
             const noindexCount = pageAnalyses.filter(p => p.isNoindex).length
