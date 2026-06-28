@@ -35,6 +35,8 @@ export default async function KeywordsPage({
   const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions * 100).toFixed(1) : "0.0"
   const avgPos = allMetrics.length > 0 ? (allMetrics.reduce((s, m) => s + parseFloat(m.positionAvg), 0) / allMetrics.length).toFixed(1) : "—"
   const page1Count = allMetrics.filter(m => parseFloat(m.positionAvg) <= 10).length
+  const pos1Count = allKeywords.filter(k => k.position != null && parseFloat(String(k.position)) < 2).length
+  const winRate = allKeywords.length > 0 ? Math.round(pos1Count / allKeywords.length * 100) : 0
 
   // Compute quick-win opportunities: position 4-20, impressions > 10
   const maxImpressions = Math.max(...allMetrics.map(m => m.impressions), 1)
@@ -126,6 +128,7 @@ export default async function KeywordsPage({
             { label: "Avg CTR", value: `${avgCtr}%`, color: parseFloat(avgCtr) > 5 ? "var(--success)" : parseFloat(avgCtr) > 2 ? "var(--primary-2)" : "var(--warning)" },
             { label: "Avg Position", value: `#${avgPos}`, color: parseFloat(avgPos) <= 10 ? "var(--success)" : parseFloat(avgPos) <= 20 ? "var(--primary-2)" : "var(--warning)" },
             { label: "Page 1 Keywords", value: page1Count.toString(), color: page1Count > 0 ? "var(--success)" : "var(--foreground-3)" },
+            { label: "#1 Win Rate", value: `${winRate}%`, color: winRate >= 10 ? "var(--success)" : winRate >= 3 ? "var(--primary-2)" : "var(--warning)" },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "12px 16px", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, ${color}, transparent)` }} />

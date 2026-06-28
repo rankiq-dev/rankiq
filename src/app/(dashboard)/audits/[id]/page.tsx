@@ -381,6 +381,7 @@ export default async function AuditPage({
         const avgIncomingLinks = Math.round(pageAnalyses.reduce((s, p) => s + (p.incomingInternalLinks ?? 0), 0) / pageAnalyses.length)
         const excellentPages = pageAnalyses.filter(p => p.onPageScore >= 90).length
         const poorPages = pageAnalyses.filter(p => p.onPageScore < 50).length
+        const avgCrawlDepth = pageAnalyses.length > 0 ? (pageAnalyses.reduce((s, p) => s + (p.url.split("/").length - 3), 0) / pageAnalyses.length).toFixed(1) : null
         const pct = (n: number) => `${Math.round(n / pageAnalyses.length * 100)}%`
         return (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "24px" }}>
@@ -397,6 +398,7 @@ export default async function AuditPage({
               ...(avgIncomingLinks > 0 ? [{ label: "Avg link equity", value: avgIncomingLinks.toString(), sub: "incoming/page", color: avgIncomingLinks >= 3 ? "var(--success)" : avgIncomingLinks >= 1 ? "var(--warning)" : "var(--destructive)" }] : []),
               { label: "Excellent pages (90+)", value: excellentPages.toString(), sub: `${pct(excellentPages)} of pages`, color: excellentPages > 0 ? "var(--success)" : "var(--foreground-3)" },
               ...(poorPages > 0 ? [{ label: "Poor pages (<50)", value: poorPages.toString(), sub: `${pct(poorPages)} of pages`, color: "var(--destructive)" }] : []),
+              ...(avgCrawlDepth != null ? [{ label: "Avg crawl depth", value: avgCrawlDepth.toString(), sub: "URL segments deep", color: parseFloat(avgCrawlDepth) <= 3 ? "var(--success)" : parseFloat(avgCrawlDepth) <= 5 ? "var(--warning)" : "var(--destructive)" }] : []),
               { label: "Avg internal links", value: pageAnalyses.length > 0 ? Math.round(pageAnalyses.reduce((s, p) => s + p.internalLinkCount, 0) / pageAnalyses.length).toString() : "0", sub: "per page", color: "var(--primary-2)" },
             ].map(({ label, value, sub, color }) => (
               <div key={label} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "12px 16px", position: "relative", overflow: "hidden" }}>
