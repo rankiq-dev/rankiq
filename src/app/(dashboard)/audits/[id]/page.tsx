@@ -793,6 +793,7 @@ export default async function AuditPage({
             const imgAltIssues = pageAnalyses.filter(p => (p.imagesMissingAlt ?? 0) > 0)
             const noH2 = pageAnalyses.filter(p => !p.isNoindex && p.h2Count === 0)
             const longPages = pageAnalyses.filter(p => !p.isNoindex && p.wordCount >= 4000)
+            const noImages = pageAnalyses.filter(p => !p.isNoindex && p.imageCount === 0 && p.wordCount > 300)
             const sections = [
               { title: "Noindex pages", items: noindex, color: "var(--warning)", icon: "⊗" },
               { title: "Thin content (<300w)", items: thin, color: "var(--destructive)", icon: "≡" },
@@ -804,6 +805,7 @@ export default async function AuditPage({
               { title: "Images missing alt", items: imgAltIssues, color: "var(--warning)", icon: "img" },
               { title: "No H2 subheadings", items: noH2, color: "var(--warning)", icon: "H2" },
               { title: "Long pages (4000w+)", items: longPages, color: "var(--foreground-3)", icon: "≡≡" },
+              { title: "No images (text-only)", items: noImages, color: "var(--foreground-3)", icon: "img0" },
             ].filter(s => s.items.length > 0)
             if (sections.length === 0) return null
             return (
