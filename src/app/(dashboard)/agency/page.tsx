@@ -130,6 +130,50 @@ export default async function AgencyPage() {
         </div>
       )}
 
+      {/* Best & Worst leaderboard */}
+      {totalSites >= 3 && (() => {
+        const ranked = [...siteData]
+          .filter(d => d.audit?.healthScore != null)
+          .sort((a, b) => (b.audit?.healthScore ?? 0) - (a.audit?.healthScore ?? 0))
+        const top3 = ranked.slice(0, 3)
+        const bottom3 = ranked.slice(-3).reverse()
+        if (top3.length < 2) return null
+        return (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px" }}>
+            {[
+              { title: "Top performers", items: top3, good: true },
+              { title: "Needs attention", items: bottom3, good: false },
+            ].map(({ title, items, good }) => (
+              <div key={title} style={{
+                background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+                border: `1px solid ${good ? "oklch(0.68 0.16 155 / 0.2)" : "oklch(0.65 0.20 27 / 0.2)"}`,
+                borderRadius: "var(--radius-xl)", padding: "16px 20px",
+              }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: good ? "var(--success)" : "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+                  {good ? "🏆" : "⚠"} {title}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {items.map((d, rank) => {
+                    const score = d.audit?.healthScore ?? 0
+                    const sc = score >= 80 ? "var(--success)" : score >= 50 ? "var(--warning)" : "var(--destructive)"
+                    return (
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      <Link key={d.site.id} href={`/sites/${d.site.id}` as any} style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+                        <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--foreground-3)", width: "16px", flexShrink: 0 }}>{rank + 1}</span>
+                        <div style={{ flex: 1, overflow: "hidden" }}>
+                          <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.site.displayName ?? d.site.domain}</div>
+                        </div>
+                        <span style={{ fontSize: "13px", fontWeight: 800, color: sc, fontFamily: "var(--font-mono)", flexShrink: 0 }}>{score}</span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
+
       {/* Top issue types across portfolio */}
       {siteData.some(d => d.issueCount > 0) && (() => {
         const allIssues = siteData.flatMap(d => d.issues ?? [])
