@@ -282,7 +282,62 @@ export default async function AuditPage({
       ) : (
         <>
           <IssuesSection issues={issues} auditId={id} sevFilter={sevFilter} catFilter={catFilter} statusFilter={statusFilter} />
+          {/* Score distribution histogram */}
+          {pageAnalyses.length > 0 && (() => {
+            const buckets = [
+              { label: "0–19", min: 0, max: 19, color: "var(--destructive)" },
+              { label: "20–39", min: 20, max: 39, color: "oklch(0.70 0.18 40)" },
+              { label: "40–59", min: 40, max: 59, color: "var(--warning)" },
+              { label: "60–79", min: 60, max: 79, color: "oklch(0.75 0.14 120)" },
+              { label: "80–100", min: 80, max: 100, color: "var(--success)" },
+            ].map(b => ({ ...b, count: pageAnalyses.filter(p => p.onPageScore >= b.min && p.onPageScore <= b.max).length }))
+            const maxCount = Math.max(...buckets.map(b => b.count), 1)
+            return (
+              <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "18px 22px", marginBottom: "20px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "14px" }}>
+                  On-page score distribution
+                </div>
+                <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", height: "60px" }}>
+                  {buckets.map(b => (
+                    <div key={b.label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", height: "100%", justifyContent: "flex-end" }}>
+                      <div style={{ fontSize: "10px", fontWeight: 700, color: b.color, fontFamily: "var(--font-mono)" }}>{b.count}</div>
+                      <div style={{ width: "100%", height: `${Math.max((b.count / maxCount) * 44, b.count > 0 ? 4 : 0)}px`, background: b.color, borderRadius: "3px 3px 0 0", opacity: 0.8 }} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                  {buckets.map(b => (
+                    <div key={b.label} style={{ flex: 1, textAlign: "center", fontSize: "9px", color: "var(--foreground-3)" }}>{b.label}</div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
           {sortedPages.length > 0 && <PagesSection pages={sortedPages} auditId={id} />}
+
+          {/* Missing meta descriptions bulk list */}
+          {(() => {
+            const noMeta = pageAnalyses.filter(p => !p.metaDescription)
+            if (noMeta.length === 0) return null
+            return (
+              <div style={{ background: "var(--glass-bg)", border: "1px solid oklch(0.80 0.15 75 / 0.25)", borderRadius: "var(--radius-xl)", padding: "18px 22px", marginTop: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--warning)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    ⚠ {noMeta.length} page{noMeta.length !== 1 ? "s" : ""} missing meta description
+                  </div>
+                  <a href={`/api/v1/audits/${id}/issues/csv`} download style={{ fontSize: "10px", color: "var(--primary-2)", textDecoration: "none" }}>Export CSV →</a>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "3px", maxHeight: "180px", overflowY: "auto" }}>
+                  {noMeta.slice(0, 25).map(p => (
+                    <div key={p.url} style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--foreground-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {p.url}
+                    </div>
+                  ))}
+                  {noMeta.length > 25 && <div style={{ fontSize: "10px", color: "var(--foreground-3)" }}>+{noMeta.length - 25} more (export CSV for full list)</div>}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Opportunity pages panel */}
           {opportunityPages.length > 0 && (
