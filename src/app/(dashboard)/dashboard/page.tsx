@@ -39,6 +39,15 @@ export default async function DashboardPage() {
 
   const totalPagesCrawled = latestAudits.reduce((sum, a) => sum + (a?.pagesCount ?? 0), 0)
 
+  // Sites not audited in 30 days
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const staleSites = sites.filter((site, i) => {
+    const audit = latestAudits[i]
+    if (!audit) return true
+    const lastAuditDate = audit.completedAt ?? audit.createdAt
+    return lastAuditDate == null || new Date(lastAuditDate) < thirtyDaysAgo
+  })
+
   // Fetch top unfixed critical issues across all complete audits
   const completeAuditsWithSite = latestAudits
     .map((a, i) => ({ audit: a, site: sites[i]! }))
@@ -105,6 +114,22 @@ export default async function DashboardPage() {
       </div>
 
       <WhatsNew />
+
+      {/* Stale sites alert */}
+      {staleSites.length > 0 && (
+        <div style={{
+          background: "oklch(0.14 0.05 70 / 0.6)", border: "1px solid oklch(0.80 0.15 75 / 0.3)",
+          borderRadius: "var(--radius-lg)", padding: "10px 16px", marginBottom: "20px",
+          display: "flex", alignItems: "center", gap: "12px", fontSize: "12px",
+        }}>
+          <span style={{ color: "var(--warning)", fontSize: "14px" }}>⏰</span>
+          <span style={{ color: "var(--foreground-2)", flex: 1 }}>
+            <strong style={{ color: "var(--warning)" }}>{staleSites.length} site{staleSites.length !== 1 ? "s" : ""}</strong> not audited in the last 30 days:{" "}
+            {staleSites.slice(0, 3).map(s => s.displayName ?? s.domain).join(", ")}{staleSites.length > 3 ? ` +${staleSites.length - 3} more` : ""}
+          </span>
+          <span style={{ fontSize: "10px", color: "var(--foreground-3)" }}>Consider running audits to stay current</span>
+        </div>
+      )}
 
       {/* KPI strip */}
       {sites.length > 0 && (

@@ -97,6 +97,19 @@ export default async function AuditPage({
           <div style={{ display: "flex", gap: "8px" }}>
             {audit.status === "complete" && <RerunButton siteId={audit.siteId} />}
             {audit.status === "complete" && <ShareButton auditId={id} initialToken={audit.shareToken ?? null} />}
+            {audit.status === "complete" && audit.healthScore != null && (
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Just ran an SEO audit on ${site.domain} with RankIQ — health score: ${audit.healthScore}/100. Check yours: https://rankiq.app`)}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "5px",
+                  padding: "7px 12px", fontSize: "12px", fontWeight: 600,
+                  background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+                  borderRadius: "var(--radius-md)", color: "var(--foreground-3)", textDecoration: "none",
+                }}>
+                𝕏 Share
+              </a>
+            )}
             {audit.status === "complete" && (
               <>
                 <a
