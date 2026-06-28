@@ -1249,8 +1249,38 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter, so
   const severities = ["critical", "warning", "info"]
   const categories = [...new Set(issues.map(i => i.category))]
 
+  const openIssues = issues.filter(i => !i.isFixed)
+  const critOpen = openIssues.filter(i => i.severity === "critical").length
+  const warnOpen = openIssues.filter(i => i.severity === "warning").length
+  const infoOpen = openIssues.filter(i => i.severity === "info").length
+  const totalOpen = openIssues.length
+  const pctCrit = totalOpen > 0 ? (critOpen / totalOpen) * 100 : 0
+  const pctWarn = totalOpen > 0 ? (warnOpen / totalOpen) * 100 : 0
+  const pctInfo = totalOpen > 0 ? (infoOpen / totalOpen) * 100 : 0
+
   return (
     <section style={{ marginBottom: "36px" }}>
+      {totalOpen > 0 && (
+        <div style={{ marginBottom: "12px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-md)", padding: "10px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
+            {[
+              { label: "Critical", count: critOpen, color: "var(--destructive)" },
+              { label: "Warning", count: warnOpen, color: "var(--warning)" },
+              { label: "Info", count: infoOpen, color: "var(--info)" },
+            ].filter(s => s.count > 0).map(s => (
+              <span key={s.label} style={{ fontSize: "11px", color: s.color, fontWeight: 700 }}>
+                {s.count} {s.label}
+              </span>
+            ))}
+            <span style={{ fontSize: "10px", color: "var(--foreground-3)", marginLeft: "auto" }}>{fixedCount} fixed</span>
+          </div>
+          <div style={{ height: "4px", borderRadius: "2px", background: "oklch(0.25 0.008 230)", display: "flex", overflow: "hidden", gap: "1px" }}>
+            {pctCrit > 0 && <div style={{ width: `${pctCrit}%`, background: "var(--destructive)", borderRadius: "2px 0 0 2px" }} />}
+            {pctWarn > 0 && <div style={{ width: `${pctWarn}%`, background: "var(--warning)" }} />}
+            {pctInfo > 0 && <div style={{ width: `${pctInfo}%`, background: "var(--info)", borderRadius: "0 2px 2px 0" }} />}
+          </div>
+        </div>
+      )}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
         <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
           Issues Found

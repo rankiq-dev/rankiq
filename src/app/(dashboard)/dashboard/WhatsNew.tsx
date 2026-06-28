@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 
-const RELEASE = "v3.0" // bump to show banner again
+const RELEASE = "v3.1" // bump to show banner again
 
 const FEATURES = [
   "Score projection — see your predicted score after fixing top issues",
@@ -21,6 +21,11 @@ const FEATURES = [
   "Keyword CTR benchmarks — green/red vs industry average by position",
   "All-issues-resolved celebration screen",
   "Back to top button on all long pages",
+  "Duplicate title tag detection — find pages competing with themselves",
+  "Keyword filter tabs — show drops, gains, or page 1 keywords only",
+  "Content pillars panel — your deepest, most-linked content at a glance",
+  "H1 diversity score — % of pages with unique headings",
+  "Badge JSON API — embed site health in any external tool or dashboard",
 ]
 
 export function WhatsNew() {
