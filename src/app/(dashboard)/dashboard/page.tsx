@@ -155,6 +155,32 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* Starter plan upgrade CTA */}
+      {user.plan === "starter" && sites.length >= 1 && (
+        <div style={{
+          background: "linear-gradient(135deg, oklch(0.16 0.04 196 / 0.6), oklch(0.14 0.04 178 / 0.4))",
+          border: "1px solid oklch(0.55 0.13 178 / 0.3)", borderRadius: "var(--radius-xl)",
+          padding: "14px 20px", marginBottom: "20px",
+          display: "flex", alignItems: "center", gap: "16px",
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--primary-2)", marginBottom: "2px" }}>
+              You&apos;re on the Starter plan — limited to 1 site & 100 pages per audit
+            </div>
+            <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>
+              Upgrade to Growth for 5 sites, 500 pages, and 20 audits/month.
+            </div>
+          </div>
+          <Link href="/pricing" style={{
+            padding: "7px 16px", fontSize: "12px", fontWeight: 700,
+            background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
+            color: "var(--primary-foreground)", borderRadius: "var(--radius-md)",
+            textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0,
+            boxShadow: "var(--shadow-glow)",
+          }}>Upgrade →</Link>
+        </div>
+      )}
+
       {sites.length === 0 ? <EmptyState /> : (
         <>
           <SiteGrid sites={sites} latestAudits={latestAudits} />

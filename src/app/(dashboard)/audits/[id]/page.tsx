@@ -462,6 +462,30 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* Crawl budget waste alert */}
+          {pageAnalyses.length > 0 && (() => {
+            const noindexCount = pageAnalyses.filter(p => p.isNoindex).length
+            const noindexPct = Math.round(noindexCount / pageAnalyses.length * 100)
+            if (noindexPct < 20 || noindexCount < 5) return null
+            return (
+              <div style={{
+                background: "oklch(0.14 0.05 70 / 0.5)", border: "1px solid oklch(0.80 0.15 75 / 0.3)",
+                borderRadius: "var(--radius-xl)", padding: "14px 18px", marginTop: "16px",
+                display: "flex", alignItems: "flex-start", gap: "10px",
+              }}>
+                <span style={{ fontSize: "16px", flexShrink: 0 }}>⚠</span>
+                <div>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--warning)", marginBottom: "2px" }}>
+                    Crawl budget waste: {noindexPct}% of pages are noindex ({noindexCount} pages)
+                  </div>
+                  <div style={{ fontSize: "11px", color: "var(--foreground-3)", lineHeight: 1.5 }}>
+                    Search engines waste crawl budget on pages that won't be indexed. Audit your noindex directives — remove them from pages that should rank, or use <code>robots.txt</code> to block irrelevant pages entirely.
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Page issue lists: noindex, thin, duplicate H1, orphans */}
           {pageAnalyses.length > 0 && (() => {
             const noindex = pageAnalyses.filter(p => p.isNoindex)
