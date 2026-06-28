@@ -191,7 +191,29 @@ export default async function DashboardPage() {
 
       {sites.length === 0 ? <EmptyState /> : (
         <>
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+            {(() => {
+              const needsReview = latestAudits
+                .map((a, i) => ({ site: sites[i], score: a?.healthScore }))
+                .filter(d => d.score != null && d.score < 60)
+                .sort((a, b) => (a.score ?? 100) - (b.score ?? 100))
+                .slice(0, 3)
+              if (needsReview.length === 0) return null
+              return (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    Review first:
+                  </span>
+                  {needsReview.map(d => (
+                    <Link key={d.site.id} href={`/sites/${d.site.id}` as any} style={{
+                      fontSize: "10px", color: "var(--destructive)", textDecoration: "none",
+                      padding: "2px 8px", border: "1px solid oklch(0.65 0.20 27 / 0.3)",
+                      borderRadius: "20px", background: "oklch(0.14 0.05 27 / 0.3)",
+                    }}>{d.site.displayName ?? d.site.domain} ({d.score})</Link>
+                  ))}
+                </div>
+              )
+            })()}
             <SiteFilter count={sites.length} />
           </div>
           <SiteGrid sites={sites} latestAudits={latestAudits} />
