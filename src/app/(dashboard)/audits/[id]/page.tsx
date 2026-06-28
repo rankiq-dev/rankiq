@@ -392,14 +392,18 @@ export default async function AuditPage({
             const noH1 = pageAnalyses.filter(p => !p.isNoindex && p.h1Count === 0)
             const multiH1 = pageAnalyses.filter(p => p.h1Count > 1)
             const noCanonical = pageAnalyses.filter(p => !p.isNoindex && !p.hasCanonical)
+            const noSchema = pageAnalyses.filter(p => !p.isNoindex && !p.hasJsonLd)
             const orphans = pageAnalyses.filter(p => !p.isNoindex && p.incomingInternalLinks === 0)
+            const imgAltIssues = pageAnalyses.filter(p => (p.imagesMissingAlt ?? 0) > 0)
             const sections = [
               { title: "Noindex pages", items: noindex, color: "var(--warning)", icon: "⊗" },
               { title: "Thin content (<300w)", items: thin, color: "var(--destructive)", icon: "≡" },
               { title: "No H1 tag", items: noH1, color: "var(--destructive)", icon: "H1" },
               { title: "Multiple H1 tags", items: multiH1, color: "var(--warning)", icon: "H1+" },
               { title: "No canonical tag", items: noCanonical, color: "var(--warning)", icon: "⊕" },
-              { title: "Orphan pages (no inbound links)", items: orphans, color: "var(--foreground-3)", icon: "⊘" },
+              { title: "No schema markup", items: noSchema, color: "var(--foreground-3)", icon: "{ }" },
+              { title: "Orphan pages", items: orphans, color: "var(--foreground-3)", icon: "⊘" },
+              { title: "Images missing alt", items: imgAltIssues, color: "var(--warning)", icon: "img" },
             ].filter(s => s.items.length > 0)
             if (sections.length === 0) return null
             return (
