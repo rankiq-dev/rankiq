@@ -1,19 +1,26 @@
 "use client"
 import { useState, useEffect } from "react"
 
-const RELEASE = "v2.6" // bump to show banner again
+const RELEASE = "v3.0" // bump to show banner again
 
 const FEATURES = [
-  "AI title suggestions on audit pages — generate SEO-optimised titles with one click",
-  "Fix progress bar — track how many issues you've resolved per audit",
-  "Score breakdown chips — see why each page scored the way it did",
-  "Recent activity feed on dashboard — jump back to your latest audits",
-  "Quick-scan history — recent URLs remembered between sessions",
-  "Agency leaderboard — top 3 and worst 3 sites at a glance",
-  "Keyword gain alerts — see which keywords climbed 5+ positions",
-  "Markdown export for action plans — share with clients as .md",
-  "Score distribution histogram — visualise how pages are distributed",
-  "Missing meta descriptions bulk list — instantly see all pages needing attention",
+  "Score projection — see your predicted score after fixing top issues",
+  "Priority matrix — severity × fix time 2×2 grid for triage",
+  "'What to fix this week' — your top 5 ranked by impact",
+  "Issue trend — how many new vs resolved vs previous audit",
+  "Content cluster map — pages grouped by URL prefix",
+  "Indexability report — indexable, noindex, canonical, schema at a glance",
+  "Crawl depth column — URL segment depth per page",
+  "Orphan revenue alert — equity not reaching your best content",
+  "Plan usage bar — sites used vs plan limit in header",
+  "Agency health filter — filter portfolio by score range",
+  "Onboarding checklist — step-by-step setup guide for new users",
+  "'Won't fix' toggle — dismiss issues you'll never act on",
+  "Page 2 keyword opportunities — keywords one push from page 1",
+  "Featured snippet panel — top-ranked keywords primed for position 0",
+  "Keyword CTR benchmarks — green/red vs industry average by position",
+  "All-issues-resolved celebration screen",
+  "Back to top button on all long pages",
 ]
 
 export function WhatsNew() {
