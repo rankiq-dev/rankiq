@@ -297,6 +297,35 @@ export default async function KeywordsPage({
             </form>
           </div>
 
+          {/* Intent breakdown */}
+          {allKeywords.length >= 10 && (() => {
+            const infoPrefixes = ["how", "what", "why", "who", "when", "where", "which", "guide", "tutorial", "tips", "learn", "vs", "difference"]
+            const transPrefixes = ["buy", "price", "cost", "cheap", "best", "review", "hire", "service", "near me", "order", "discount", "deal", "promo"]
+            let info = 0, trans = 0, nav = 0
+            for (const kw of allKeywords) {
+              const q = kw.query.toLowerCase()
+              if (transPrefixes.some(p => q.includes(p))) trans++
+              else if (infoPrefixes.some(p => q.startsWith(p) || q.includes(` ${p} `))) info++
+              else nav++
+            }
+            const total = allKeywords.length
+            return (
+              <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+                {[
+                  { label: "Informational", count: info, color: "var(--primary-2)" },
+                  { label: "Transactional", count: trans, color: "var(--success)" },
+                  { label: "Navigational", count: nav, color: "var(--foreground-3)" },
+                ].map(({ label, count, color }) => (
+                  <div key={label} style={{ padding: "6px 12px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-md)", flex: 1, textAlign: "center" }}>
+                    <div style={{ fontSize: "15px", fontWeight: 800, color, fontFamily: "var(--font-mono)" }}>{count}</div>
+                    <div style={{ fontSize: "9px", color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.07em" }}>{label}</div>
+                    <div style={{ fontSize: "9px", color: "var(--foreground-3)" }}>{Math.round(count / total * 100)}%</div>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
+
           {/* Filter tabs */}
           <div style={{ display: "flex", gap: "4px", marginBottom: "12px" }}>
             {[
