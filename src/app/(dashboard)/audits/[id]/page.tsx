@@ -562,6 +562,7 @@ export default async function AuditPage({
             const noSchema = pageAnalyses.filter(p => !p.isNoindex && !p.hasJsonLd)
             const orphans = pageAnalyses.filter(p => !p.isNoindex && p.incomingInternalLinks === 0)
             const imgAltIssues = pageAnalyses.filter(p => (p.imagesMissingAlt ?? 0) > 0)
+            const noH2 = pageAnalyses.filter(p => !p.isNoindex && p.h2Count === 0)
             const sections = [
               { title: "Noindex pages", items: noindex, color: "var(--warning)", icon: "⊗" },
               { title: "Thin content (<300w)", items: thin, color: "var(--destructive)", icon: "≡" },
@@ -571,6 +572,7 @@ export default async function AuditPage({
               { title: "No schema markup", items: noSchema, color: "var(--foreground-3)", icon: "{ }" },
               { title: "Orphan pages", items: orphans, color: "var(--foreground-3)", icon: "⊘" },
               { title: "Images missing alt", items: imgAltIssues, color: "var(--warning)", icon: "img" },
+              { title: "No H2 subheadings", items: noH2, color: "var(--warning)", icon: "H2" },
             ].filter(s => s.items.length > 0)
             if (sections.length === 0) return null
             return (
