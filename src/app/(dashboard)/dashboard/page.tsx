@@ -7,6 +7,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import type { Metadata } from "next"
 import type { Site, Audit } from "@/db/schema"
+import { WhatsNew } from "./WhatsNew"
 
 export const metadata: Metadata = { title: "Dashboard" }
 
@@ -100,6 +101,8 @@ export default async function DashboardPage() {
           }}>+ Add Site</Link>
         </div>
       </div>
+
+      <WhatsNew />
 
       {/* KPI strip */}
       {sites.length > 0 && (
