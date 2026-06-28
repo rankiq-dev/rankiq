@@ -380,17 +380,21 @@ export default async function AuditPage({
           {pageAnalyses.length > 0 && (() => {
             const noindex = pageAnalyses.filter(p => p.isNoindex)
             const thin = pageAnalyses.filter(p => !p.isNoindex && p.wordCount > 0 && p.wordCount < 300)
+            const noH1 = pageAnalyses.filter(p => !p.isNoindex && p.h1Count === 0)
             const multiH1 = pageAnalyses.filter(p => p.h1Count > 1)
+            const noCanonical = pageAnalyses.filter(p => !p.isNoindex && !p.hasCanonical)
             const orphans = pageAnalyses.filter(p => !p.isNoindex && p.incomingInternalLinks === 0)
             const sections = [
               { title: "Noindex pages", items: noindex, color: "var(--warning)", icon: "⊗" },
-              { title: "Thin content (<300w)", items: thin, color: "var(--destructive)", icon: "📄" },
-              { title: "Multiple H1 tags", items: multiH1, color: "var(--warning)", icon: "H1" },
+              { title: "Thin content (<300w)", items: thin, color: "var(--destructive)", icon: "≡" },
+              { title: "No H1 tag", items: noH1, color: "var(--destructive)", icon: "H1" },
+              { title: "Multiple H1 tags", items: multiH1, color: "var(--warning)", icon: "H1+" },
+              { title: "No canonical tag", items: noCanonical, color: "var(--warning)", icon: "⊕" },
               { title: "Orphan pages (no inbound links)", items: orphans, color: "var(--foreground-3)", icon: "⊘" },
             ].filter(s => s.items.length > 0)
             if (sections.length === 0) return null
             return (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginTop: "20px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px", marginTop: "20px" }}>
                 {sections.map(sec => (
                   <div key={sec.title} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
