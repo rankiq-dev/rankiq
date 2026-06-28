@@ -575,6 +575,23 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* Revenue at risk from orphan pages */}
+          {pageAnalyses.length > 5 && (() => {
+            const orphans = pageAnalyses.filter(p => !p.isNoindex && p.incomingInternalLinks === 0 && p.wordCount > 200)
+            if (orphans.length < 2) return null
+            const orphanPct = Math.round(orphans.length / pageAnalyses.length * 100)
+            return (
+              <div style={{ background: "oklch(0.14 0.05 27 / 0.3)", border: "1px solid oklch(0.65 0.20 27 / 0.25)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginTop: "16px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--destructive)", marginBottom: "4px" }}>
+                  {orphans.length} orphan pages ({orphanPct}% of content) not receiving internal link equity
+                </div>
+                <div style={{ fontSize: "11px", color: "var(--foreground-3)", lineHeight: 1.5 }}>
+                  Pages with no internal links receive zero authority from your site. Add internal links to these pages to boost their rankings. Orphans are among the highest-ROI fixes.
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Content expansion opportunities */}
           {pageAnalyses.length > 3 && (() => {
             const expandable = [...pageAnalyses]
