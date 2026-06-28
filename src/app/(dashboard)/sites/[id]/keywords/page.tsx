@@ -309,6 +309,7 @@ export default async function KeywordsPage({
                     { label: "Clicks", key: "clicks", align: "right" },
                     { label: "Impressions", key: "impressions", align: "right" },
                     { label: "CTR", key: "ctr", align: "right" },
+                    { label: "Est. Value", key: "value", align: "right" },
                   ].map(col => (
                     <th key={col.key} style={{
                       padding: "10px 20px", textAlign: col.align as "left" | "right",
@@ -379,6 +380,11 @@ export default async function KeywordsPage({
                             </span>
                           )
                         })()}
+                      </td>
+                      <td style={{ padding: "10px 20px", fontSize: "11px", textAlign: "right", color: "var(--foreground-3)" }}>
+                        <span title="Estimated monthly value (clicks × $1.50 avg CPC proxy)">
+                          ${(kw.clicks * 1.5).toFixed(0)}
+                        </span>
                       </td>
                     </tr>
                   )
