@@ -12,7 +12,7 @@ interface Props {
 export function BulkFixButton({ auditId, totalCount, fixedCount }: Props) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const toast = useOptionalToast()
+  const { toast } = useOptionalToast()
 
   const allFixed = fixedCount === totalCount && totalCount > 0
   const label = allFixed ? "Unmark all" : "Mark all fixed"
@@ -27,7 +27,7 @@ export function BulkFixButton({ auditId, totalCount, fixedCount }: Props) {
       })
       const data = await res.json() as { data?: { updated: number } }
       if (data.data) {
-        toast?.({ message: `${data.data.updated} issue${data.data.updated !== 1 ? "s" : ""} ${allFixed ? "unmarked" : "marked fixed"}`, type: "success" })
+        toast(`${data.data.updated} issue${data.data.updated !== 1 ? "s" : ""} ${allFixed ? "unmarked" : "marked fixed"}`, "success")
         router.refresh()
       }
     } finally {

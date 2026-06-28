@@ -158,6 +158,30 @@ export default async function AccountPage() {
         </div>
       </div>
 
+      {/* Notification preferences */}
+      <div style={{ marginBottom: "16px" }}>
+        <NotificationSettings
+          notifyAuditComplete={user.notifyAuditComplete ?? true}
+          notifyWeeklyDigest={user.notifyWeeklyDigest ?? true}
+          notifyCriticalOnly={user.notifyCriticalOnly ?? false}
+        />
+      </div>
+
+      {/* API keys */}
+      <div style={{
+        background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+        border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+        padding: "24px 28px", marginBottom: "16px",
+      }}>
+        <ApiKeyManager initialKeys={userApiKeys.map(k => ({
+          id: k.id,
+          name: k.name,
+          keyPrefix: k.keyPrefix,
+          lastUsedAt: k.lastUsedAt ? k.lastUsedAt.toISOString() : null,
+          createdAt: k.createdAt.toISOString(),
+        }))} />
+      </div>
+
       {/* Webhooks */}
       <div style={{
         background: "var(--glass-bg)", backdropFilter: "blur(20px)",
@@ -176,27 +200,13 @@ export default async function AccountPage() {
         }))} />
       </div>
 
-      {/* Danger zone */}
+      {/* Sign out */}
       <div style={{
         background: "var(--destructive-bg)", backdropFilter: "blur(20px)",
         border: "1px solid oklch(0.65 0.20 27 / 0.2)", borderRadius: "var(--radius-xl)",
         padding: "20px 28px",
       }}>
-        <ApiKeyManager initialKeys={userApiKeys.map(k => ({
-          id: k.id,
-          name: k.name,
-          keyPrefix: k.keyPrefix,
-          lastUsedAt: k.lastUsedAt ? k.lastUsedAt.toISOString() : null,
-          createdAt: k.createdAt.toISOString(),
-        }))} />
-
-        <NotificationSettings
-          notifyAuditComplete={user.notifyAuditComplete ?? true}
-          notifyWeeklyDigest={user.notifyWeeklyDigest ?? true}
-          notifyCriticalOnly={user.notifyCriticalOnly ?? false}
-        />
-
-        <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px", marginTop: "32px" }}>
+        <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>
           Sign Out
         </div>
         <p style={{ fontSize: "12px", color: "var(--foreground-3)", marginBottom: "14px", lineHeight: 1.6 }}>

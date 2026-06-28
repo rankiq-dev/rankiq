@@ -21,7 +21,7 @@ export default async function AuditPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ sev?: string; cat?: string }>
+  searchParams: Promise<{ sev?: string; cat?: string; status?: string }>
 }) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
@@ -30,6 +30,7 @@ export default async function AuditPage({
   const sp = await searchParams
   const sevFilter = sp.sev ?? null
   const catFilter = sp.cat ?? null
+  const statusFilter = sp.status ?? null  // "open" | "fixed" | null
   const audit = await getAuditById(id)
   if (!audit) notFound()
 
@@ -65,7 +66,7 @@ export default async function AuditPage({
 
   // Opportunity pages: low score but indexable (not noindex) — most to gain from fixes
   const opportunityPages = [...pageAnalyses]
-    .filter(p => p.status === 200 && p.onPageScore < 80 && p.onPageScore > 0)
+    .filter(p => !p.isNoindex && p.onPageScore < 80 && p.onPageScore > 0)
     .sort((a, b) => {
       // Prioritize pages with incoming links + low score (high visibility, low quality)
       const aScore = a.incomingInternalLinks * (80 - a.onPageScore)
@@ -253,7 +254,7 @@ export default async function AuditPage({
         <RunningState status={audit.status} />
       ) : (
         <>
-          <IssuesSection issues={issues} auditId={id} sevFilter={sevFilter} catFilter={catFilter} />
+          <IssuesSection issues={issues} auditId={id} sevFilter={sevFilter} catFilter={catFilter} statusFilter={statusFilter} />
           {sortedPages.length > 0 && <PagesSection pages={sortedPages} />}
 
           {/* Opportunity pages panel */}
@@ -433,12 +434,27 @@ function CategoryBreakdown({ issues, auditId }: { issues: AuditIssue[]; auditId:
   )
 }
 
-function IssuesSection({ issues, auditId, sevFilter, catFilter }: { issues: AuditIssue[]; auditId: string; sevFilter: string | null; catFilter: string | null }) {
+const FIX_TIME_MAP: Record<string, string> = {
+  missing_title_tag: "5 min", missing_h1: "5 min", missing_meta_description: "5 min",
+  title_too_long: "2 min", title_too_short: "2 min", meta_description_too_long: "2 min",
+  multiple_h1_tags: "10 min", no_canonical_tag: "15 min", duplicate_title: "30 min",
+  duplicate_meta_description: "30 min", broken_internal_link: "30 min",
+  thin_content: "2 h", poor_internal_linking: "1 h", no_heading_hierarchy: "30 min",
+  images_missing_alt: "1 h", missing_schema_markup: "2 h", no_schema_markup: "2 h",
+  redirect_chain: "1 h", robots_noindex: "30 min", noindex_page: "15 min",
+  orphan_page: "1 h", orphaned_page: "1 h", mixed_content_links: "30 min",
+}
+
+function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter }: { issues: AuditIssue[]; auditId: string; sevFilter: string | null; catFilter: string | null; statusFilter: string | null }) {
   if (issues.length === 0) return null
+
+  const openCount = issues.filter(i => !i.isFixed).length
+  const fixedCount = issues.filter(i => i.isFixed).length
 
   const filtered = issues.filter(i =>
     (!sevFilter || i.severity === sevFilter) &&
-    (!catFilter || i.category === catFilter)
+    (!catFilter || i.category === catFilter) &&
+    (statusFilter === "open" ? !i.isFixed : statusFilter === "fixed" ? i.isFixed : true)
   )
 
   const critical = filtered.filter(i => i.severity === "critical")
@@ -467,24 +483,52 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter }: { issues: Audi
           <BulkFixButton auditId={auditId} totalCount={issues.length} fixedCount={issues.filter(i => i.isFixed).length} />
         </div>
       </div>
-      {/* Filter pills */}
+      {/* Status tabs: Open / Fixed / All */}
+      <div style={{ display: "flex", gap: "4px", marginBottom: "12px", background: "oklch(0.12 0.008 230 / 0.5)", borderRadius: "8px", padding: "3px", width: "fit-content" }}>
+        {[
+          { label: `All (${issues.length})`, value: null },
+          { label: `Open (${openCount})`, value: "open" },
+          { label: `Fixed (${fixedCount})`, value: "fixed" },
+        ].map(({ label, value }) => {
+          const isActive = statusFilter === value
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const href = (value ? `/audits/${auditId}?status=${value}` : `/audits/${auditId}`) as any
+          return (
+            <Link key={label} href={href} style={{
+              padding: "4px 12px", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
+              textDecoration: "none",
+              background: isActive ? "var(--glass-bg)" : "transparent",
+              color: isActive ? "var(--foreground)" : "var(--foreground-3)",
+              border: isActive ? "1px solid var(--glass-border)" : "1px solid transparent",
+            }}>{label}</Link>
+          )
+        })}
+      </div>
+      {/* Severity/category filter pills */}
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "14px" }}>
-        <Link href={`/audits/${auditId}`} style={{
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <Link href={(statusFilter ? `/audits/${auditId}?status=${statusFilter}` : `/audits/${auditId}`) as any} style={{
           padding: "3px 10px", borderRadius: "20px", fontSize: "10px", fontWeight: 700,
           textDecoration: "none",
           background: !sevFilter && !catFilter ? "var(--primary-soft)" : "transparent",
           color: !sevFilter && !catFilter ? "var(--primary-2)" : "var(--foreground-3)",
           border: !sevFilter && !catFilter ? "1px solid oklch(0.55 0.13 178 / 0.3)" : "1px solid var(--glass-border)",
         }}>All</Link>
-        {severities.filter(s => issues.some(i => i.severity === s)).map(s => (
-          <Link key={s} href={`/audits/${auditId}?sev=${s}`} style={{
-            padding: "3px 10px", borderRadius: "20px", fontSize: "10px", fontWeight: 700,
-            textDecoration: "none", textTransform: "capitalize",
-            background: sevFilter === s ? "var(--primary-soft)" : "transparent",
-            color: sevFilter === s ? "var(--primary-2)" : "var(--foreground-3)",
-            border: sevFilter === s ? "1px solid oklch(0.55 0.13 178 / 0.3)" : "1px solid var(--glass-border)",
-          }}>{s}</Link>
-        ))}
+        {severities.filter(s => issues.some(i => i.severity === s)).map(s => {
+          const params = new URLSearchParams()
+          params.set("sev", s)
+          if (statusFilter) params.set("status", statusFilter)
+          return (
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            <Link key={s} href={`/audits/${auditId}?${params}` as any} style={{
+              padding: "3px 10px", borderRadius: "20px", fontSize: "10px", fontWeight: 700,
+              textDecoration: "none", textTransform: "capitalize",
+              background: sevFilter === s ? "var(--primary-soft)" : "transparent",
+              color: sevFilter === s ? "var(--primary-2)" : "var(--foreground-3)",
+              border: sevFilter === s ? "1px solid oklch(0.55 0.13 178 / 0.3)" : "1px solid var(--glass-border)",
+            }}>{s}</Link>
+          )
+        })}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
         {groups.map(group => group.items.map((issue) => (
@@ -500,7 +544,7 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter }: { issues: Audi
             affectedUrls={(issue.affectedUrls as string[] | null) ?? undefined}
             fixInstructions={issue.fixInstructions}
             isFixed={issue.isFixed}
-            fixTimeLabel={FIX_TIME[issue.type]}
+            fixTimeLabel={FIX_TIME_MAP[issue.type]}
             scoreImpact={
               issue.severity === "critical"
                 ? Math.min(10 * Math.min(issue.affectedCount, 5), 50)

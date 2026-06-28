@@ -56,9 +56,9 @@ export function ExpandableIssue({ title, description, severity, category, affect
     <div style={{
       background: "var(--glass-bg)", backdropFilter: "blur(20px)",
       border: `1px solid var(--glass-border)`,
-      borderLeft: `3px solid ${isFixed ? "var(--success)" : color}`,
+      borderLeft: `3px solid ${fixed ? "var(--success)" : color}`,
       borderRadius: "var(--radius-xl)",
-      opacity: isFixed ? 0.55 : 1,
+      opacity: fixed ? 0.55 : 1,
       transition: "opacity 200ms",
     }}>
       <button onClick={() => setOpen(v => !v)} style={{

@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
 import { getUserById } from "@/db/repositories/users"
 import { getSitesByUser } from "@/db/repositories/sites"
-import { getLatestAuditForSite } from "@/db/repositories/audits"
+import { getLatestAuditForSite, getIssuesByAudit } from "@/db/repositories/audits"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import type { Metadata } from "next"
@@ -33,9 +33,22 @@ export default async function DashboardPage() {
 
   // Count total critical issues across all sites
   const totalCritical = latestAudits.reduce((sum, a) => {
-    // healthScore < 60 roughly indicates critical issues; we use pagesCount as proxy if issueCount not available
     return sum + (a?.healthScore != null && a.healthScore < 60 ? 1 : 0)
   }, 0)
+
+  // Fetch top unfixed critical issues across all complete audits
+  const completeAuditsWithSite = latestAudits
+    .map((a, i) => ({ audit: a, site: sites[i]! }))
+    .filter(x => x.audit?.status === "complete")
+  const allCriticalIssues = (await Promise.all(
+    completeAuditsWithSite.map(async ({ audit, site }) => {
+      const issues = await getIssuesByAudit(audit!.id, { limit: 50 })
+      return issues
+        .filter(i => i.severity === "critical" && !i.isFixed)
+        .slice(0, 3)
+        .map(i => ({ ...i, siteId: site.id, siteDomain: site.displayName ?? site.domain, auditId: audit!.id }))
+    })
+  )).flat().slice(0, 6)
 
   return (
     <div style={{ padding: "32px 40px", maxWidth: "1200px" }}>
@@ -91,7 +104,35 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {sites.length === 0 ? <EmptyState /> : <SiteGrid sites={sites} latestAudits={latestAudits} />}
+      {sites.length === 0 ? <EmptyState /> : (
+        <>
+          <SiteGrid sites={sites} latestAudits={latestAudits} />
+          {allCriticalIssues.length > 0 && (
+            <div style={{ marginTop: "32px" }}>
+              <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>
+                ⚠ Critical issues needing attention
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {allCriticalIssues.map(issue => (
+                  <Link key={issue.id} href={`/audits/${issue.auditId}`} style={{
+                    display: "flex", alignItems: "center", gap: "12px",
+                    background: "var(--destructive-bg)", border: "1px solid oklch(0.65 0.20 27 / 0.2)",
+                    borderRadius: "var(--radius-lg)", padding: "12px 16px",
+                    textDecoration: "none",
+                  }}>
+                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--destructive)", flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--foreground)", marginBottom: "2px" }}>{issue.title}</div>
+                      <div style={{ fontSize: "10px", color: "var(--foreground-3)" }}>{issue.siteDomain} · {issue.affectedCount} page{issue.affectedCount !== 1 ? "s" : ""}</div>
+                    </div>
+                    <span style={{ fontSize: "10px", color: "var(--primary-2)", fontWeight: 600, flexShrink: 0 }}>Fix →</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }
@@ -169,7 +210,8 @@ function EmptyState() {
                 </div>
               </div>
               {step.href && !step.done && (
-                <Link href={step.href} style={{
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                <Link href={step.href as any} style={{
                   padding: "5px 12px", fontSize: "11px", fontWeight: 700,
                   background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
                   color: "var(--primary-foreground)", borderRadius: "var(--radius)", textDecoration: "none",
@@ -263,7 +305,7 @@ function SiteGrid({ sites, latestAudits }: { sites: Site[]; latestAudits: (Audit
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{statusText}</div>
-              <div style={{ display: "flex", gap: "6px" }}>
+              <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                 {site.gscConnected && (
                   <span style={{
                     display: "inline-flex", alignItems: "center", gap: "3px",
@@ -274,13 +316,23 @@ function SiteGrid({ sites, latestAudits }: { sites: Site[]; latestAudits: (Audit
                     <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "var(--success)" }} />GSC
                   </span>
                 )}
-                {audit?.status === "running" && (
+                {audit?.status === "running" || audit?.status === "queued" ? (
                   <span style={{
                     display: "inline-flex", alignItems: "center", gap: "3px",
                     padding: "2px 7px", borderRadius: "4px",
                     background: "var(--primary-soft)", fontSize: "9px", fontWeight: 700,
                     color: "var(--primary-2)", textTransform: "uppercase", letterSpacing: "0.06em",
                   }}>Live</span>
+                ) : (
+                  <Link href={`/sites/${site.id}`} onClick={e => e.stopPropagation()} style={{
+                    display: "inline-flex", alignItems: "center", gap: "4px",
+                    padding: "3px 9px", borderRadius: "5px", fontSize: "9px", fontWeight: 700,
+                    background: "var(--primary-soft)", color: "var(--primary-2)",
+                    border: "1px solid oklch(0.55 0.13 178 / 0.3)", textDecoration: "none",
+                    textTransform: "uppercase", letterSpacing: "0.06em",
+                  }}>
+                    ▶ Audit
+                  </Link>
                 )}
               </div>
             </div>
