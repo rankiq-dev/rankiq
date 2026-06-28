@@ -206,6 +206,32 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* Featured snippet opportunities: positions 1-5 with high impressions */}
+      {allKeywords.length > 0 && (() => {
+        const snippetCandidates = allKeywords
+          .filter(k => k.position != null && k.position >= 1 && k.position <= 5)
+          .sort((a, b) => parseInt(b.impressions) - parseInt(a.impressions))
+          .slice(0, 3)
+        if (snippetCandidates.length === 0) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.04 155 / 0.25)", border: "1px solid oklch(0.60 0.16 155 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              ★ Featured snippet opportunities — top positions with high visibility
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              {snippetCandidates.map(k => (
+                <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "11px" }}>
+                  <span style={{ fontWeight: 700, color: "var(--foreground)" }}>{k.keyword}</span>
+                  <span style={{ color: "var(--success)", fontFamily: "var(--font-mono)", fontSize: "10px" }}>#{k.position?.toFixed(0)}</span>
+                  <span style={{ color: "var(--foreground-3)", fontSize: "10px" }}>{parseInt(k.impressions).toLocaleString()} impressions</span>
+                  <span style={{ color: "var(--foreground-3)", fontSize: "10px", marginLeft: "auto" }}>→ Add FAQ or summary section</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Page 2 opportunity keywords */}
       {allKeywords.length > 0 && (() => {
         const page2 = allKeywords

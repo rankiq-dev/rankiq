@@ -204,6 +204,11 @@ export default async function SitePage({
             <StatPill label="Audits Run" value={`${completedAudits.length}`} />
             <StatPill label="Pages (latest)" value={`${latestAudit?.pagesCount ?? 0}`} />
             <StatPill label="Keywords" value={`${keywords.length}`} />
+            {keywords.length > 0 && (() => {
+              const totalImpr = keywords.reduce((s, k) => s + parseInt(String(k.impressions ?? "0")), 0)
+              const potentialClicks = Math.round(totalImpr * 0.11)
+              return <StatPill label="Traffic potential" value={potentialClicks > 0 ? `~${potentialClicks.toLocaleString()}/mo` : "—"} />
+            })()}
           </div>
         </div>
       )}
