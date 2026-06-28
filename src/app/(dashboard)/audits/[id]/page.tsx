@@ -676,6 +676,28 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* Internal link hubs */}
+          {pageAnalyses.length >= 5 && (() => {
+            const hubs = pageAnalyses.filter(p => p.internalLinkCount >= 10 && !p.isNoindex).sort((a, b) => b.internalLinkCount - a.internalLinkCount).slice(0, 3)
+            if (hubs.length === 0) return null
+            return (
+              <div style={{ background: "var(--glass-bg)", border: "1px solid oklch(0.55 0.13 178 / 0.2)", borderRadius: "var(--radius-xl)", padding: "18px 22px", marginTop: "20px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary-2)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+                  ⟶ Internal link hubs (pages distributing the most link equity)
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                  {hubs.map(p => (
+                    <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--primary-2)", fontFamily: "var(--font-mono)", width: "50px", flexShrink: 0 }}>{p.internalLinkCount}↗</span>
+                      <span style={{ fontSize: "11px", color: "var(--foreground-2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}</span>
+                      <span style={{ fontSize: "10px", color: "var(--foreground-3)", flexShrink: 0 }}>{p.incomingInternalLinks} links in</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Missing meta descriptions bulk list */}
           {(() => {
             const noMeta = pageAnalyses.filter(p => !p.metaDescription)
