@@ -87,6 +87,14 @@ export default async function ActionPlanPage({
                 </svg>
                 Export MD
               </a>
+              <a href={`/api/v1/audits/${id}/jira-export`} download style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "8px 16px", fontSize: "12px", fontWeight: 600,
+                background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+                borderRadius: "var(--radius-md)", color: "var(--foreground-2)", textDecoration: "none",
+              }}>
+                ⚡ Jira JSON
+              </a>
             </div>
           )}
         </div>
