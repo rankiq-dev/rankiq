@@ -50,6 +50,14 @@ export default async function AuditPage({
     ? audit.healthScore - prevAudit.healthScore
     : null
 
+  // Issue trend vs previous audit
+  let prevIssueCount: number | null = null
+  if (prevAudit) {
+    const prevIssues = await getIssuesByAudit(prevAudit.id, { limit: 200 })
+    prevIssueCount = prevIssues.length
+  }
+  const issueDelta = prevIssueCount != null ? issues.length - prevIssueCount : null
+
   const pageAnalyses = (audit.pageAnalyses as PageAnalysis[] | null) ?? []
   const sortedPages = [...pageAnalyses].sort((a, b) => a.onPageScore - b.onPageScore).slice(0, 30)
 
@@ -272,7 +280,7 @@ export default async function AuditPage({
           <StatCard label="Warnings" value={summary.warningCount} color="oklch(0.80 0.15 75)" />
           <StatCard label="Info" value={summary.infoCount} color="oklch(0.70 0.12 230)" />
           <StatCard label="Pages crawled" value={audit.pagesCount ?? 0} color="oklch(0.65 0.008 230)" />
-          <StatCard label="Issues found" value={summary.totalCount} color="oklch(0.65 0.008 230)" />
+          <StatCard label="Issues found" value={summary.totalCount} color="oklch(0.65 0.008 230)" sub={issueDelta != null ? (issueDelta > 0 ? `↑ ${issueDelta} vs prev` : issueDelta < 0 ? `↓ ${Math.abs(issueDelta)} vs prev` : "Same as prev") : undefined} subColor={issueDelta != null ? (issueDelta > 0 ? "var(--destructive)" : issueDelta < 0 ? "var(--success)" : "var(--foreground-3)") : undefined} />
           <StatCard label="Avg on-page score" value={pageAnalyses.length > 0 ? Math.round(pageAnalyses.reduce((s, p) => s + p.onPageScore, 0) / pageAnalyses.length) : 0} color="oklch(0.68 0.16 155)" suffix="/100" />
         </div>
       </div>
@@ -627,7 +635,7 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
-function StatCard({ label, value, color, suffix = "" }: { label: string; value: number; color: string; suffix?: string }) {
+function StatCard({ label, value, color, suffix = "", sub, subColor }: { label: string; value: number; color: string; suffix?: string; sub?: string; subColor?: string }) {
   return (
     <div style={{
       background: "var(--glass-bg)", backdropFilter: "blur(20px)",
@@ -638,6 +646,7 @@ function StatCard({ label, value, color, suffix = "" }: { label: string; value: 
       <div style={{ fontSize: "24px", fontWeight: 800, color, fontFamily: "var(--font-mono)", letterSpacing: "-0.5px", filter: `drop-shadow(0 0 6px ${color}80)` }}>
         {value}{suffix}
       </div>
+      {sub && <div style={{ fontSize: "10px", color: subColor ?? "var(--foreground-3)", fontWeight: 600, marginTop: "1px", fontFamily: "var(--font-mono)" }}>{sub}</div>}
       <div style={{ fontSize: "10px", color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "3px" }}>
         {label}
       </div>

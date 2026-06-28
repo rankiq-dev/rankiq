@@ -8,6 +8,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import type { Site, Audit } from "@/db/schema"
 import { WhatsNew } from "./WhatsNew"
+import { SiteFilter } from "./SiteFilter"
 import { PLAN_LIMITS } from "@/lib/constants"
 
 export const metadata: Metadata = { title: "Dashboard" }
@@ -183,6 +184,9 @@ export default async function DashboardPage() {
 
       {sites.length === 0 ? <EmptyState /> : (
         <>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
+            <SiteFilter count={sites.length} />
+          </div>
           <SiteGrid sites={sites} latestAudits={latestAudits} />
           {allCriticalIssues.length > 0 && (
             <div style={{ marginTop: "32px" }}>
@@ -378,7 +382,7 @@ function SiteGrid({ sites, latestAudits }: { sites: Site[]; latestAudits: (Audit
           : "Last audit failed"
 
         return (
-          <Link key={site.id} href={`/sites/${site.id}`} className="card-hover" style={{
+          <Link key={site.id} href={`/sites/${site.id}`} className="card-hover" data-site-card="1" data-site-name={`${site.displayName ?? ""} ${site.domain}`} style={{
             display: "block", padding: "22px",
             background: "var(--glass-bg)", backdropFilter: "blur(20px)",
             border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
