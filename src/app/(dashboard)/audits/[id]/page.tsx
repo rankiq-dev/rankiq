@@ -793,6 +793,26 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter }: 
   const openCount = issues.filter(i => !i.isFixed).length
   const fixedCount = issues.filter(i => i.isFixed).length
 
+  if (openCount === 0 && fixedCount > 0) {
+    return (
+      <section style={{ marginBottom: "36px" }}>
+        <div style={{
+          background: "linear-gradient(135deg, oklch(0.16 0.05 155 / 0.4), oklch(0.14 0.04 178 / 0.3))",
+          border: "1px solid oklch(0.60 0.16 155 / 0.4)", borderRadius: "var(--radius-xl)",
+          padding: "40px 32px", textAlign: "center",
+        }}>
+          <div style={{ fontSize: "48px", marginBottom: "12px" }}>🎉</div>
+          <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--success)", letterSpacing: "-0.3px", marginBottom: "6px" }}>
+            All issues resolved!
+          </div>
+          <div style={{ fontSize: "13px", color: "var(--foreground-3)", lineHeight: 1.6 }}>
+            You've fixed all {fixedCount} issue{fixedCount !== 1 ? "s" : ""} in this audit. Great work!
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   const QUICK_WIN_TYPES = new Set(["missing_title_tag","missing_h1","missing_meta_description","title_too_long","title_too_short","meta_description_too_long","no_canonical_tag","noindex_page","robots_noindex"])
   const filtered = issues.filter(i =>
     (!sevFilter || i.severity === sevFilter) &&
