@@ -646,6 +646,29 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* Top scoring pages leaderboard */}
+          {pageAnalyses.length >= 5 && (() => {
+            const top5 = [...pageAnalyses].filter(p => !p.isNoindex).sort((a, b) => b.onPageScore - a.onPageScore).slice(0, 5)
+            return (
+              <div style={{ background: "var(--glass-bg)", border: "1px solid oklch(0.68 0.16 155 / 0.2)", borderRadius: "var(--radius-xl)", padding: "18px 22px", marginTop: "20px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+                  ✦ Top 5 pages by SEO score
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                  {top5.map((p, i) => (
+                    <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <span style={{ fontSize: "10px", color: "var(--foreground-3)", width: "14px", flexShrink: 0 }}>{i + 1}</span>
+                      <span style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--foreground-2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}
+                      </span>
+                      <span style={{ fontSize: "12px", fontWeight: 800, color: p.onPageScore >= 90 ? "var(--success)" : p.onPageScore >= 70 ? "var(--primary-2)" : "var(--warning)", fontFamily: "var(--font-mono)", flexShrink: 0 }}>{p.onPageScore}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Missing meta descriptions bulk list */}
           {(() => {
             const noMeta = pageAnalyses.filter(p => !p.metaDescription)
