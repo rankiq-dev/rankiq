@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { WontFixButton } from "./WontFixButton"
 
 interface Props {
   title: string
@@ -95,6 +96,7 @@ export function ExpandableIssue({ title, description, severity, category, affect
             whiteSpace: "nowrap", marginTop: "2px",
           }}>⏱ {fixTimeLabel}</span>
         )}
+        {issueId && !fixed && <span style={{ marginTop: "2px" }} onClick={e => e.stopPropagation()}><WontFixButton issueId={issueId} /></span>}
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: "3px", transition: "transform 200ms", transform: open ? "rotate(180deg)" : "none", color: "var(--foreground-3)" }}>
           <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
