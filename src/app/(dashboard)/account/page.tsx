@@ -223,6 +223,26 @@ export default async function AccountPage() {
           </button>
         </form>
       </div>
+
+      {/* Data export */}
+      <div style={{
+        background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+        border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+        padding: "24px 28px",
+      }}>
+        <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>
+          Data export
+        </div>
+        <p style={{ fontSize: "13px", color: "var(--foreground-3)", marginBottom: "14px", lineHeight: 1.6 }}>
+          Download all your sites and audit history as a JSON file.
+        </p>
+        <a href="/api/v1/account/export" download style={{
+          display: "inline-flex", alignItems: "center", gap: "6px",
+          padding: "9px 18px", fontSize: "12px", fontWeight: 600,
+          background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+          borderRadius: "var(--radius-md)", color: "var(--foreground-2)", textDecoration: "none",
+        }}>↓ Export all data</a>
+      </div>
     </div>
   )
 }
