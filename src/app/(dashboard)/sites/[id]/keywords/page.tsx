@@ -247,7 +247,20 @@ export default async function KeywordsPage({
                         <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{kw.query}</div>
                       </td>
                       <td style={{ padding: "10px 20px", fontSize: "13px", textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 700, color: posColor(kw.position) }}>
-                        {pos.toFixed(1)}
+                        <span style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "6px" }}>
+                          {pos.toFixed(1)}
+                          {pos <= 10 && (
+                            <span style={{
+                              fontSize: "8px", fontWeight: 800, padding: "1px 5px", borderRadius: "3px",
+                              background: pos <= 3 ? "oklch(0.68 0.16 155 / 0.2)" : "oklch(0.55 0.13 178 / 0.15)",
+                              color: pos <= 3 ? "var(--success)" : "var(--primary-2)",
+                              border: `1px solid ${pos <= 3 ? "oklch(0.68 0.16 155 / 0.3)" : "oklch(0.55 0.13 178 / 0.25)"}`,
+                              textTransform: "uppercase", letterSpacing: "0.04em", fontFamily: "var(--font-sans), sans-serif",
+                            }}>
+                              {pos <= 3 ? "Top 3" : "Pg 1"}
+                            </span>
+                          )}
+                        </span>
                       </td>
                       <td style={{ padding: "10px 20px", fontSize: "12px", textAlign: "right", fontWeight: 700 }}>
                         {change == null ? (

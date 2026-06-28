@@ -315,6 +315,43 @@ export default async function AuditPage({
           })()}
           {sortedPages.length > 0 && <PagesSection pages={sortedPages} auditId={id} />}
 
+          {/* Top 10 most-broken pages */}
+          {pageAnalyses.length > 3 && (() => {
+            const broken = [...pageAnalyses]
+              .sort((a, b) => b.issueTypes.length - a.issueTypes.length || a.onPageScore - b.onPageScore)
+              .slice(0, 10)
+              .filter(p => p.issueTypes.length > 0)
+            if (broken.length < 3) return null
+            return (
+              <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "18px 22px", marginTop: "20px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+                  Most issues per page
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                  {broken.map((p, i) => {
+                    const barPct = broken[0].issueTypes.length > 0 ? (p.issueTypes.length / broken[0].issueTypes.length) * 100 : 0
+                    const scoreColor = p.onPageScore >= 80 ? "var(--success)" : p.onPageScore >= 50 ? "var(--warning)" : "var(--destructive)"
+                    return (
+                      <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span style={{ fontSize: "10px", color: "var(--foreground-3)", width: "14px", flexShrink: 0 }}>{i + 1}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--foreground-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {p.url.replace(/^https?:\/\//, "")}
+                          </div>
+                          <div style={{ height: "3px", background: "oklch(0.20 0.006 230)", borderRadius: "2px", marginTop: "3px" }}>
+                            <div style={{ height: "100%", width: `${barPct}%`, background: "var(--destructive)", borderRadius: "2px" }} />
+                          </div>
+                        </div>
+                        <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", flexShrink: 0, fontFamily: "var(--font-mono)" }}>{p.issueTypes.length} issues</span>
+                        <span style={{ fontSize: "10px", fontWeight: 700, color: scoreColor, flexShrink: 0, fontFamily: "var(--font-mono)" }}>{p.onPageScore}/100</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Missing meta descriptions bulk list */}
           {(() => {
             const noMeta = pageAnalyses.filter(p => !p.metaDescription)
