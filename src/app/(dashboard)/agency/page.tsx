@@ -10,11 +10,11 @@ import { QuickAddSite } from "./QuickAddSite"
 
 export const metadata: Metadata = { title: "Agency Dashboard" }
 
-export default async function AgencyPage({ searchParams }: { searchParams: Promise<{ health?: string }> }) {
+export default async function AgencyPage({ searchParams }: { searchParams: Promise<{ health?: string; sort?: string }> }) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const { health: healthFilter } = await searchParams
+  const { health: healthFilter, sort: agencySort } = await searchParams
   const sites = await getSitesByUser(session.user.id)
 
   const siteData = await Promise.all(
@@ -28,10 +28,14 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
   )
 
   const totalSites = sites.length
-  const filteredSiteData = healthFilter === "critical" ? siteData.filter(d => (d.audit?.healthScore ?? 100) < 50)
+  const baseFiltered = healthFilter === "critical" ? siteData.filter(d => (d.audit?.healthScore ?? 100) < 50)
     : healthFilter === "warning" ? siteData.filter(d => { const s = d.audit?.healthScore ?? 100; return s >= 50 && s < 80 })
     : healthFilter === "good" ? siteData.filter(d => (d.audit?.healthScore ?? 0) >= 80)
     : siteData
+  const filteredSiteData = agencySort === "worst" ? [...baseFiltered].sort((a, b) => (a.audit?.healthScore ?? 100) - (b.audit?.healthScore ?? 100))
+    : agencySort === "best" ? [...baseFiltered].sort((a, b) => (b.audit?.healthScore ?? 0) - (a.audit?.healthScore ?? 0))
+    : agencySort === "issues" ? [...baseFiltered].sort((a, b) => b.criticalCount - a.criticalCount)
+    : baseFiltered
   const healthySites = siteData.filter(d => (d.audit?.healthScore ?? 0) >= 90).length
   const criticalSites = siteData.filter(d => d.criticalCount > 0).length
   const avgHealth = siteData.length > 0
@@ -243,6 +247,25 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
           </div>
         ) : (
           <>
+          {/* Sort tabs */}
+          <div style={{ display: "flex", gap: "4px", marginBottom: "8px" }}>
+            {[
+              { label: "Default", value: undefined },
+              { label: "↓ Worst first", value: "worst" },
+              { label: "↑ Best first", value: "best" },
+              { label: "⚠ Most issues", value: "issues" },
+            ].map(({ label, value }) => (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              <Link key={label} href={value ? `/agency?sort=${value}${healthFilter ? `&health=${healthFilter}` : ""}` : (healthFilter ? `/agency?health=${healthFilter}` : "/agency") as any} style={{
+                padding: "4px 10px", fontSize: "10px", fontWeight: 600,
+                background: agencySort === value ? "var(--glass-bg)" : "transparent",
+                border: `1px solid ${agencySort === value ? "oklch(0.55 0.13 178 / 0.3)" : "var(--glass-border)"}`,
+                borderRadius: "20px", textDecoration: "none",
+                color: agencySort === value ? "var(--primary-2)" : "var(--foreground-3)",
+              }}>{label}</Link>
+            ))}
+          </div>
+
           {/* Health filter tabs */}
           <div style={{ display: "flex", gap: "4px", marginBottom: "16px" }}>
             {[
