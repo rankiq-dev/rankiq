@@ -378,6 +378,7 @@ export default async function AuditPage({
         const withCanonical = pageAnalyses.filter(p => p.hasCanonical).length
         const withImgAlt = pageAnalyses.filter(p => (p.imagesMissingAlt ?? 0) > 0).length
         const withInternalLinks = pageAnalyses.filter(p => p.internalLinkCount > 0).length
+        const avgIncomingLinks = Math.round(pageAnalyses.reduce((s, p) => s + (p.incomingInternalLinks ?? 0), 0) / pageAnalyses.length)
         const pct = (n: number) => `${Math.round(n / pageAnalyses.length * 100)}%`
         return (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "24px" }}>
@@ -391,6 +392,7 @@ export default async function AuditPage({
               { label: "Canonical tags", value: withCanonical.toString(), sub: `${pct(withCanonical)} coverage`, color: withCanonical === pageAnalyses.length ? "var(--success)" : "var(--warning)" },
               { label: "Images w/o alt", value: withImgAlt.toString(), sub: `page${withImgAlt !== 1 ? "s" : ""} affected`, color: withImgAlt === 0 ? "var(--success)" : "var(--destructive)" },
               { label: "Pages w/ int. links", value: withInternalLinks.toString(), sub: `${pct(withInternalLinks)} of pages`, color: withInternalLinks > pageAnalyses.length * 0.8 ? "var(--success)" : "var(--warning)" },
+              ...(avgIncomingLinks > 0 ? [{ label: "Avg link equity", value: avgIncomingLinks.toString(), sub: "incoming/page", color: avgIncomingLinks >= 3 ? "var(--success)" : avgIncomingLinks >= 1 ? "var(--warning)" : "var(--destructive)" }] : []),
               { label: "Avg internal links", value: pageAnalyses.length > 0 ? Math.round(pageAnalyses.reduce((s, p) => s + p.internalLinkCount, 0) / pageAnalyses.length).toString() : "0", sub: "per page", color: "var(--primary-2)" },
             ].map(({ label, value, sub, color }) => (
               <div key={label} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "12px 16px", position: "relative", overflow: "hidden" }}>
@@ -408,7 +410,7 @@ export default async function AuditPage({
         <RunningState status={audit.status} />
       ) : (
         <>
-          <IssuesSection issues={issues} auditId={id} sevFilter={sevFilter} catFilter={catFilter} statusFilter={statusFilter} sortBy={sortBy} />
+          <IssuesSection issues={issues} auditId={id} sevFilter={sevFilter} catFilter={catFilter} statusFilter={statusFilter} sortBy={sortBy} totalPages={pageAnalyses.length} />
           {/* Score distribution histogram */}
           {pageAnalyses.length > 0 && (() => {
             const buckets = [
@@ -1188,7 +1190,7 @@ const FIX_TIME_MAP: Record<string, string> = {
   orphan_page: "1 h", orphaned_page: "1 h", mixed_content_links: "30 min",
 }
 
-function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter, sortBy }: { issues: AuditIssue[]; auditId: string; sevFilter: string | null; catFilter: string | null; statusFilter: string | null; sortBy?: string | null }) {
+function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter, sortBy, totalPages }: { issues: AuditIssue[]; auditId: string; sevFilter: string | null; catFilter: string | null; statusFilter: string | null; sortBy?: string | null; totalPages?: number }) {
   if (issues.length === 0) return null
 
   const openCount = issues.filter(i => !i.isFixed).length
@@ -1354,6 +1356,7 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter, so
             fixInstructions={issue.fixInstructions}
             isFixed={issue.isFixed}
             fixTimeLabel={FIX_TIME_MAP[issue.type]}
+            totalPages={totalPages}
             scoreImpact={
               issue.severity === "critical"
                 ? Math.min(10 * Math.min(issue.affectedCount, 5), 50)

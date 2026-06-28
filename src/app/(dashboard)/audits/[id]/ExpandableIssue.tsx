@@ -16,6 +16,7 @@ interface Props {
   issueId?: string
   auditId?: string
   fixTimeLabel?: string
+  totalPages?: number
   children?: React.ReactNode
 }
 
@@ -26,7 +27,7 @@ const SEV_BG: Record<string, string> = {
   critical: "var(--destructive-bg)", warning: "var(--warning-bg)", info: "var(--info-bg)", error: "var(--destructive-bg)",
 }
 
-export function ExpandableIssue({ title, description, severity, category, affectedCount, affectedUrls, fixInstructions, isFixed: initialFixed, scoreImpact, issueId, auditId, fixTimeLabel, children }: Props) {
+export function ExpandableIssue({ title, description, severity, category, affectedCount, affectedUrls, fixInstructions, isFixed: initialFixed, scoreImpact, issueId, auditId, fixTimeLabel, totalPages, children }: Props) {
   const [open, setOpen] = useState(false)
   const [fixed, setFixed] = useState(initialFixed ?? false)
   const [toggling, setToggling] = useState(false)
@@ -76,6 +77,14 @@ export function ExpandableIssue({ title, description, severity, category, affect
           <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--foreground)" }}>{title}</div>
           <div style={{ fontSize: "11px", color: "var(--foreground-3)", marginTop: "2px" }}>
             {affectedCount} page{affectedCount !== 1 ? "s" : ""} · {category.replace(/_/g, " ")}
+            {totalPages != null && totalPages > 0 && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", marginLeft: "6px" }}>
+                <span style={{ display: "inline-block", width: "40px", height: "3px", borderRadius: "2px", background: "var(--border)", overflow: "hidden" }}>
+                  <span style={{ display: "block", height: "100%", width: `${Math.min(100, Math.round(affectedCount / totalPages * 100))}%`, background: color, borderRadius: "2px" }} />
+                </span>
+                <span>{Math.round(affectedCount / totalPages * 100)}%</span>
+              </span>
+            )}
           </div>
         </div>
         {scoreImpact != null && scoreImpact > 0 && (
