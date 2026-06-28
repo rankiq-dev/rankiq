@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ParticleField } from "@/components/ui/ParticleField"
 import { ToastProvider } from "@/components/ui/Toast"
+import { BackToTop } from "@/components/ui/BackToTop"
 import { ThemeToggle } from "@/components/ui/ThemeToggle"
 import { NotificationBell } from "@/components/ui/NotificationBell"
 import { getUserById } from "@/db/repositories/users"
@@ -136,6 +137,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <main style={{ flex: 1, overflow: "auto", position: "relative", zIndex: 1 }}>
         {children}
       </main>
+      <BackToTop />
       </ToastProvider>
     </div>
   )
