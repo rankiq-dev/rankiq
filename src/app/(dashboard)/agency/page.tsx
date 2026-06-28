@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { BulkAuditButton } from "./BulkAuditButton"
+import { QuickAddSite } from "./QuickAddSite"
 
 export const metadata: Metadata = { title: "Agency Dashboard" }
 
@@ -67,16 +68,7 @@ export default async function AgencyPage() {
               }}>⇔ Compare</Link>
             )}
             {totalSites > 0 && <BulkAuditButton siteCount={totalSites} />}
-            <Link href="/sites/new" style={{
-              padding: "10px 20px",
-              background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
-              color: "var(--primary-foreground)",
-              borderRadius: "var(--radius-md)", fontSize: "13px", fontWeight: 700,
-              textDecoration: "none", letterSpacing: "0.02em",
-              boxShadow: "var(--shadow-glow)",
-            }}>
-              + Add Client Site
-            </Link>
+            <QuickAddSite />
           </div>
         </div>
       </div>
