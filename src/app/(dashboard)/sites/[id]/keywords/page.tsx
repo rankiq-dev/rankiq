@@ -340,8 +340,19 @@ export default async function KeywordsPage({
                       <td style={{ padding: "10px 20px", fontSize: "13px", textAlign: "right", fontFamily: "var(--font-mono)", color: "var(--foreground-2)" }}>
                         {kw.impressions.toLocaleString()}
                       </td>
-                      <td style={{ padding: "10px 20px", fontSize: "12px", textAlign: "right", color: "var(--foreground-3)" }}>
-                        {(parseFloat(kw.ctr) * 100).toFixed(1)}%
+                      <td style={{ padding: "10px 20px", fontSize: "12px", textAlign: "right" }}>
+                        {(() => {
+                          const actualCtr = parseFloat(kw.ctr)
+                          const pos = kw.position ?? 0
+                          const benchmark = pos <= 1 ? 0.28 : pos <= 2 ? 0.15 : pos <= 3 ? 0.11 : pos <= 4 ? 0.08 : pos <= 5 ? 0.07 : pos <= 10 ? 0.04 : 0.015
+                          const isAbove = actualCtr >= benchmark
+                          return (
+                            <span title={`Industry avg at pos ${pos?.toFixed(0)}: ${(benchmark * 100).toFixed(1)}%`} style={{ color: isAbove ? "var(--success)" : "var(--foreground-3)" }}>
+                              {(actualCtr * 100).toFixed(1)}%
+                              {pos > 0 && <span style={{ fontSize: "9px", marginLeft: "3px" }}>{isAbove ? "↑" : "↓"}</span>}
+                            </span>
+                          )
+                        })()}
                       </td>
                     </tr>
                   )
