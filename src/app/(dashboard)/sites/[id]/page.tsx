@@ -68,6 +68,14 @@ export default async function SitePage({
     .sort((a, b) => (b.positionChange ?? 0) - (a.positionChange ?? 0))
     .slice(0, 5)
 
+  // Content pillars: high word count pages
+  const contentPillars = latestAudit?.pageAnalyses
+    ? (latestAudit.pageAnalyses as PageAnalysis[])
+        .filter((p: PageAnalysis) => p.wordCount >= 800 && !p.isNoindex)
+        .sort((a: PageAnalysis, b: PageAnalysis) => b.wordCount - a.wordCount)
+        .slice(0, 3)
+    : []
+
   // Top pages by incoming internal links
   const topPages = latestAudit?.pageAnalyses
     ? (latestAudit.pageAnalyses as PageAnalysis[])
@@ -329,6 +337,24 @@ export default async function SitePage({
       </div>
 
       {/* Top Pages by Internal Link Equity */}
+      {/* Content pillars */}
+      {contentPillars.length > 0 && (
+        <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "16px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>
+            ✦ Content pillars (top content by depth)
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {contentPillars.map((p: PageAnalysis) => (
+              <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--primary-2)", fontFamily: "var(--font-mono)", width: "50px", flexShrink: 0 }}>{p.wordCount.toLocaleString()}w</span>
+                <span style={{ fontSize: "11px", color: "var(--foreground-2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "")}</span>
+                <span style={{ fontSize: "10px", color: "var(--foreground-3)", flexShrink: 0 }}>{p.incomingInternalLinks} links in</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {topPages.length > 0 && (
         <div style={{
           background: "var(--glass-bg)", backdropFilter: "blur(20px)",
