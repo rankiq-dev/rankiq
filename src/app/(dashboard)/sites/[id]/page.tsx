@@ -217,6 +217,12 @@ export default async function SitePage({
               const potentialClicks = Math.round(totalImpr * 0.11)
               return <StatPill label="Traffic potential" value={potentialClicks > 0 ? `~${potentialClicks.toLocaleString()}/mo` : "—"} />
             })()}
+            {latestAudit?.pageAnalyses && (() => {
+              const pa = latestAudit.pageAnalyses as PageAnalysis[]
+              const noindex = pa.filter(p => p.isNoindex).length
+              const crawlPct = pa.length > 0 ? Math.round((pa.length - noindex) / pa.length * 100) : 100
+              return <StatPill label="Crawl budget used" value={`${crawlPct}%`} />
+            })()}
           </div>
         </div>
       )}
