@@ -84,7 +84,14 @@ export default async function KeywordsPage({
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
             <h1 style={{ fontSize: "26px", fontWeight: 800, color: "var(--foreground)", letterSpacing: "-0.5px", marginBottom: "4px" }}>Keywords</h1>
-            <p style={{ fontSize: "13px", color: "var(--foreground-2)" }}>{allKeywords.length} keywords tracked via Google Search Console</p>
+            <p style={{ fontSize: "13px", color: "var(--foreground-2)" }}>
+              {allKeywords.length} keywords tracked via Google Search Console
+              {allKeywords[0]?.dateRangeEnd && (
+                <span style={{ fontSize: "11px", color: "var(--foreground-3)", marginLeft: "8px" }}>
+                  · Last sync: {new Date(allKeywords[0].dateRangeEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                </span>
+              )}
+            </p>
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             {allKeywords.length > 0 && (

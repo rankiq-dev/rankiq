@@ -891,8 +891,12 @@ function PagesSection({ pages, auditId }: { pages: PageAnalysis[]; auditId: stri
                 <div style={{ fontSize: "14px", fontWeight: 700, color: scoreColor, fontFamily: "var(--font-mono)" }}>
                   {page.onPageScore}
                 </div>
-                <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: "16px", fontFamily: "var(--font-mono)" }}>
-                  {page.url.replace(/^https?:\/\//, "")}
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", overflow: "hidden", paddingRight: "16px" }}>
+                  <span style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flex: 1, minWidth: 0 }}>
+                    {page.url.replace(/^https?:\/\//, "")}
+                  </span>
+                  <a href={`https://www.google.com/search?q=site:${encodeURIComponent(page.url)}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "10px", color: "var(--primary-2)", textDecoration: "none", flexShrink: 0, opacity: 0.7 }} title="Search on Google">G↗</a>
+                  <a href={page.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "10px", color: "var(--foreground-3)", textDecoration: "none", flexShrink: 0 }} title="Open page">↗</a>
                 </div>
                 <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)" }}>{page.wordCount}</div>
                 <div style={{ fontSize: "12px", color: page.h1Count === 1 ? "oklch(0.68 0.16 155)" : "oklch(0.65 0.20 27)" }}>{page.h1Count}</div>
