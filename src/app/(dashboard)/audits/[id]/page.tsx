@@ -436,6 +436,37 @@ export default async function AuditPage({
 
           {sortedPages.length > 0 && <PagesSection pages={sortedPages} auditId={id} />}
 
+          {/* Top linked pages — most internal link equity */}
+          {pageAnalyses.length > 3 && (() => {
+            const topLinked = [...pageAnalyses]
+              .filter(p => p.incomingInternalLinks > 0)
+              .sort((a, b) => b.incomingInternalLinks - a.incomingInternalLinks)
+              .slice(0, 5)
+            if (topLinked.length === 0) return null
+            const maxLinks = topLinked[0].incomingInternalLinks
+            return (
+              <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "20px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+                  Top linked pages (internal equity)
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {topLinked.map(p => (
+                    <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary-2)", fontFamily: "var(--font-mono)", width: "28px", flexShrink: 0 }}>{p.incomingInternalLinks}</span>
+                      <div style={{ flex: 1, height: "4px", background: "oklch(0.20 0.006 230)", borderRadius: "2px" }}>
+                        <div style={{ height: "100%", width: `${(p.incomingInternalLinks / maxLinks) * 100}%`, background: "var(--primary)", borderRadius: "2px" }} />
+                      </div>
+                      <span style={{ fontSize: "10px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)", flex: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {p.url.replace(/^https?:\/\/[^/]+/, "")}
+                      </span>
+                      <span style={{ fontSize: "9px", color: p.onPageScore >= 70 ? "var(--success)" : "var(--warning)", fontFamily: "var(--font-mono)", flexShrink: 0 }}>{p.onPageScore}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Top 10 most-broken pages */}
           {pageAnalyses.length > 3 && (() => {
             const broken = [...pageAnalyses]
