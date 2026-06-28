@@ -869,8 +869,8 @@ function PagesSection({ pages, auditId }: { pages: PageAnalysis[]; auditId: stri
       </h2>
       <div style={{ background: "oklch(0.12 0.008 230 / 0.60)", border: "1px solid oklch(0.98 0 0 / 0.06)", borderRadius: "10px", overflow: "hidden" }}>
         {/* Table header */}
-        <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 80px 80px 80px 80px", padding: "10px 20px", borderBottom: "1px solid oklch(0.22 0.006 230)" }}>
-          {["Score", "URL", "Words", "H1", "H2", "Issues"].map((h) => (
+        <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 80px 80px 80px 50px 80px", padding: "10px 20px", borderBottom: "1px solid oklch(0.22 0.006 230)" }}>
+          {["Score", "URL", "Words", "H1", "H2", "Depth", "Issues"].map((h) => (
             <div key={h} style={{ fontSize: "10px", fontWeight: 700, color: "oklch(0.38 0.008 230)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</div>
           ))}
         </div>
@@ -898,7 +898,7 @@ function PagesSection({ pages, auditId }: { pages: PageAnalysis[]; auditId: stri
                 borderBottom: i < pages.length - 1 ? "1px solid oklch(0.22 0.006 230)" : "none",
               }}
             >
-              <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 80px 80px 80px 80px", alignItems: "center" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 80px 80px 80px 50px 80px", alignItems: "center" }}>
                 <div style={{ fontSize: "14px", fontWeight: 700, color: scoreColor, fontFamily: "var(--font-mono)" }}>
                   {page.onPageScore}
                 </div>
@@ -912,6 +912,7 @@ function PagesSection({ pages, auditId }: { pages: PageAnalysis[]; auditId: stri
                 <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)" }}>{page.wordCount}</div>
                 <div style={{ fontSize: "12px", color: page.h1Count === 1 ? "oklch(0.68 0.16 155)" : "oklch(0.65 0.20 27)" }}>{page.h1Count}</div>
                 <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)" }}>{page.h2Count}</div>
+                <div style={{ fontSize: "11px", color: "oklch(0.55 0.008 230)", fontFamily: "var(--font-mono)" }} title="URL depth (segments)">{(() => { try { return new URL(page.url).pathname.split("/").filter(Boolean).length } catch { return "?" } })()}</div>
                 <div style={{ fontSize: "11px", color: "oklch(0.38 0.008 230)" }}>{page.issueTypes.length}</div>
               </div>
               {/* Score breakdown chips */}
