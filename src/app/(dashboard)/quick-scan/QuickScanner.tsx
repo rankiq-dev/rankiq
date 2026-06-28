@@ -1,5 +1,18 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+
+const HISTORY_KEY = "rankiq_quickscan_history"
+const MAX_HISTORY = 8
+
+function loadHistory(): string[] {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "[]") } catch { return [] }
+}
+function saveHistory(url: string) {
+  try {
+    const h = [url, ...loadHistory().filter(u => u !== url)].slice(0, MAX_HISTORY)
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(h))
+  } catch { /* ignore */ }
+}
 
 interface Issue { type: string; severity: "critical" | "warning" | "info"; message: string }
 interface Result {
@@ -28,9 +41,14 @@ export function QuickScanner() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [history, setHistory] = useState<string[]>([])
 
-  async function scan() {
-    if (!url.trim()) return
+  useEffect(() => { setHistory(loadHistory()) }, [])
+
+  async function scan(target?: string) {
+    const scanUrl = (target ?? url).trim()
+    if (!scanUrl) return
+    if (!target) setUrl(scanUrl)
     setLoading(true)
     setError(null)
     setResult(null)
@@ -38,11 +56,16 @@ export function QuickScanner() {
       const res = await fetch("/api/v1/quick-scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim() }),
+        body: JSON.stringify({ url: scanUrl }),
       })
       const data = await res.json() as { data?: Result; error?: string }
-      if (data.data) setResult(data.data)
-      else setError(data.error ?? "Scan failed")
+      if (data.data) {
+        setResult(data.data)
+        saveHistory(scanUrl)
+        setHistory(loadHistory())
+      } else {
+        setError(data.error ?? "Scan failed")
+      }
     } catch {
       setError("Network error")
     } finally {
@@ -81,6 +104,30 @@ export function QuickScanner() {
           {loading ? "Scanning…" : "Scan →"}
         </button>
       </div>
+
+      {/* Recent scan history */}
+      {history.length > 0 && !result && !loading && (
+        <div style={{ marginBottom: "20px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+            Recent scans
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            {history.map(h => (
+              <button key={h} onClick={() => scan(h)} style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                padding: "7px 12px", background: "oklch(0.12 0.008 230 / 0.5)",
+                border: "1px solid var(--glass-border)", borderRadius: "var(--radius-md)",
+                cursor: "pointer", fontFamily: "var(--font-mono), monospace",
+                fontSize: "11px", color: "var(--foreground-2)", textAlign: "left",
+                width: "100%",
+              }}>
+                <span style={{ color: "var(--foreground-3)", fontSize: "10px" }}>↩</span>
+                {h}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {error && <div style={{ padding: "12px 16px", background: "var(--destructive-bg)", border: "1px solid oklch(0.65 0.20 27 / 0.3)", borderRadius: "var(--radius-md)", fontSize: "12px", color: "var(--destructive)", marginBottom: "20px" }}>{error}</div>}
 

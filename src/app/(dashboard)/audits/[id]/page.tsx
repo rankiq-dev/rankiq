@@ -13,6 +13,7 @@ import { RerunButton } from "./RerunButton"
 import { ShareButton } from "./ShareButton"
 import { ExpandableIssue } from "./ExpandableIssue"
 import { BulkFixButton } from "./BulkFixButton"
+import { AiTitleSuggester } from "./AiTitleSuggester"
 
 export const metadata: Metadata = { title: "Audit Results" }
 
@@ -255,7 +256,7 @@ export default async function AuditPage({
       ) : (
         <>
           <IssuesSection issues={issues} auditId={id} sevFilter={sevFilter} catFilter={catFilter} statusFilter={statusFilter} />
-          {sortedPages.length > 0 && <PagesSection pages={sortedPages} />}
+          {sortedPages.length > 0 && <PagesSection pages={sortedPages} auditId={id} />}
 
           {/* Opportunity pages panel */}
           {opportunityPages.length > 0 && (
@@ -559,7 +560,7 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter }: 
   )
 }
 
-function PagesSection({ pages }: { pages: PageAnalysis[] }) {
+function PagesSection({ pages, auditId }: { pages: PageAnalysis[]; auditId: string }) {
   return (
     <section>
       <h2 style={{ fontSize: "16px", fontWeight: 700, color: "oklch(0.92 0.008 230)", letterSpacing: "-0.3px", marginBottom: "16px" }}>
@@ -575,27 +576,32 @@ function PagesSection({ pages }: { pages: PageAnalysis[] }) {
         </div>
         {pages.map((page, i) => {
           const scoreColor = page.onPageScore >= 80 ? "oklch(0.68 0.16 155)" : page.onPageScore >= 50 ? "oklch(0.80 0.15 75)" : "oklch(0.65 0.20 27)"
+          const needsTitle = !page.title || page.titleLength < 10 || page.titleLength > 65
           return (
             <div
               key={page.url}
               style={{
-                display: "grid",
-                gridTemplateColumns: "60px 1fr 80px 80px 80px 80px",
                 padding: "12px 20px",
                 borderBottom: i < pages.length - 1 ? "1px solid oklch(0.22 0.006 230)" : "none",
-                alignItems: "center",
               }}
             >
-              <div style={{ fontSize: "14px", fontWeight: 700, color: scoreColor, fontFamily: "var(--font-mono)" }}>
-                {page.onPageScore}
+              <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 80px 80px 80px 80px", alignItems: "center" }}>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: scoreColor, fontFamily: "var(--font-mono)" }}>
+                  {page.onPageScore}
+                </div>
+                <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: "16px", fontFamily: "var(--font-mono)" }}>
+                  {page.url.replace(/^https?:\/\//, "")}
+                </div>
+                <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)" }}>{page.wordCount}</div>
+                <div style={{ fontSize: "12px", color: page.h1Count === 1 ? "oklch(0.68 0.16 155)" : "oklch(0.65 0.20 27)" }}>{page.h1Count}</div>
+                <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)" }}>{page.h2Count}</div>
+                <div style={{ fontSize: "11px", color: "oklch(0.38 0.008 230)" }}>{page.issueTypes.length}</div>
               </div>
-              <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: "16px", fontFamily: "var(--font-mono)" }}>
-                {page.url.replace(/^https?:\/\//, "")}
-              </div>
-              <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)" }}>{page.wordCount}</div>
-              <div style={{ fontSize: "12px", color: page.h1Count === 1 ? "oklch(0.68 0.16 155)" : "oklch(0.65 0.20 27)" }}>{page.h1Count}</div>
-              <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)" }}>{page.h2Count}</div>
-              <div style={{ fontSize: "11px", color: "oklch(0.38 0.008 230)" }}>{page.issueTypes.length}</div>
+              {needsTitle && (
+                <div style={{ paddingLeft: "60px", marginTop: "4px" }}>
+                  <AiTitleSuggester auditId={auditId} url={page.url} currentTitle={page.title} />
+                </div>
+              )}
             </div>
           )
         })}

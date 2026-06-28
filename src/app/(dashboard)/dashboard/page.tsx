@@ -50,6 +50,13 @@ export default async function DashboardPage() {
     })
   )).flat().slice(0, 6)
 
+  // Recent audit activity feed (last 5 audits across all sites)
+  const recentActivity = latestAudits
+    .map((a, i) => ({ audit: a, site: sites[i]! }))
+    .filter(x => x.audit != null)
+    .sort((a, b) => new Date(b.audit!.createdAt ?? 0).getTime() - new Date(a.audit!.createdAt ?? 0).getTime())
+    .slice(0, 5)
+
   return (
     <div style={{ padding: "32px 40px", maxWidth: "1200px" }}>
 
@@ -114,7 +121,8 @@ export default async function DashboardPage() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {allCriticalIssues.map(issue => (
-                  <Link key={issue.id} href={`/audits/${issue.auditId}`} style={{
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  <Link key={issue.id} href={`/audits/${issue.auditId}` as any} style={{
                     display: "flex", alignItems: "center", gap: "12px",
                     background: "var(--destructive-bg)", border: "1px solid oklch(0.65 0.20 27 / 0.2)",
                     borderRadius: "var(--radius-lg)", padding: "12px 16px",
@@ -128,6 +136,54 @@ export default async function DashboardPage() {
                     <span style={{ fontSize: "10px", color: "var(--primary-2)", fontWeight: 600, flexShrink: 0 }}>Fix →</span>
                   </Link>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recent audit activity */}
+          {recentActivity.length > 0 && (
+            <div style={{ marginTop: "32px" }}>
+              <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>
+                Recent activity
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {recentActivity.map(({ audit, site }) => {
+                  const scoreColor = audit!.healthScore == null ? "var(--foreground-3)"
+                    : audit!.healthScore >= 80 ? "var(--success)"
+                    : audit!.healthScore >= 50 ? "var(--warning)"
+                    : "var(--destructive)"
+                  return (
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    <Link key={audit!.id} href={`/audits/${audit!.id}` as any} style={{
+                      display: "flex", alignItems: "center", gap: "12px",
+                      background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+                      borderRadius: "var(--radius-lg)", padding: "10px 16px",
+                      textDecoration: "none",
+                    }}>
+                      <div style={{
+                        width: "32px", height: "32px", borderRadius: "8px", flexShrink: 0,
+                        background: "oklch(0.14 0.006 230)", display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "12px", fontWeight: 800, color: scoreColor, fontFamily: "var(--font-mono)",
+                      }}>
+                        {audit!.healthScore ?? "—"}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--foreground)" }}>{site.displayName ?? site.domain}</div>
+                        <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "1px" }}>
+                          {audit!.status === "complete" ? `${audit!.pagesCount ?? 0} pages · ${audit!.completedAt ? new Date(audit!.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}` : audit!.status}
+                        </div>
+                      </div>
+                      <div style={{
+                        fontSize: "9px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px",
+                        background: audit!.status === "complete" ? "var(--success-bg)" : audit!.status === "running" ? "var(--primary-soft)" : "oklch(0.18 0.008 230)",
+                        color: audit!.status === "complete" ? "var(--success)" : audit!.status === "running" ? "var(--primary-2)" : "var(--foreground-3)",
+                        textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0,
+                      }}>
+                        {audit!.status}
+                      </div>
+                    </Link>
+                  )
+                })}
               </div>
             </div>
           )}
