@@ -714,6 +714,50 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* What to fix this week — top 5 priority issues */}
+          {issues.filter(i => !i.isFixed).length > 0 && (() => {
+            function fixMins(type: string): number {
+              const map: Record<string, number> = {
+                missing_title_tag: 5, missing_h1: 5, missing_meta_description: 5,
+                title_too_long: 2, title_too_short: 2, meta_description_too_long: 2,
+                multiple_h1_tags: 10, no_canonical_tag: 15, noindex_page: 15,
+                robots_noindex: 30, duplicate_title: 30, broken_internal_link: 30,
+                no_heading_hierarchy: 30, images_missing_alt: 60, poor_internal_linking: 60,
+                thin_content: 120, missing_schema_markup: 120, no_schema_markup: 120,
+                redirect_chain: 60, orphan_page: 60, orphaned_page: 60,
+              }
+              return map[type] ?? 999
+            }
+            const sevRank = (s: string) => s === "critical" ? 3 : s === "warning" ? 2 : 1
+            const top5 = [...issues]
+              .filter(i => !i.isFixed)
+              .sort((a, b) => {
+                const sevDiff = sevRank(b.severity) - sevRank(a.severity)
+                if (sevDiff !== 0) return sevDiff
+                return fixMins(a.type) - fixMins(b.type)
+              })
+              .slice(0, 5)
+            return (
+              <div style={{ background: "oklch(0.14 0.04 178 / 0.25)", border: "1px solid oklch(0.55 0.13 178 / 0.25)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "24px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary-2)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+                  ✦ What to fix this week
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {top5.map((issue, idx) => (
+                    <div key={issue.id} style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--foreground-3)", fontFamily: "var(--font-mono)", width: "16px", flexShrink: 0 }}>{idx + 1}.</span>
+                      <div style={{ flex: 1 }}>
+                        <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--foreground)" }}>{issue.title}</span>
+                        <span style={{ fontSize: "10px", color: issue.severity === "critical" ? "var(--destructive)" : "var(--warning)", marginLeft: "8px" }}>{issue.severity}</span>
+                        {fixMins(issue.type) < 999 && <span style={{ fontSize: "10px", color: "var(--foreground-3)", marginLeft: "6px" }}>~{fixMins(issue.type) < 60 ? `${fixMins(issue.type)} min` : `${fixMins(issue.type) / 60}h`}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Opportunity pages panel */}
           {opportunityPages.length > 0 && (
             <div style={{ background: "var(--glass-bg)", backdropFilter: "blur(20px)", border: "1px solid oklch(0.55 0.13 178 / 0.25)", borderRadius: "var(--radius-xl)", padding: "18px 22px", marginTop: "24px" }}>
