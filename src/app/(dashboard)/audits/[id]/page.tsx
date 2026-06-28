@@ -757,6 +757,34 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* Duplicate meta descriptions */}
+          {pageAnalyses.length > 3 && (() => {
+            const metaMap = new Map<string, string[]>()
+            for (const p of pageAnalyses) {
+              if (!p.metaDescription) continue
+              const norm = p.metaDescription.trim().toLowerCase()
+              if (!metaMap.has(norm)) metaMap.set(norm, [])
+              metaMap.get(norm)!.push(p.url)
+            }
+            const dupes = [...metaMap.entries()].filter(([, urls]) => urls.length > 1)
+            if (dupes.length === 0) return null
+            return (
+              <div style={{ background: "oklch(0.14 0.04 70 / 0.25)", border: "1px solid oklch(0.80 0.15 75 / 0.25)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginTop: "16px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--warning)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                  ⚠ Duplicate meta descriptions ({dupes.length} groups, {dupes.reduce((s, [,u]) => s + u.length, 0)} pages)
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {dupes.slice(0, 3).map(([meta, urls]) => (
+                    <div key={meta} style={{ fontSize: "10px", color: "var(--foreground-3)" }}>
+                      <div style={{ color: "var(--foreground-2)", marginBottom: "2px", fontStyle: "italic" }}>&ldquo;{meta.slice(0, 80)}{meta.length > 80 ? "…" : ""}&rdquo;</div>
+                      <div style={{ fontFamily: "var(--font-mono)", color: "var(--foreground-3)" }}>{urls.slice(0, 2).join(", ")}{urls.length > 2 ? ` +${urls.length - 2} more` : ""}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Duplicate URL detection */}
           {pageAnalyses.length > 3 && (() => {
             const normalizeUrl = (u: string) => u.toLowerCase().replace(/\/$/, "").replace(/^https?:\/\/www\./, "https://")
