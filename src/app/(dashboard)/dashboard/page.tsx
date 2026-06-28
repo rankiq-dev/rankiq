@@ -465,6 +465,13 @@ function SiteGrid({ sites, latestAudits }: { sites: Site[]; latestAudits: (Audit
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{statusText}</div>
               <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                {site.auditSchedule && site.auditSchedule !== "off" && (
+                  <span style={{
+                    padding: "2px 7px", borderRadius: "20px", fontSize: "9px", fontWeight: 700,
+                    background: "oklch(0.20 0.04 270 / 0.6)", border: "1px solid oklch(0.60 0.10 270 / 0.3)",
+                    color: "oklch(0.70 0.12 270)", textTransform: "uppercase", letterSpacing: "0.05em",
+                  }}>⏱ {site.auditSchedule}</span>
+                )}
                 {site.gscConnected && (
                   <span style={{
                     display: "inline-flex", alignItems: "center", gap: "3px",
