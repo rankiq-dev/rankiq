@@ -231,6 +231,29 @@ export default async function AuditPage({
         </div>
       )}
 
+      {/* Audit highlights — 3 key facts */}
+      {audit.status === "complete" && audit.healthScore != null && (() => {
+        const topIssue = issues.filter(i => !i.isFixed).sort((a, b) => (a.severity === "critical" ? -1 : 1))[0]
+        const bestPage = [...pageAnalyses].sort((a, b) => b.onPageScore - a.onPageScore)[0]
+        const worstPage = [...pageAnalyses].filter(p => !p.isNoindex).sort((a, b) => a.onPageScore - b.onPageScore)[0]
+        const highlights = [
+          topIssue ? { label: "Top priority", value: topIssue.title, color: topIssue.severity === "critical" ? "var(--destructive)" : "var(--warning)" } : null,
+          bestPage ? { label: "Best page", value: bestPage.url.replace(/^https?:\/\/[^/]+/, "") || "/", color: "var(--success)" } : null,
+          worstPage ? { label: "Needs most work", value: worstPage.url.replace(/^https?:\/\/[^/]+/, "") || "/", color: "var(--warning)" } : null,
+        ].filter(Boolean) as Array<{ label: string; value: string; color: string }>
+        if (highlights.length === 0) return null
+        return (
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${highlights.length}, 1fr)`, gap: "10px", marginBottom: "20px" }}>
+            {highlights.map(h => (
+              <div key={h.label} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "12px 16px", overflow: "hidden" }}>
+                <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>{h.label}</div>
+                <div style={{ fontSize: "11px", fontWeight: 600, color: h.color, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.value}</div>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
+
       {/* Fixed issues progress bar */}
       {audit.status === "complete" && issues.length > 0 && (
         <div style={{
