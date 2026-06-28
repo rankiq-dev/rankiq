@@ -483,6 +483,31 @@ export default async function AuditPage({
 
           {sortedPages.length > 0 && <PagesSection pages={sortedPages} auditId={id} />}
 
+          {/* Internal linking opportunities */}
+          {pageAnalyses.length > 5 && (() => {
+            const linkOpps = pageAnalyses
+              .filter(p => !p.isNoindex && p.wordCount >= 600 && p.internalLinkCount < 3)
+              .sort((a, b) => b.wordCount - a.wordCount)
+              .slice(0, 5)
+            if (linkOpps.length < 2) return null
+            return (
+              <div style={{ background: "oklch(0.14 0.04 70 / 0.2)", border: "1px solid oklch(0.80 0.15 75 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "20px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--warning)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                  ⟶ Internal linking opportunities — content-rich pages with few outgoing links
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                  {linkOpps.map(p => (
+                    <div key={p.url} style={{ display: "flex", gap: "10px", fontSize: "10px", color: "var(--foreground-2)" }}>
+                      <span style={{ color: "var(--warning)", fontFamily: "var(--font-mono)", width: "50px", flexShrink: 0 }}>{p.wordCount}w</span>
+                      <span style={{ flex: 1, fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.url.replace(/^https?:\/\/[^/]+/, "")}</span>
+                      <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{p.internalLinkCount} links out</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Content cluster map — pages by URL prefix */}
           {pageAnalyses.length > 5 && (() => {
             const clusters = new Map<string, number>()
@@ -767,6 +792,7 @@ export default async function AuditPage({
             const orphans = pageAnalyses.filter(p => !p.isNoindex && p.incomingInternalLinks === 0)
             const imgAltIssues = pageAnalyses.filter(p => (p.imagesMissingAlt ?? 0) > 0)
             const noH2 = pageAnalyses.filter(p => !p.isNoindex && p.h2Count === 0)
+            const longPages = pageAnalyses.filter(p => !p.isNoindex && p.wordCount >= 4000)
             const sections = [
               { title: "Noindex pages", items: noindex, color: "var(--warning)", icon: "⊗" },
               { title: "Thin content (<300w)", items: thin, color: "var(--destructive)", icon: "≡" },
@@ -777,6 +803,7 @@ export default async function AuditPage({
               { title: "Orphan pages", items: orphans, color: "var(--foreground-3)", icon: "⊘" },
               { title: "Images missing alt", items: imgAltIssues, color: "var(--warning)", icon: "img" },
               { title: "No H2 subheadings", items: noH2, color: "var(--warning)", icon: "H2" },
+              { title: "Long pages (4000w+)", items: longPages, color: "var(--foreground-3)", icon: "≡≡" },
             ].filter(s => s.items.length > 0)
             if (sections.length === 0) return null
             return (
