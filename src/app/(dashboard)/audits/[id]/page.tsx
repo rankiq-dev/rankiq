@@ -817,6 +817,7 @@ export default async function AuditPage({
             const noH2 = pageAnalyses.filter(p => !p.isNoindex && p.h2Count === 0)
             const longPages = pageAnalyses.filter(p => !p.isNoindex && p.wordCount >= 4000)
             const noImages = pageAnalyses.filter(p => !p.isNoindex && p.imageCount === 0 && p.wordCount > 300)
+            const noOutLinks = pageAnalyses.filter(p => !p.isNoindex && p.internalLinkCount === 0 && p.wordCount > 200)
             const sections = [
               { title: "Noindex pages", items: noindex, color: "var(--warning)", icon: "⊗" },
               { title: "Thin content (<300w)", items: thin, color: "var(--destructive)", icon: "≡" },
@@ -829,6 +830,7 @@ export default async function AuditPage({
               { title: "No H2 subheadings", items: noH2, color: "var(--warning)", icon: "H2" },
               { title: "Long pages (4000w+)", items: longPages, color: "var(--foreground-3)", icon: "≡≡" },
               { title: "No images (text-only)", items: noImages, color: "var(--foreground-3)", icon: "img0" },
+              { title: "No outgoing links", items: noOutLinks, color: "var(--warning)", icon: "↗0" },
             ].filter(s => s.items.length > 0)
             if (sections.length === 0) return null
             return (

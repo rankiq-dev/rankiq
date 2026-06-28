@@ -10,10 +10,11 @@ import { QuickAddSite } from "./QuickAddSite"
 
 export const metadata: Metadata = { title: "Agency Dashboard" }
 
-export default async function AgencyPage() {
+export default async function AgencyPage({ searchParams }: { searchParams: Promise<{ health?: string }> }) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
+  const { health: healthFilter } = await searchParams
   const sites = await getSitesByUser(session.user.id)
 
   const siteData = await Promise.all(
@@ -27,6 +28,10 @@ export default async function AgencyPage() {
   )
 
   const totalSites = sites.length
+  const filteredSiteData = healthFilter === "critical" ? siteData.filter(d => (d.audit?.healthScore ?? 100) < 50)
+    : healthFilter === "warning" ? siteData.filter(d => { const s = d.audit?.healthScore ?? 100; return s >= 50 && s < 80 })
+    : healthFilter === "good" ? siteData.filter(d => (d.audit?.healthScore ?? 0) >= 80)
+    : siteData
   const healthySites = siteData.filter(d => (d.audit?.healthScore ?? 0) >= 90).length
   const criticalSites = siteData.filter(d => d.criticalCount > 0).length
   const avgHealth = siteData.length > 0
@@ -237,6 +242,25 @@ export default async function AgencyPage() {
             }}>Add your first site →</Link>
           </div>
         ) : (
+          <>
+          {/* Health filter tabs */}
+          <div style={{ display: "flex", gap: "4px", marginBottom: "16px" }}>
+            {[
+              { label: "All", value: undefined },
+              { label: "Critical (<50)", value: "critical" },
+              { label: "Needs work (50-79)", value: "warning" },
+              { label: "Healthy (80+)", value: "good" },
+            ].map(({ label, value }) => (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              <Link key={label} href={value ? `/agency?health=${value}` : "/agency"  as any} style={{
+                padding: "5px 12px", fontSize: "11px", fontWeight: 600,
+                background: healthFilter === value ? "var(--glass-bg)" : "transparent",
+                border: `1px solid ${healthFilter === value ? "oklch(0.55 0.13 178 / 0.4)" : "var(--glass-border)"}`,
+                borderRadius: "20px", textDecoration: "none",
+                color: healthFilter === value ? "var(--primary-2)" : "var(--foreground-3)",
+              }}>{label} {value ? `(${filteredSiteData.length})` : `(${siteData.length})`}</Link>
+            ))}
+          </div>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
@@ -251,7 +275,7 @@ export default async function AgencyPage() {
               </tr>
             </thead>
             <tbody>
-              {siteData.map(({ site, audit, criticalCount, warningCount }, i) => {
+              {filteredSiteData.map(({ site, audit, criticalCount, warningCount }, i) => {
                 const score = audit?.healthScore ?? null
                 const scoreColor = score === null ? "var(--foreground-3)"
                   : score >= 90 ? "var(--success)"
@@ -336,6 +360,7 @@ export default async function AgencyPage() {
               })}
             </tbody>
           </table>
+          </>
         )}
       </div>
 
