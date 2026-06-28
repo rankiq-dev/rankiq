@@ -483,6 +483,39 @@ export default async function AuditPage({
 
           {sortedPages.length > 0 && <PagesSection pages={sortedPages} auditId={id} />}
 
+          {/* Content cluster map — pages by URL prefix */}
+          {pageAnalyses.length > 5 && (() => {
+            const clusters = new Map<string, number>()
+            for (const p of pageAnalyses) {
+              try {
+                const segments = new URL(p.url).pathname.split("/").filter(Boolean)
+                const prefix = segments.length > 0 ? `/${segments[0]}` : "/"
+                clusters.set(prefix, (clusters.get(prefix) ?? 0) + 1)
+              } catch { /* ignore */ }
+            }
+            const sorted = [...clusters.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
+            if (sorted.length < 2) return null
+            const max = sorted[0][1]
+            return (
+              <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "20px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+                  Content clusters by URL prefix
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {sorted.map(([prefix, count]) => (
+                    <div key={prefix} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--foreground-2)", width: "120px", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{prefix}</span>
+                      <div style={{ flex: 1, height: "6px", background: "oklch(0.20 0.006 230)", borderRadius: "3px" }}>
+                        <div style={{ height: "100%", width: `${(count / max) * 100}%`, background: "var(--primary)", borderRadius: "3px", opacity: 0.8 }} />
+                      </div>
+                      <span style={{ fontSize: "10px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)", width: "30px", textAlign: "right", flexShrink: 0 }}>{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Top linked pages — most internal link equity */}
           {pageAnalyses.length > 3 && (() => {
             const topLinked = [...pageAnalyses]
@@ -570,6 +603,36 @@ export default async function AuditPage({
                     </div>
                   ))}
                   {noMeta.length > 25 && <div style={{ fontSize: "10px", color: "var(--foreground-3)" }}>+{noMeta.length - 25} more (export CSV for full list)</div>}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Indexability report */}
+          {pageAnalyses.length > 0 && (() => {
+            const indexable = pageAnalyses.filter(p => !p.isNoindex)
+            const noindexCount = pageAnalyses.length - indexable.length
+            const indexPct = Math.round(indexable.length / pageAnalyses.length * 100)
+            const withCanon = indexable.filter(p => p.hasCanonical).length
+            const withSchema = indexable.filter(p => p.hasJsonLd).length
+            return (
+              <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginTop: "16px", marginBottom: "8px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+                  Indexability report
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+                  {[
+                    { label: "Indexable", value: `${indexPct}%`, sub: `${indexable.length} pages`, color: indexPct > 80 ? "var(--success)" : "var(--warning)" },
+                    { label: "Noindex", value: noindexCount.toString(), sub: `${100 - indexPct}% blocked`, color: noindexCount > 0 ? "var(--warning)" : "var(--success)" },
+                    { label: "Canonical", value: `${Math.round(withCanon / indexable.length * 100)}%`, sub: `${withCanon} pages`, color: withCanon === indexable.length ? "var(--success)" : "var(--warning)" },
+                    { label: "Schema", value: `${Math.round(withSchema / indexable.length * 100)}%`, sub: `${withSchema} pages`, color: withSchema > indexable.length * 0.5 ? "var(--success)" : "var(--foreground-3)" },
+                  ].map(({ label, value, sub, color }) => (
+                    <div key={label} style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "18px", fontWeight: 800, color, fontFamily: "var(--font-mono)" }}>{value}</div>
+                      <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</div>
+                      <div style={{ fontSize: "9px", color: "var(--foreground-3)" }}>{sub}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )
