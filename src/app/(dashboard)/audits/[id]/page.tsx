@@ -802,6 +802,39 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* Score projection after fixing top 5 issues */}
+          {audit.healthScore != null && issues.filter(i => !i.isFixed).length >= 3 && (() => {
+            const openIssues = issues.filter(i => !i.isFixed)
+            const critCount = Math.min(openIssues.filter(i => i.severity === "critical").length, 5)
+            const warnCount = Math.min(openIssues.filter(i => i.severity === "warning").length, 5)
+            const projectedGain = critCount * 4 + warnCount * 2
+            const projectedScore = Math.min(100, audit.healthScore + projectedGain)
+            if (projectedScore <= audit.healthScore) return null
+            return (
+              <div style={{ background: "oklch(0.14 0.04 196 / 0.3)", border: "1px solid oklch(0.55 0.13 178 / 0.3)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "20px" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--primary-2)", marginBottom: "2px" }}>
+                    Estimated score after fixing top issues
+                  </div>
+                  <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>
+                    Fixing {critCount} critical + {warnCount} warnings could gain ~{projectedGain} points
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>Now</div>
+                    <div style={{ fontSize: "24px", fontWeight: 800, color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{audit.healthScore}</div>
+                  </div>
+                  <div style={{ fontSize: "14px", color: "var(--success)" }}>→</div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>Projected</div>
+                    <div style={{ fontSize: "24px", fontWeight: 800, color: "var(--success)", fontFamily: "var(--font-mono)" }}>{projectedScore}</div>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
+
           {/* What to fix this week — top 5 priority issues */}
           {issues.filter(i => !i.isFixed).length > 0 && (() => {
             function fixMins(type: string): number {
