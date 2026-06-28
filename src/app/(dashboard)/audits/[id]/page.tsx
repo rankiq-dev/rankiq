@@ -33,7 +33,8 @@ export default async function AuditPage({
   const sp = await searchParams
   const sevFilter = sp.sev ?? null
   const catFilter = sp.cat ?? null
-  const statusFilter = sp.status ?? null  // "open" | "fixed" | null
+  const statusFilter = sp.status ?? null  // "open" | "fixed" | "quick" | null
+  const sortBy = sp.sort ?? null  // "priority" | "effort" | null
   const audit = await getAuditById(id)
   if (!audit) notFound()
 
@@ -400,7 +401,7 @@ export default async function AuditPage({
         <RunningState status={audit.status} />
       ) : (
         <>
-          <IssuesSection issues={issues} auditId={id} sevFilter={sevFilter} catFilter={catFilter} statusFilter={statusFilter} />
+          <IssuesSection issues={issues} auditId={id} sevFilter={sevFilter} catFilter={catFilter} statusFilter={statusFilter} sortBy={sortBy} />
           {/* Score distribution histogram */}
           {pageAnalyses.length > 0 && (() => {
             const buckets = [
@@ -818,6 +819,7 @@ export default async function AuditPage({
             const longPages = pageAnalyses.filter(p => !p.isNoindex && p.wordCount >= 4000)
             const noImages = pageAnalyses.filter(p => !p.isNoindex && p.imageCount === 0 && p.wordCount > 300)
             const noOutLinks = pageAnalyses.filter(p => !p.isNoindex && p.internalLinkCount === 0 && p.wordCount > 200)
+            const longUrls = pageAnalyses.filter(p => { try { return new URL(p.url).pathname.length > 80 } catch { return false } })
             const sections = [
               { title: "Noindex pages", items: noindex, color: "var(--warning)", icon: "⊗" },
               { title: "Thin content (<300w)", items: thin, color: "var(--destructive)", icon: "≡" },
@@ -831,6 +833,7 @@ export default async function AuditPage({
               { title: "Long pages (4000w+)", items: longPages, color: "var(--foreground-3)", icon: "≡≡" },
               { title: "No images (text-only)", items: noImages, color: "var(--foreground-3)", icon: "img0" },
               { title: "No outgoing links", items: noOutLinks, color: "var(--warning)", icon: "↗0" },
+              { title: "Long URLs (80+ chars)", items: longUrls, color: "var(--foreground-3)", icon: "/…/" },
             ].filter(s => s.items.length > 0)
             if (sections.length === 0) return null
             return (
@@ -1122,7 +1125,7 @@ const FIX_TIME_MAP: Record<string, string> = {
   orphan_page: "1 h", orphaned_page: "1 h", mixed_content_links: "30 min",
 }
 
-function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter }: { issues: AuditIssue[]; auditId: string; sevFilter: string | null; catFilter: string | null; statusFilter: string | null }) {
+function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter, sortBy }: { issues: AuditIssue[]; auditId: string; sevFilter: string | null; catFilter: string | null; statusFilter: string | null; sortBy?: string | null }) {
   if (issues.length === 0) return null
 
   const openCount = issues.filter(i => !i.isFixed).length
@@ -1154,6 +1157,19 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter }: 
     (!catFilter || i.category === catFilter) &&
     (statusFilter === "open" ? !i.isFixed : statusFilter === "fixed" ? i.isFixed : statusFilter === "quick" ? !i.isFixed && QUICK_WIN_TYPES.has(i.type) : true)
   )
+
+  // Apply sorting
+  if (sortBy === "effort") {
+    const effortMin: Record<string, number> = {
+      missing_title_tag: 5, missing_h1: 5, missing_meta_description: 5,
+      title_too_long: 2, title_too_short: 2, meta_description_too_long: 2,
+      multiple_h1_tags: 10, no_canonical_tag: 15, noindex_page: 15,
+      robots_noindex: 30, duplicate_title: 30, broken_internal_link: 30,
+      no_heading_hierarchy: 30, images_missing_alt: 60, poor_internal_linking: 60,
+      thin_content: 120, missing_schema_markup: 120, no_schema_markup: 120, orphan_page: 60,
+    }
+    filtered.sort((a, b) => (effortMin[a.type] ?? 999) - (effortMin[b.type] ?? 999))
+  }
 
   const critical = filtered.filter(i => i.severity === "critical")
   const warnings = filtered.filter(i => i.severity === "warning")
