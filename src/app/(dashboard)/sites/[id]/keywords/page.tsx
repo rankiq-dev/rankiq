@@ -29,6 +29,13 @@ export default async function KeywordsPage({
     getKeywordMetricsBySite(id, 200),
   ])
 
+  // Performance summary
+  const totalClicks = allMetrics.reduce((s, m) => s + m.clicks, 0)
+  const totalImpressions = allMetrics.reduce((s, m) => s + m.impressions, 0)
+  const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions * 100).toFixed(1) : "0.0"
+  const avgPos = allMetrics.length > 0 ? (allMetrics.reduce((s, m) => s + parseFloat(m.positionAvg), 0) / allMetrics.length).toFixed(1) : "—"
+  const page1Count = allMetrics.filter(m => parseFloat(m.positionAvg) <= 10).length
+
   // Compute quick-win opportunities: position 4-20, impressions > 10
   const maxImpressions = Math.max(...allMetrics.map(m => m.impressions), 1)
   const opportunities = allMetrics
@@ -98,6 +105,25 @@ export default async function KeywordsPage({
           </div>
         </div>
       </div>
+
+      {/* Performance summary KPIs */}
+      {allMetrics.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "10px", marginBottom: "20px" }}>
+          {[
+            { label: "Total Clicks", value: totalClicks.toLocaleString(), color: "var(--primary-2)" },
+            { label: "Total Impressions", value: totalImpressions.toLocaleString(), color: "var(--foreground-2)" },
+            { label: "Avg CTR", value: `${avgCtr}%`, color: parseFloat(avgCtr) > 5 ? "var(--success)" : parseFloat(avgCtr) > 2 ? "var(--primary-2)" : "var(--warning)" },
+            { label: "Avg Position", value: `#${avgPos}`, color: parseFloat(avgPos) <= 10 ? "var(--success)" : parseFloat(avgPos) <= 20 ? "var(--primary-2)" : "var(--warning)" },
+            { label: "Page 1 Keywords", value: page1Count.toString(), color: page1Count > 0 ? "var(--success)" : "var(--foreground-3)" },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "12px 16px", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, ${color}, transparent)` }} />
+              <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>{label}</div>
+              <div style={{ fontSize: "18px", fontWeight: 800, color, fontFamily: "var(--font-mono)", lineHeight: 1 }}>{value}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {opportunities.length > 0 && (
         <div style={{ background: "var(--primary-soft)", border: "1px solid oklch(0.55 0.13 178 / 0.25)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "20px" }}>

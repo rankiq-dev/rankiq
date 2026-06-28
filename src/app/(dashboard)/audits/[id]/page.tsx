@@ -755,6 +755,9 @@ function PagesSection({ pages, auditId }: { pages: PageAnalysis[]; auditId: stri
             { label: "H1", ok: page.h1Count === 1 },
             { label: "Words", ok: page.wordCount >= 300 },
             { label: "H2s", ok: page.h2Count > 0 },
+            { label: "Canon", ok: page.hasCanonical },
+            { label: "Schema", ok: page.hasJsonLd },
+            ...(page.imageCount > 0 ? [{ label: `Alt (${page.imagesMissingAlt}/${page.imageCount})`, ok: page.imagesMissingAlt === 0 }] : []),
           ]
           return (
             <div
