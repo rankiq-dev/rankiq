@@ -165,6 +165,36 @@ export default async function ActionPlanPage({
           ))}
         </div>
       )}
+
+      {/* Schema markup guide */}
+      {hasActionPlan && ranked.some(i => i.type === "missing_schema_markup" || i.type === "no_schema_markup") && (
+        <div style={{
+          background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+          borderRadius: "var(--radius-xl)", padding: "20px 24px", marginTop: "20px",
+        }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "14px" }}>
+            ✦ Schema markup guide — recommended types by page pattern
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+            {[
+              { pattern: "/blog/, /post/, /article/", schema: "Article", desc: "Enables rich results with publication date and author" },
+              { pattern: "/product/, /shop/, /item/", schema: "Product", desc: "Shows price, availability, reviews in search" },
+              { pattern: "/faq, /help, /questions/", schema: "FAQPage", desc: "Expands FAQ content directly in SERPs" },
+              { pattern: "/ (homepage)", schema: "Organization", desc: "Establishes entity knowledge for your brand" },
+              { pattern: "/review/, /ratings/", schema: "Review", desc: "Shows star ratings in search results" },
+              { pattern: "/event/, /webinar/", schema: "Event", desc: "Shows event date and location in search" },
+            ].map(({ pattern, schema, desc }) => (
+              <div key={schema} style={{ padding: "10px 12px", background: "oklch(0.14 0.006 230 / 0.8)", borderRadius: "var(--radius-md)", border: "1px solid var(--glass-border)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary-2)", fontFamily: "var(--font-mono)" }}>{schema}</span>
+                  <span style={{ fontSize: "9px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)" }}>{pattern}</span>
+                </div>
+                <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
