@@ -267,6 +267,42 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* CTR gap analysis: keywords ranked 1-5 but underperforming on clicks */}
+      {allKeywords.length > 5 && (() => {
+        const CTR_BENCHMARKS: Record<number, number> = { 1: 0.28, 2: 0.15, 3: 0.11, 4: 0.08, 5: 0.07 }
+        const underperforming = allKeywords
+          .filter(k => {
+            const pos = Math.round(k.position ?? 99)
+            const bench = CTR_BENCHMARKS[pos]
+            if (!bench) return false
+            const actualCtr = parseFloat(k.ctr) / 100
+            return actualCtr < bench * 0.5 && k.impressions >= 50
+          })
+          .sort((a, b) => b.impressions - a.impressions)
+          .slice(0, 3)
+        if (underperforming.length === 0) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.04 270 / 0.2)", border: "1px solid oklch(0.60 0.12 270 / 0.25)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "oklch(0.70 0.12 270)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              ⟳ CTR gap — ranked but under-clicking (improve meta/title)
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              {underperforming.map(k => {
+                const bench = CTR_BENCHMARKS[Math.round(k.position ?? 1)] ?? 0.05
+                return (
+                  <div key={k.query} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px" }}>
+                    <span style={{ fontWeight: 600, color: "var(--foreground-2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{k.query}</span>
+                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--foreground-3)", flexShrink: 0 }}>#{k.position?.toFixed(1)} pos</span>
+                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--destructive)", flexShrink: 0 }}>{(parseFloat(k.ctr)).toFixed(1)}% CTR</span>
+                    <span style={{ fontFamily: "var(--font-mono)", color: "oklch(0.70 0.12 270)", flexShrink: 0 }}>vs {(bench * 100).toFixed(0)}% avg</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
+
       {allKeywords.length === 0 ? (
         <div style={{
           background: "var(--glass-bg)", backdropFilter: "blur(20px)",
