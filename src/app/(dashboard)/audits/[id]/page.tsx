@@ -600,6 +600,33 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* Duplicate URL detection */}
+          {pageAnalyses.length > 3 && (() => {
+            const normalizeUrl = (u: string) => u.toLowerCase().replace(/\/$/, "").replace(/^https?:\/\/www\./, "https://")
+            const seen = new Map<string, string[]>()
+            for (const p of pageAnalyses) {
+              const norm = normalizeUrl(p.url)
+              if (!seen.has(norm)) seen.set(norm, [])
+              seen.get(norm)!.push(p.url)
+            }
+            const dupes = [...seen.entries()].filter(([, urls]) => urls.length > 1)
+            if (dupes.length === 0) return null
+            return (
+              <div style={{ background: "oklch(0.14 0.05 27 / 0.3)", border: "1px solid oklch(0.65 0.20 27 / 0.25)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginTop: "16px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--warning)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+                  ⚠ Duplicate URL variants detected ({dupes.length} groups)
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {dupes.slice(0, 3).map(([norm, urls]) => (
+                    <div key={norm} style={{ fontSize: "10px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)" }}>
+                      {urls.join(" ↔ ")}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Crawl budget waste alert */}
           {pageAnalyses.length > 0 && (() => {
             const noindexCount = pageAnalyses.filter(p => p.isNoindex).length
