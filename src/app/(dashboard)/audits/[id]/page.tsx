@@ -655,6 +655,31 @@ export default async function AuditPage({
             )
           })()}
 
+          {/* Underperforming over-structured pages */}
+          {pageAnalyses.length > 5 && (() => {
+            const overStructured = pageAnalyses.filter(p => !p.isNoindex && p.h2Count >= 5 && p.onPageScore < 60)
+            if (overStructured.length < 2) return null
+            return (
+              <div style={{ background: "oklch(0.14 0.04 70 / 0.25)", border: "1px solid oklch(0.80 0.15 75 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginTop: "16px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--warning)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                  ✎ Well-structured but underperforming ({overStructured.length} pages with 5+ H2s, score &lt;60)
+                </div>
+                <div style={{ fontSize: "11px", color: "var(--foreground-3)", marginBottom: "8px" }}>
+                  These pages have good structure but poor SEO. Common issues: missing meta, thin content, or no schema.
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  {overStructured.slice(0, 4).map(p => (
+                    <div key={p.url} style={{ fontSize: "10px", color: "var(--foreground-2)", fontFamily: "var(--font-mono)", display: "flex", gap: "8px" }}>
+                      <span style={{ color: "var(--warning)" }}>{p.onPageScore}</span>
+                      <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.url.replace(/^https?:\/\/[^/]+/, "")}</span>
+                      <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{p.h2Count} H2s</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Content expansion opportunities */}
           {pageAnalyses.length > 3 && (() => {
             const expandable = [...pageAnalyses]
