@@ -64,17 +64,30 @@ export default async function ActionPlanPage({
             </p>
           </div>
           {audit.status === "complete" && (
-            <a href={`/api/v1/audits/${id}/pdf`} target="_blank" rel="noopener noreferrer" style={{
-              display: "inline-flex", alignItems: "center", gap: "6px",
-              padding: "8px 16px", fontSize: "12px", fontWeight: 600,
-              background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
-              borderRadius: "var(--radius-md)", color: "var(--foreground-2)", textDecoration: "none",
-            }}>
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                <path d="M6.5 1v7M4 6l2.5 2.5L9 6M2 11h9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Export PDF
-            </a>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <a href={`/api/v1/audits/${id}/pdf`} target="_blank" rel="noopener noreferrer" style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "8px 16px", fontSize: "12px", fontWeight: 600,
+                background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+                borderRadius: "var(--radius-md)", color: "var(--foreground-2)", textDecoration: "none",
+              }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                  <path d="M6.5 1v7M4 6l2.5 2.5L9 6M2 11h9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Export PDF
+              </a>
+              <a href={`/api/v1/audits/${id}/action-plan-md`} style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "8px 16px", fontSize: "12px", fontWeight: 600,
+                background: "var(--primary-soft)", border: "1px solid oklch(0.55 0.13 178 / 0.3)",
+                borderRadius: "var(--radius-md)", color: "var(--primary-2)", textDecoration: "none",
+              }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                  <path d="M6.5 1v7M4 6l2.5 2.5L9 6M2 11h9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Export MD
+              </a>
+            </div>
           )}
         </div>
       </div>

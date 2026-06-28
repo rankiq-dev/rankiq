@@ -61,6 +61,12 @@ export default async function SitePage({
     .sort((a, b) => (a.positionChange ?? 0) - (b.positionChange ?? 0))
     .slice(0, 5)
 
+  // Keyword gains: keywords that rose 5+ positions
+  const keywordGains = keywords
+    .filter(k => k.positionChange != null && k.positionChange >= 5)
+    .sort((a, b) => (b.positionChange ?? 0) - (a.positionChange ?? 0))
+    .slice(0, 5)
+
   // Top pages by incoming internal links
   const topPages = latestAudit?.pageAnalyses
     ? (latestAudit.pageAnalyses as PageAnalysis[])
@@ -362,6 +368,31 @@ export default async function SitePage({
                 <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>was #{parseFloat(k.prevPosition ?? "0").toFixed(1)} →</span>
                 <span style={{ color: "var(--warning)", fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>#{parseFloat(k.position).toFixed(1)}</span>
                 <span style={{ color: "var(--destructive)", fontWeight: 700, fontSize: "11px", flexShrink: 0 }}>↓ {Math.abs(k.positionChange ?? 0)}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: "8px" }}>
+            <a href={`/sites/${id}/keywords`} style={{ fontSize: "11px", color: "var(--primary-2)", textDecoration: "none" }}>View all keywords →</a>
+          </div>
+        </div>
+      )}
+
+      {/* Keyword gain alerts */}
+      {keywordGains.length > 0 && (
+        <div style={{
+          background: "oklch(0.14 0.07 155 / 0.4)", border: "1px solid oklch(0.68 0.16 155 / 0.3)",
+          borderRadius: "var(--radius-xl)", padding: "14px 20px", marginBottom: "16px",
+        }}>
+          <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "10px" }}>
+            ↑ Keyword gains since last snapshot
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            {keywordGains.map(k => (
+              <div key={k.query} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px" }}>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground)", fontFamily: "var(--font-mono)" }}>{k.query}</span>
+                <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>was #{parseFloat(k.prevPosition ?? "0").toFixed(1)} →</span>
+                <span style={{ color: "var(--success)", fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>#{parseFloat(k.position).toFixed(1)}</span>
+                <span style={{ color: "var(--success)", fontWeight: 700, fontSize: "11px", flexShrink: 0 }}>↑ {Math.abs(k.positionChange ?? 0)}</span>
               </div>
             ))}
           </div>
