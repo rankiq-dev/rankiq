@@ -53,6 +53,9 @@ export default async function AuditPage({
   const pageAnalyses = (audit.pageAnalyses as PageAnalysis[] | null) ?? []
   const sortedPages = [...pageAnalyses].sort((a, b) => a.onPageScore - b.onPageScore).slice(0, 30)
 
+  const fixedIssues = issues.filter(i => i.isFixed).length
+  const fixPct = issues.length > 0 ? Math.round((fixedIssues / issues.length) * 100) : 0
+
   // Fix time estimates per issue type
   const FIX_TIME: Record<string, string> = {
     missing_title_tag: "5 min", missing_h1: "5 min", missing_meta_description: "5 min",
@@ -189,6 +192,29 @@ export default async function AuditPage({
           <p style={{ fontSize: "12px", color: "oklch(0.45 0.008 230)", marginTop: "12px", marginBottom: 0 }}>
             Common causes: JavaScript-only rendering (React/Next.js/Vue apps), bot protection (Cloudflare), or the site being unreachable. Try running the audit again or contact support.
           </p>
+        </div>
+      )}
+
+      {/* Fixed issues progress bar */}
+      {audit.status === "complete" && issues.length > 0 && (
+        <div style={{
+          background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+          borderRadius: "var(--radius-lg)", padding: "12px 20px", marginBottom: "20px",
+          display: "flex", alignItems: "center", gap: "16px",
+        }}>
+          <div style={{ fontSize: "11px", color: "var(--foreground-3)", whiteSpace: "nowrap" }}>
+            Fix progress
+          </div>
+          <div style={{ flex: 1, height: "6px", background: "oklch(0.18 0.008 230)", borderRadius: "3px", overflow: "hidden" }}>
+            <div style={{
+              height: "100%", width: `${fixPct}%`,
+              background: fixPct === 100 ? "var(--success)" : fixPct > 50 ? "var(--primary)" : "var(--warning)",
+              borderRadius: "3px", transition: "width 600ms ease",
+            }} />
+          </div>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--foreground-2)", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
+            {fixedIssues}/{issues.length} fixed ({fixPct}%)
+          </div>
         </div>
       )}
 
@@ -577,6 +603,14 @@ function PagesSection({ pages, auditId }: { pages: PageAnalysis[]; auditId: stri
         {pages.map((page, i) => {
           const scoreColor = page.onPageScore >= 80 ? "oklch(0.68 0.16 155)" : page.onPageScore >= 50 ? "oklch(0.80 0.15 75)" : "oklch(0.65 0.20 27)"
           const needsTitle = !page.title || page.titleLength < 10 || page.titleLength > 65
+          // Score breakdown indicators
+          const checks = [
+            { label: "Title", ok: !!page.title && page.titleLength >= 20 && page.titleLength <= 60 },
+            { label: "Meta", ok: !!page.metaDescription && page.metaDescriptionLength <= 160 },
+            { label: "H1", ok: page.h1Count === 1 },
+            { label: "Words", ok: page.wordCount >= 300 },
+            { label: "H2s", ok: page.h2Count > 0 },
+          ]
           return (
             <div
               key={page.url}
@@ -596,6 +630,20 @@ function PagesSection({ pages, auditId }: { pages: PageAnalysis[]; auditId: stri
                 <div style={{ fontSize: "12px", color: page.h1Count === 1 ? "oklch(0.68 0.16 155)" : "oklch(0.65 0.20 27)" }}>{page.h1Count}</div>
                 <div style={{ fontSize: "12px", color: "oklch(0.65 0.008 230)" }}>{page.h2Count}</div>
                 <div style={{ fontSize: "11px", color: "oklch(0.38 0.008 230)" }}>{page.issueTypes.length}</div>
+              </div>
+              {/* Score breakdown chips */}
+              <div style={{ paddingLeft: "60px", marginTop: "5px", display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                {checks.map(c => (
+                  <span key={c.label} style={{
+                    fontSize: "9px", fontWeight: 700, padding: "1px 5px", borderRadius: "3px",
+                    background: c.ok ? "oklch(0.68 0.16 155 / 0.12)" : "oklch(0.65 0.20 27 / 0.12)",
+                    color: c.ok ? "oklch(0.68 0.16 155)" : "oklch(0.65 0.20 27)",
+                    border: `1px solid ${c.ok ? "oklch(0.68 0.16 155 / 0.2)" : "oklch(0.65 0.20 27 / 0.2)"}`,
+                    letterSpacing: "0.04em", textTransform: "uppercase",
+                  }}>
+                    {c.ok ? "✓" : "✗"} {c.label}
+                  </span>
+                ))}
               </div>
               {needsTitle && (
                 <div style={{ paddingLeft: "60px", marginTop: "4px" }}>
