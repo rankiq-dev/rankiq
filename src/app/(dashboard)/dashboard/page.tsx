@@ -228,6 +228,17 @@ export default async function DashboardPage() {
             })()}
             <SiteFilter count={sites.length} />
           </div>
+          {(() => {
+            const best = latestAudits.map((a, i) => ({ site: sites[i]!, score: a?.healthScore })).filter(d => d.score != null && d.score >= 90).sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0]
+            if (!best) return null
+            return (
+              <div style={{ marginBottom: "12px", padding: "8px 14px", background: "oklch(0.16 0.05 155 / 0.15)", border: "1px solid oklch(0.68 0.16 155 / 0.2)", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "10px", color: "var(--success)", fontWeight: 700 }}>✦ Top site</span>
+                <span style={{ fontSize: "12px", color: "var(--foreground-2)", fontWeight: 600 }}>{best.site.displayName ?? best.site.domain}</span>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "var(--success)", fontFamily: "var(--font-mono)", marginLeft: "auto" }}>{best.score}</span>
+              </div>
+            )
+          })()}
           <SiteGrid sites={sites} latestAudits={latestAudits} />
           {allCriticalIssues.length > 0 && (
             <div style={{ marginTop: "32px" }}>

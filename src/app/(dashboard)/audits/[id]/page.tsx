@@ -379,6 +379,8 @@ export default async function AuditPage({
         const withImgAlt = pageAnalyses.filter(p => (p.imagesMissingAlt ?? 0) > 0).length
         const withInternalLinks = pageAnalyses.filter(p => p.internalLinkCount > 0).length
         const avgIncomingLinks = Math.round(pageAnalyses.reduce((s, p) => s + (p.incomingInternalLinks ?? 0), 0) / pageAnalyses.length)
+        const excellentPages = pageAnalyses.filter(p => p.onPageScore >= 90).length
+        const poorPages = pageAnalyses.filter(p => p.onPageScore < 50).length
         const pct = (n: number) => `${Math.round(n / pageAnalyses.length * 100)}%`
         return (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "24px" }}>
@@ -393,6 +395,8 @@ export default async function AuditPage({
               { label: "Images w/o alt", value: withImgAlt.toString(), sub: `page${withImgAlt !== 1 ? "s" : ""} affected`, color: withImgAlt === 0 ? "var(--success)" : "var(--destructive)" },
               { label: "Pages w/ int. links", value: withInternalLinks.toString(), sub: `${pct(withInternalLinks)} of pages`, color: withInternalLinks > pageAnalyses.length * 0.8 ? "var(--success)" : "var(--warning)" },
               ...(avgIncomingLinks > 0 ? [{ label: "Avg link equity", value: avgIncomingLinks.toString(), sub: "incoming/page", color: avgIncomingLinks >= 3 ? "var(--success)" : avgIncomingLinks >= 1 ? "var(--warning)" : "var(--destructive)" }] : []),
+              { label: "Excellent pages (90+)", value: excellentPages.toString(), sub: `${pct(excellentPages)} of pages`, color: excellentPages > 0 ? "var(--success)" : "var(--foreground-3)" },
+              ...(poorPages > 0 ? [{ label: "Poor pages (<50)", value: poorPages.toString(), sub: `${pct(poorPages)} of pages`, color: "var(--destructive)" }] : []),
               { label: "Avg internal links", value: pageAnalyses.length > 0 ? Math.round(pageAnalyses.reduce((s, p) => s + p.internalLinkCount, 0) / pageAnalyses.length).toString() : "0", sub: "per page", color: "var(--primary-2)" },
             ].map(({ label, value, sub, color }) => (
               <div key={label} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "12px 16px", position: "relative", overflow: "hidden" }}>
