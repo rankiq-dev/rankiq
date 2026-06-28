@@ -37,6 +37,8 @@ export default async function DashboardPage() {
     return sum + (a?.healthScore != null && a.healthScore < 60 ? 1 : 0)
   }, 0)
 
+  const totalPagesCrawled = latestAudits.reduce((sum, a) => sum + (a?.pagesCount ?? 0), 0)
+
   // Fetch top unfixed critical issues across all complete audits
   const completeAuditsWithSite = latestAudits
     .map((a, i) => ({ audit: a, site: sites[i]! }))
@@ -106,11 +108,12 @@ export default async function DashboardPage() {
 
       {/* KPI strip */}
       {sites.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "32px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px", marginBottom: "32px" }}>
           <MiniKpi label="Avg Health Score" value={avgHealth != null ? `${avgHealth}` : "—"} color={avgHealth != null && avgHealth >= 90 ? "var(--success)" : avgHealth != null && avgHealth >= 70 ? "var(--primary-2)" : "var(--warning)"} />
           <MiniKpi label="Audits Done" value={`${completedAudits} / ${sites.length}`} color="var(--primary-2)" />
           <MiniKpi label="Sites Monitored" value={`${sites.length}`} color="var(--info)" />
           <MiniKpi label={runningAudits > 0 ? "Auditing Now" : "Low Score Sites"} value={runningAudits > 0 ? `${runningAudits}` : `${totalCritical}`} color={runningAudits > 0 ? "var(--primary)" : totalCritical > 0 ? "var(--destructive)" : "var(--success)"} />
+          <MiniKpi label="Total Pages Crawled" value={totalPagesCrawled.toLocaleString()} color="var(--foreground-2)" />
         </div>
       )}
 

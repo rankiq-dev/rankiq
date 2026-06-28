@@ -68,6 +68,14 @@ export default async function AgencyPage() {
               }}>⇔ Compare</Link>
             )}
             {totalSites > 0 && <BulkAuditButton siteCount={totalSites} />}
+            {totalSites > 0 && (
+              <a href="/api/v1/agency/export" download style={{
+                padding: "9px 14px", fontSize: "12px", fontWeight: 600,
+                background: "var(--glass-bg)", color: "var(--foreground-2)",
+                border: "1px solid var(--glass-border)", borderRadius: "var(--radius-md)",
+                textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "5px",
+              }}>↓ CSV</a>
+            )}
             <QuickAddSite />
           </div>
         </div>
