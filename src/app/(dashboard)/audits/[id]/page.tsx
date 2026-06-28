@@ -335,6 +335,38 @@ export default async function AuditPage({
               </div>
             )
           })()}
+          {/* Title length distribution */}
+          {pageAnalyses.length > 3 && (() => {
+            const withTitle = pageAnalyses.filter(p => p.title)
+            const titleBuckets = [
+              { label: "None", count: pageAnalyses.length - withTitle.length, color: "var(--destructive)" },
+              { label: "<20", count: withTitle.filter(p => p.titleLength < 20).length, color: "var(--warning)" },
+              { label: "20–60", count: withTitle.filter(p => p.titleLength >= 20 && p.titleLength <= 60).length, color: "var(--success)" },
+              { label: ">60", count: withTitle.filter(p => p.titleLength > 60).length, color: "var(--warning)" },
+            ]
+            const maxTCount = Math.max(...titleBuckets.map(b => b.count), 1)
+            return (
+              <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "18px 22px", marginBottom: "20px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "14px" }}>
+                  Title tag length distribution
+                </div>
+                <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", height: "50px" }}>
+                  {titleBuckets.map(b => (
+                    <div key={b.label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", height: "100%", justifyContent: "flex-end" }}>
+                      <div style={{ fontSize: "10px", fontWeight: 700, color: b.color, fontFamily: "var(--font-mono)" }}>{b.count}</div>
+                      <div style={{ width: "100%", height: `${Math.max((b.count / maxTCount) * 36, b.count > 0 ? 4 : 0)}px`, background: b.color, borderRadius: "3px 3px 0 0", opacity: 0.8 }} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: "12px", marginTop: "6px" }}>
+                  {titleBuckets.map(b => (
+                    <div key={b.label} style={{ flex: 1, textAlign: "center", fontSize: "9px", color: "var(--foreground-3)" }}>{b.label}</div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Meta description length distribution */}
           {pageAnalyses.length > 0 && (() => {
             const withMeta = pageAnalyses.filter(p => p.metaDescription)

@@ -8,6 +8,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import type { Site, Audit } from "@/db/schema"
 import { WhatsNew } from "./WhatsNew"
+import { PLAN_LIMITS } from "@/lib/constants"
 
 export const metadata: Metadata = { title: "Dashboard" }
 
@@ -86,6 +87,18 @@ export default async function DashboardPage() {
               <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "var(--primary-2)" }} />
               {user.plan} plan
             </span>
+            {(() => {
+              const limits = PLAN_LIMITS[user.plan as keyof typeof PLAN_LIMITS]
+              const sitePct = Math.round(sites.length / limits.sites * 100)
+              return (
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{sites.length}/{limits.sites} sites</span>
+                  <div style={{ width: "60px", height: "4px", background: "oklch(0.20 0.006 230)", borderRadius: "2px" }}>
+                    <div style={{ height: "100%", width: `${Math.min(sitePct, 100)}%`, background: sitePct >= 90 ? "var(--destructive)" : sitePct >= 70 ? "var(--warning)" : "var(--primary)", borderRadius: "2px" }} />
+                  </div>
+                </div>
+              )
+            })()}
           </div>
           <h1 style={{ fontSize: "30px", fontWeight: 800, color: "var(--foreground)", letterSpacing: "-0.8px", marginBottom: "6px", lineHeight: 1.1 }}>
             Welcome back, {user.name?.split(" ")[0] ?? "there"}.
