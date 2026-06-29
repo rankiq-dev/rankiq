@@ -355,6 +355,31 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* Zero-click keywords — high impressions but 0 clicks (answer boxes, etc.) */}
+      {allKeywords.length >= 5 && (() => {
+        const zeroClick = allKeywords
+          .filter(k => k.clicks === 0 && k.impressions >= 50)
+          .sort((a, b) => b.impressions - a.impressions)
+          .slice(0, 5)
+        if (zeroClick.length < 2) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.04 270 / 0.15)", border: "1px solid oklch(0.60 0.10 270 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "oklch(0.70 0.12 270)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              Zero-click keywords — visible but not clicked (likely answer boxes)
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {zeroClick.map(k => (
+                <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)" }}>{k.keyword}</span>
+                  <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{k.impressions.toLocaleString()} impr</span>
+                  <span style={{ color: "oklch(0.70 0.12 270)", fontFamily: "var(--font-mono)", flexShrink: 0 }}>#{parseFloat(k.positionAvg).toFixed(0)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Brand vs non-brand split */}
       {allKeywords.length >= 5 && (() => {
         const domainName = site.domain.replace(/^www\./, "").split(".")[0]?.toLowerCase() ?? ""

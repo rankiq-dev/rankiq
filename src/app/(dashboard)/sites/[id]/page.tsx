@@ -56,6 +56,10 @@ export default async function SitePage({
   const prevScore = completedAudits.length >= 2 ? (completedAudits[completedAudits.length - 2]?.healthScore ?? null) : null
   const trend = latestScore != null && prevScore != null ? latestScore - prevScore : null
 
+  // Keyword velocity: count of keywords that improved vs declined
+  const improvedCount = keywords.filter(k => (k.positionChange ?? 0) > 0).length
+  const declinedCount = keywords.filter(k => (k.positionChange ?? 0) < 0).length
+
   // Keyword drops: keywords that fell 5+ positions
   const keywordDrops = keywords
     .filter(k => k.positionChange != null && k.positionChange <= -5)
@@ -515,6 +519,30 @@ export default async function SitePage({
           <div style={{ marginTop: "8px" }}>
             <a href={`/sites/${id}/keywords`} style={{ fontSize: "11px", color: "var(--primary-2)", textDecoration: "none" }}>View all keywords →</a>
           </div>
+        </div>
+      )}
+
+      {/* Keyword velocity summary */}
+      {keywords.length > 0 && (improvedCount > 0 || declinedCount > 0) && (
+        <div style={{ display: "flex", gap: "10px", marginBottom: "16px" }}>
+          {improvedCount > 0 && (
+            <div style={{ flex: 1, background: "oklch(0.14 0.07 155 / 0.25)", border: "1px solid oklch(0.68 0.16 155 / 0.2)", borderRadius: "var(--radius-xl)", padding: "10px 16px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "16px" }}>↑</span>
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: 800, color: "var(--success)", fontFamily: "var(--font-mono)" }}>{improvedCount}</div>
+                <div style={{ fontSize: "10px", color: "var(--foreground-3)" }}>keywords improved</div>
+              </div>
+            </div>
+          )}
+          {declinedCount > 0 && (
+            <div style={{ flex: 1, background: "oklch(0.14 0.05 27 / 0.25)", border: "1px solid oklch(0.65 0.20 27 / 0.2)", borderRadius: "var(--radius-xl)", padding: "10px 16px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "16px" }}>↓</span>
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: 800, color: "var(--destructive)", fontFamily: "var(--font-mono)" }}>{declinedCount}</div>
+                <div style={{ fontSize: "10px", color: "var(--foreground-3)" }}>keywords declined</div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

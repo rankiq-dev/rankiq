@@ -480,6 +480,34 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* Longest pages — top word count, possible candidates for content splitting */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const longest = [...pageAnalyses]
+          .filter(p => !p.isNoindex && (p.wordCount ?? 0) > 1500)
+          .sort((a, b) => (b.wordCount ?? 0) - (a.wordCount ?? 0))
+          .slice(0, 6)
+        if (longest.length < 2) return null
+        const maxWords = longest[0]!.wordCount ?? 1
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+              Longest pages (1500w+) — consider splitting or adding a summary
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {longest.map(p => (
+                <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}</span>
+                  <span style={{ color: "var(--primary-2)", fontWeight: 700, flexShrink: 0, fontFamily: "var(--font-mono)" }}>{(p.wordCount ?? 0).toLocaleString()}w</span>
+                  <div style={{ width: "60px", height: "3px", background: "var(--border)", borderRadius: "2px", flexShrink: 0 }}>
+                    <div style={{ width: `${Math.round((p.wordCount ?? 0) / maxWords * 100)}%`, height: "100%", background: "var(--primary-2)", borderRadius: "2px" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* H1 quality panel */}
       {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
         const missingH1 = pageAnalyses.filter(p => !p.h1Text && !p.isNoindex)
