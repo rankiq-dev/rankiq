@@ -591,6 +591,28 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* Word count vs score correlation insight */}
+      {pageAnalyses.length >= 10 && audit.status === "complete" && (() => {
+        const indexable = pageAnalyses.filter(p => !p.isNoindex && (p.wordCount ?? 0) >= 100)
+        if (indexable.length < 5) return null
+        const rich = indexable.filter(p => (p.wordCount ?? 0) >= 600)
+        const thin = indexable.filter(p => (p.wordCount ?? 0) < 300)
+        if (rich.length === 0 || thin.length === 0) return null
+        const richAvgScore = Math.round(rich.reduce((s, p) => s + p.onPageScore, 0) / rich.length)
+        const thinAvgScore = Math.round(thin.reduce((s, p) => s + p.onPageScore, 0) / thin.length)
+        const diff = richAvgScore - thinAvgScore
+        if (Math.abs(diff) < 3) return null
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "12px 18px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ fontSize: "18px", flexShrink: 0 }}>💡</div>
+            <div style={{ fontSize: "12px", color: "var(--foreground-2)" }}>
+              Your 600w+ pages score <strong style={{ color: diff > 0 ? "var(--success)" : "var(--destructive)" }}>{diff > 0 ? "+" : ""}{diff} pts higher</strong> on average than thin pages (&lt;300w).{" "}
+              {diff > 0 ? "Adding more content to thin pages may improve their scores." : "Focus on quality over quantity for your shorter pages."}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Longest pages — top word count, possible candidates for content splitting */}
       {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
         const longest = [...pageAnalyses]
