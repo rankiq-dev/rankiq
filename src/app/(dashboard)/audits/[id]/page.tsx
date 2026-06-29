@@ -393,6 +393,7 @@ export default async function AuditPage({
         const poorPages = pageAnalyses.filter(p => p.onPageScore < 50).length
         const avgCrawlDepth = pageAnalyses.length > 0 ? (pageAnalyses.reduce((s, p) => s + (p.url.split("/").length - 3), 0) / pageAnalyses.length).toFixed(1) : null
         const metadataPerfect = pageAnalyses.filter(p => p.title && p.title.length >= 30 && p.title.length <= 60 && p.metaDescription && p.metaDescription.length >= 120 && p.metaDescription.length <= 160 && !p.isNoindex).length
+        const avgH1Length = pagesWithH1.length > 0 ? Math.round(pagesWithH1.reduce((s, p) => s + (p.h1Text?.length ?? 0), 0) / pagesWithH1.length) : null
         const metadataQualityPct = pageAnalyses.length > 0 ? Math.round(metadataPerfect / pageAnalyses.length * 100) : 0
         const longPagesNoH3 = pageAnalyses.filter(p => p.wordCount >= 1000 && p.h3Count === 0 && !p.isNoindex).length
         const richPagesNoH3 = pageAnalyses.filter(p => !p.isNoindex && p.wordCount >= 600 && (p.h3Count ?? 0) === 0)
@@ -430,6 +431,7 @@ export default async function AuditPage({
               { label: "Avg internal links", value: pageAnalyses.length > 0 ? Math.round(pageAnalyses.reduce((s, p) => s + p.internalLinkCount, 0) / pageAnalyses.length).toString() : "0", sub: "per page", color: "var(--primary-2)" },
               ...(totalImages > 0 ? [{ label: "Avg images/page", value: (totalImages / pageAnalyses.length).toFixed(1), sub: `${totalImages} total`, color: "var(--primary-2)" }] : []),
               ...((() => { const contentPages = pageAnalyses.filter(p => !p.isNoindex && (p.wordCount ?? 0) >= 300); const withH2 = contentPages.filter(p => p.h2Count > 0); const h2Pct = contentPages.length > 0 ? Math.round(withH2.length / contentPages.length * 100) : 100; return contentPages.length > 0 ? [{ label: "H2 coverage", value: `${h2Pct}%`, sub: `of 300w+ pages`, color: h2Pct >= 80 ? "var(--success)" : h2Pct >= 60 ? "var(--warning)" : "var(--destructive)" }] : [] })()),
+              ...(avgH1Length != null ? [{ label: "Avg H1 length", value: `${avgH1Length}ch`, sub: "ideal: 20–70", color: avgH1Length >= 20 && avgH1Length <= 70 ? "var(--success)" : "var(--warning)" }] : []),
             ].map(({ label, value, sub, color }) => (
               <div key={label} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "12px 16px", position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, ${color}, transparent)` }} />
