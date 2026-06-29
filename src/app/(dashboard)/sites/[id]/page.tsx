@@ -116,6 +116,20 @@ export default async function SitePage({
         .slice(0, 8)
     : []
 
+  // Internal linking score (0-100)
+  const internalLinkingScore = latestAudit?.pageAnalyses
+    ? (() => {
+        const pages = (latestAudit.pageAnalyses as PageAnalysis[]).filter(p => !p.isNoindex)
+        if (pages.length === 0) return null
+        const orphanRatio = pages.filter(p => (p.incomingInternalLinks ?? 0) === 0).length / pages.length
+        const withOutgoing = pages.filter(p => p.internalLinkCount > 0).length / pages.length
+        const avgIncoming = pages.reduce((s, p) => s + (p.incomingInternalLinks ?? 0), 0) / pages.length
+        const incomingScore = Math.min(1, avgIncoming / 5)
+        const score = Math.round((1 - orphanRatio) * 40 + withOutgoing * 30 + incomingScore * 30)
+        return score
+      })()
+    : null
+
   // Crawl depth distribution (URL segment count - 1 for domain)
   const crawlDepthBuckets = latestAudit?.pageAnalyses
     ? (() => {
@@ -302,6 +316,7 @@ export default async function SitePage({
               const crawlPct = pa.length > 0 ? Math.round((pa.length - noindex) / pa.length * 100) : 100
               return <StatPill label="Crawl budget used" value={`${crawlPct}%`} />
             })()}
+            {internalLinkingScore != null && <StatPill label="Link equity" value={`${internalLinkingScore}/100`} />}
           </div>
         </div>
       )}
