@@ -92,6 +92,12 @@ export default async function AuditComparePage({
 
   const allRules = [...new Set([...ruleCountA.keys(), ...ruleCountB.keys()])].sort()
 
+  // New vs resolved issues
+  const newIssueTypes = [...ruleCountB.entries()].filter(([type]) => !ruleCountA.has(type)).map(([t]) => t)
+  const resolvedIssueTypes = [...ruleCountA.entries()].filter(([type]) => !ruleCountB.has(type)).map(([t]) => t)
+  const worsenedTypes = allRules.filter(t => (ruleCountB.get(t) ?? 0) > (ruleCountA.get(t) ?? 0))
+  const improvedTypes = allRules.filter(t => (ruleCountB.get(t) ?? 0) < (ruleCountA.get(t) ?? 0))
+
   return (
     <div style={{ padding: "32px 40px", maxWidth: "1000px" }}>
       <div style={{ marginBottom: "28px" }}>
@@ -190,6 +196,34 @@ export default async function AuditComparePage({
           </div>
         )
       })()}
+
+      {/* New vs resolved issue types */}
+      {(newIssueTypes.length > 0 || resolvedIssueTypes.length > 0) && (
+        <div style={{ background: "var(--glass-bg)", backdropFilter: "blur(20px)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "20px 28px", marginBottom: "16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+          {resolvedIssueTypes.length > 0 && (
+            <div>
+              <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>✓ {resolvedIssueTypes.length} issue type{resolvedIssueTypes.length > 1 ? "s" : ""} resolved</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                {resolvedIssueTypes.slice(0, 4).map(t => (
+                  <div key={t} style={{ fontSize: "11px", color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{t.replace(/_/g, " ")}</div>
+                ))}
+                {resolvedIssueTypes.length > 4 && <div style={{ fontSize: "10px", color: "var(--foreground-3)" }}>+{resolvedIssueTypes.length - 4} more</div>}
+              </div>
+            </div>
+          )}
+          {newIssueTypes.length > 0 && (
+            <div>
+              <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>⚠ {newIssueTypes.length} new issue type{newIssueTypes.length > 1 ? "s" : ""} found</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                {newIssueTypes.slice(0, 4).map(t => (
+                  <div key={t} style={{ fontSize: "11px", color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{t.replace(/_/g, " ")}</div>
+                ))}
+                {newIssueTypes.length > 4 && <div style={{ fontSize: "10px", color: "var(--foreground-3)" }}>+{newIssueTypes.length - 4} more</div>}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Content quality comparison */}
       {(avgWordA != null || avgWordB != null) && (
