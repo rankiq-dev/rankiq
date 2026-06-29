@@ -674,6 +674,40 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* URL depth distribution */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const indexable = pageAnalyses.filter(p => !p.isNoindex)
+        if (indexable.length < 5) return null
+        const depths = indexable.map(p => { try { return new URL(p.url).pathname.split("/").filter(Boolean).length } catch { return 1 } })
+        const d1 = depths.filter(d => d <= 1).length
+        const d2 = depths.filter(d => d === 2).length
+        const d3 = depths.filter(d => d === 3).length
+        const d4 = depths.filter(d => d >= 4).length
+        const buckets = [
+          { label: "Depth 1", count: d1, color: "var(--success)" },
+          { label: "Depth 2", count: d2, color: "var(--primary-2)" },
+          { label: "Depth 3", count: d3, color: "var(--warning)" },
+          { label: "Depth 4+", count: d4, color: "var(--destructive)" },
+        ].filter(b => b.count > 0)
+        const maxCount = Math.max(...buckets.map(b => b.count), 1)
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>URL depth distribution</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              {buckets.map(b => (
+                <div key={b.label} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                  <span style={{ width: "55px", color: "var(--foreground-3)", flexShrink: 0 }}>{b.label}</span>
+                  <div style={{ flex: 1, height: "8px", background: "var(--glass-border)", borderRadius: "4px", overflow: "hidden" }}>
+                    <div style={{ width: `${Math.round(b.count / maxCount * 100)}%`, height: "100%", background: b.color, borderRadius: "4px", minWidth: "4px" }} />
+                  </div>
+                  <span style={{ width: "35px", textAlign: "right", color: b.color, fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>{b.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Title quality overview */}
       {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
         const indexable = pageAnalyses.filter(p => !p.isNoindex)
