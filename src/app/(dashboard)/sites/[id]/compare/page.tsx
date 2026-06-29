@@ -73,6 +73,17 @@ export default async function AuditComparePage({
   const labelA = new Date(auditA.createdAt!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
   const labelB = new Date(auditB.createdAt!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 
+  // Content quality comparison from pageAnalyses
+  type PageAnalysis = { wordCount?: number; isNoindex?: boolean; hasJsonLd?: boolean; h1Text?: string; imagesMissingAlt?: number; imageCount?: number }
+  const pagesA = (auditA.pageAnalyses ? (auditA.pageAnalyses as PageAnalysis[]) : []).filter(p => !p.isNoindex)
+  const pagesB = (auditB.pageAnalyses ? (auditB.pageAnalyses as PageAnalysis[]) : []).filter(p => !p.isNoindex)
+  const avgWordA = pagesA.length > 0 ? Math.round(pagesA.reduce((s, p) => s + (p.wordCount ?? 0), 0) / pagesA.length) : null
+  const avgWordB = pagesB.length > 0 ? Math.round(pagesB.reduce((s, p) => s + (p.wordCount ?? 0), 0) / pagesB.length) : null
+  const schemaA = pagesA.filter(p => p.hasJsonLd).length
+  const schemaB = pagesB.filter(p => p.hasJsonLd).length
+  const noH1A = pagesA.filter(p => !p.h1Text).length
+  const noH1B = pagesB.filter(p => !p.h1Text).length
+
   // Count issues by type in both audits
   const ruleCountA = new Map<string, number>()
   for (const i of issuesA) ruleCountA.set(i.type, (ruleCountA.get(i.type) ?? 0) + 1)
@@ -179,6 +190,40 @@ export default async function AuditComparePage({
           </div>
         )
       })()}
+
+      {/* Content quality comparison */}
+      {(avgWordA != null || avgWordB != null) && (
+        <div style={{
+          background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+          border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+          padding: "20px 28px", marginBottom: "16px",
+        }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "14px" }}>Content Quality</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+            {[
+              { label: "Avg word count", a: avgWordA, b: avgWordB, betterIfHigher: true, fmt: (v: number) => v.toLocaleString() },
+              { label: "Pages with schema", a: schemaA, b: schemaB, betterIfHigher: true, fmt: (v: number) => `${v}` },
+              { label: "Pages missing H1", a: noH1A, b: noH1B, betterIfHigher: false, fmt: (v: number) => `${v}` },
+            ].map(({ label, a, b, betterIfHigher, fmt }) => {
+              if (a == null || b == null) return null
+              const diff = b - a
+              const improved = betterIfHigher ? diff > 0 : diff < 0
+              const color = diff === 0 ? "var(--foreground-3)" : improved ? "var(--success)" : "var(--destructive)"
+              return (
+                <div key={label}>
+                  <div style={{ fontSize: "10px", color: "var(--foreground-3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>{label}</div>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "16px", fontWeight: 700, color: "var(--foreground-3)" }}>{fmt(a)}</span>
+                    <span style={{ fontSize: "10px", color: "var(--foreground-3)" }}>→</span>
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "16px", fontWeight: 700, color: "var(--foreground)" }}>{fmt(b)}</span>
+                    {diff !== 0 && <span style={{ fontSize: "11px", fontWeight: 700, color }}>{diff > 0 ? "+" : ""}{diff}</span>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Per-rule breakdown */}
       {allRules.length > 0 && (
