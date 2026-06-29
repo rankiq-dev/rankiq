@@ -256,6 +256,10 @@ export default async function SitePage({
             <StatPill label="Pages (latest)" value={`${latestAudit?.pagesCount ?? 0}`} />
             <StatPill label="Keywords" value={`${keywords.length}`} />
             {keywords.length > 0 && (() => {
+              const top3Count = keywords.filter(k => parseFloat(k.positionAvg) <= 3).length
+              return top3Count > 0 ? <StatPill label="Top 3 keywords" value={`${top3Count}`} /> : null
+            })()}
+            {keywords.length > 0 && (() => {
               const totalImpr = keywords.reduce((s, k) => s + parseInt(String(k.impressions ?? "0")), 0)
               const potentialClicks = Math.round(totalImpr * 0.11)
               return <StatPill label="Traffic potential" value={potentialClicks > 0 ? `~${potentialClicks.toLocaleString()}/mo` : "—"} />

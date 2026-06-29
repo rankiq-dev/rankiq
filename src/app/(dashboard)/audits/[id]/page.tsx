@@ -586,6 +586,36 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* Title quality overview */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const indexable = pageAnalyses.filter(p => !p.isNoindex)
+        if (indexable.length === 0) return null
+        const missing = indexable.filter(p => !p.title)
+        const tooShort = indexable.filter(p => p.title && p.titleLength < 30)
+        const tooLong = indexable.filter(p => p.title && p.titleLength > 60)
+        const optimal = indexable.filter(p => p.title && p.titleLength >= 30 && p.titleLength <= 60)
+        if (missing.length === 0 && tooShort.length === 0 && tooLong.length === 0) return null
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              Page title quality
+            </div>
+            <div style={{ display: "flex", height: "6px", borderRadius: "3px", overflow: "hidden", marginBottom: "8px" }}>
+              {missing.length > 0 && <div style={{ flex: missing.length, background: "var(--destructive)", minWidth: "4px" }} />}
+              {tooShort.length > 0 && <div style={{ flex: tooShort.length, background: "var(--warning)", minWidth: "4px" }} />}
+              {tooLong.length > 0 && <div style={{ flex: tooLong.length, background: "oklch(0.70 0.15 50)", minWidth: "4px" }} />}
+              {optimal.length > 0 && <div style={{ flex: optimal.length, background: "var(--success)", minWidth: "4px" }} />}
+            </div>
+            <div style={{ display: "flex", gap: "16px", fontSize: "10px" }}>
+              {missing.length > 0 && <span style={{ color: "var(--destructive)" }}><strong>{missing.length}</strong> missing</span>}
+              {tooShort.length > 0 && <span style={{ color: "var(--warning)" }}><strong>{tooShort.length}</strong> too short (&lt;30)</span>}
+              {tooLong.length > 0 && <span style={{ color: "oklch(0.70 0.15 50)" }}><strong>{tooLong.length}</strong> too long (&gt;60)</span>}
+              {optimal.length > 0 && <span style={{ color: "var(--success)" }}><strong>{optimal.length}</strong> optimal</span>}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Pages missing JSON-LD schema */}
       {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
         const noSchema = pageAnalyses
