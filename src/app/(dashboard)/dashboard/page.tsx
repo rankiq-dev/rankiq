@@ -583,12 +583,17 @@ function SiteGrid({ sites, latestAudits }: { sites: Site[]; latestAudits: (Audit
                 </div>
               </div>
               {score != null && (
-                <div style={{
-                  fontSize: "28px", fontWeight: 900, color: scoreColor,
-                  fontFamily: "var(--font-mono)", lineHeight: 1,
-                  filter: `drop-shadow(0 0 8px ${scoreColor})`,
-                }}>
-                  {score}
+                <div style={{ textAlign: "right" }}>
+                  <div style={{
+                    fontSize: "28px", fontWeight: 900, color: scoreColor,
+                    fontFamily: "var(--font-mono)", lineHeight: 1,
+                    filter: `drop-shadow(0 0 8px ${scoreColor})`,
+                  }}>
+                    {score}
+                  </div>
+                  <div style={{ fontSize: "9px", fontWeight: 700, color: scoreColor, textAlign: "center", letterSpacing: "0.05em" }}>
+                    {score >= 90 ? "A" : score >= 75 ? "B" : score >= 60 ? "C" : score >= 40 ? "D" : "F"}
+                  </div>
                 </div>
               )}
             </div>
