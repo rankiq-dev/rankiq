@@ -329,6 +329,45 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* Keyword clusters — group keywords sharing the same first two words */}
+      {allKeywords.length >= 10 && (() => {
+        const clusters: Record<string, typeof allKeywords> = {}
+        for (const k of allKeywords) {
+          const parts = k.keyword.toLowerCase().split(" ")
+          const root = parts.length >= 2 ? `${parts[0]} ${parts[1]}` : parts[0] ?? k.keyword
+          if (!clusters[root]) clusters[root] = []
+          clusters[root]!.push(k)
+        }
+        const topClusters = Object.entries(clusters)
+          .filter(([, kws]) => kws.length >= 2)
+          .sort((a, b) => b[1].reduce((s, k) => s + k.impressions, 0) - a[1].reduce((s, k) => s + k.impressions, 0))
+          .slice(0, 4)
+        if (topClusters.length === 0) return null
+        return (
+          <div style={{ background: "var(--glass-bg)", backdropFilter: "blur(20px)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "20px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+              Keyword clusters — groups of related terms
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "10px" }}>
+              {topClusters.map(([root, kws]) => (
+                <div key={root} style={{ background: "oklch(0.13 0.008 230 / 0.6)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "10px 12px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--primary-2)", marginBottom: "6px", textTransform: "capitalize" }}>{root}…</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                    {kws.slice(0, 3).map(k => (
+                      <div key={k.keyword} style={{ fontSize: "10px", color: "var(--foreground-2)", display: "flex", justifyContent: "space-between", gap: "8px" }}>
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{k.keyword}</span>
+                        <span style={{ color: "var(--foreground-3)", fontFamily: "var(--font-mono)", flexShrink: 0 }}>#{parseFloat(k.positionAvg).toFixed(0)}</span>
+                      </div>
+                    ))}
+                    {kws.length > 3 && <div style={{ fontSize: "10px", color: "var(--foreground-3)" }}>+{kws.length - 3} more</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {allKeywords.length === 0 ? (
         <div style={{
           background: "var(--glass-bg)", backdropFilter: "blur(20px)",

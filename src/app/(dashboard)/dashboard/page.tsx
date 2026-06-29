@@ -55,27 +55,26 @@ export default async function DashboardPage() {
   const completeAuditsWithSite = latestAudits
     .map((a, i) => ({ audit: a, site: sites[i]! }))
     .filter(x => x.audit?.status === "complete")
-  const allCriticalIssues = (await Promise.all(
+  const auditIssuesRaw = await Promise.all(
     completeAuditsWithSite.map(async ({ audit, site }) => {
-      const issues = await getIssuesByAudit(audit!.id, { limit: 50 })
-      return issues
-        .filter(i => i.severity === "critical" && !i.isFixed)
-        .slice(0, 3)
-        .map(i => ({ ...i, siteId: site.id, siteDomain: site.displayName ?? site.domain, auditId: audit!.id }))
+      const issues = await getIssuesByAudit(audit!.id, { limit: 300 })
+      return { audit: audit!, site, issues }
     })
-  )).flat().slice(0, 6)
+  )
+  const allCriticalIssues = auditIssuesRaw.flatMap(({ audit, site, issues }) =>
+    issues.filter(i => i.severity === "critical" && !i.isFixed)
+      .slice(0, 3)
+      .map(i => ({ ...i, siteId: site.id, siteDomain: site.displayName ?? site.domain, auditId: audit.id }))
+  ).slice(0, 6)
+  const totalOpenIssues = auditIssuesRaw.reduce((s, { issues }) => s + issues.filter(i => !i.isFixed).length, 0)
 
-  // Recently fixed issues across all sites
-  const recentlyFixed = (await Promise.all(
-    completeAuditsWithSite.map(async ({ audit, site }) => {
-      const issues = await getIssuesByAudit(audit!.id, { limit: 50 })
-      return issues
-        .filter(i => i.isFixed && i.fixedAt != null)
-        .sort((a, b) => new Date(b.fixedAt!).getTime() - new Date(a.fixedAt!).getTime())
-        .slice(0, 2)
-        .map(i => ({ ...i, siteDomain: site.displayName ?? site.domain, auditId: audit!.id }))
-    })
-  )).flat().sort((a, b) => new Date(b.fixedAt!).getTime() - new Date(a.fixedAt!).getTime()).slice(0, 5)
+  // Recently fixed issues across all sites (reuse auditIssuesRaw)
+  const recentlyFixed = auditIssuesRaw.flatMap(({ audit, site, issues }) =>
+    issues.filter(i => i.isFixed && i.fixedAt != null)
+      .sort((a, b) => new Date(b.fixedAt!).getTime() - new Date(a.fixedAt!).getTime())
+      .slice(0, 2)
+      .map(i => ({ ...i, siteDomain: site.displayName ?? site.domain, auditId: audit.id }))
+  ).sort((a, b) => new Date(b.fixedAt!).getTime() - new Date(a.fixedAt!).getTime()).slice(0, 5)
 
   // Improvement streak: count of consecutive score improvements across the most active site
   const mostActiveSiteIdx = latestAudits.reduce((best, a, i) => {
@@ -188,6 +187,7 @@ export default async function DashboardPage() {
           <MiniKpi label="Sites Monitored" value={`${sites.length}`} color="var(--info)" />
           <MiniKpi label={runningAudits > 0 ? "Auditing Now" : "Low Score Sites"} value={runningAudits > 0 ? `${runningAudits}` : `${totalCritical}`} color={runningAudits > 0 ? "var(--primary)" : totalCritical > 0 ? "var(--destructive)" : "var(--success)"} />
           <MiniKpi label="Total Pages Crawled" value={totalPagesCrawled.toLocaleString()} color="var(--foreground-2)" />
+          {totalOpenIssues > 0 && <MiniKpi label="Open Issues" value={totalOpenIssues.toLocaleString()} color={totalOpenIssues > 50 ? "var(--destructive)" : totalOpenIssues > 20 ? "var(--warning)" : "var(--foreground-2)"} />}
           {improvementStreak >= 2 && <MiniKpi label="🔥 Score Streak" value={`${improvementStreak} audits`} color="var(--success)" />}
         </div>
       )}

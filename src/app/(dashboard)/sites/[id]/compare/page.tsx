@@ -110,6 +110,15 @@ export default async function AuditComparePage({
           <div style={{ fontSize: "10px", color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: "4px" }}>
             Score change
           </div>
+          {scoreDiff !== 0 && (
+            <div style={{ marginTop: "8px", width: "80px", height: "4px", background: "var(--border)", borderRadius: "2px", overflow: "hidden", position: "relative" }}>
+              {scoreDiff > 0
+                ? <div style={{ position: "absolute", left: "50%", width: `${Math.min(50, Math.abs(scoreDiff) * 2)}%`, height: "100%", background: "var(--success)", borderRadius: "2px" }} />
+                : <div style={{ position: "absolute", right: "50%", width: `${Math.min(50, Math.abs(scoreDiff) * 2)}%`, height: "100%", background: "var(--destructive)", borderRadius: "2px", left: "auto" }} />
+              }
+              <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: "1px", background: "var(--foreground-3)" }} />
+            </div>
+          )}
         </div>
         <ScoreBlock label={labelB} score={auditB.healthScore ?? 0} auditId={auditBId} isNewer />
       </div>
