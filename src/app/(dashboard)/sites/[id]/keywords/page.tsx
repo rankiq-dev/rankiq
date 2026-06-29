@@ -44,6 +44,20 @@ export default async function KeywordsPage({
     .sort((a, b) => b.impressions - a.impressions)
     .slice(0, 5)
 
+  // Keyword intent segmentation
+  const INFO_PREF = new Set(["how","what","why","when","where","who","which","can","does","is","are","do","will"])
+  const TX_WORDS = new Set(["buy","price","cost","cheap","deal","discount","order","purchase","shop","sale","review","vs","versus","compare","best","top","hire","service"])
+  const domain0 = site.domain.replace(/^https?:\/\//, "").replace(/\/$/, "").split(".")[0]?.toLowerCase() ?? ""
+  const classifyKw = (kw: string) => {
+    const lower = kw.toLowerCase(); const words = lower.split(/\s+/)
+    if (domain0.length > 2 && lower.includes(domain0)) return "branded"
+    if (INFO_PREF.has(words[0] ?? "")) return "informational"
+    if (words.some(w => TX_WORDS.has(w))) return "transactional"
+    return "informational"
+  }
+  const intentCounts = allMetrics.reduce((acc, k) => { const seg = classifyKw(k.keyword); acc[seg] = (acc[seg] ?? 0) + 1; return acc }, {} as Record<string, number>)
+  const intentTotal = allMetrics.length
+
   // Compute quick-win opportunities: position 4-20, impressions > 10
   const maxImpressions = Math.max(...allMetrics.map(m => m.impressions), 1)
   const opportunities = allMetrics
@@ -190,6 +204,35 @@ export default async function KeywordsPage({
               </div>
             ))
           })()}
+        </div>
+      )}
+
+      {/* Keyword intent distribution */}
+      {intentTotal >= 5 && (
+        <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>Keyword intent mix</div>
+          <div style={{ display: "flex", height: "6px", borderRadius: "3px", overflow: "hidden", marginBottom: "8px", gap: "1px" }}>
+            {[
+              { key: "informational", color: "var(--primary-2)" },
+              { key: "transactional", color: "var(--success)" },
+              { key: "branded", color: "var(--warning)" },
+            ].map(({ key, color }) => {
+              const count = intentCounts[key] ?? 0
+              if (count === 0) return null
+              return <div key={key} style={{ flex: count, background: color, minWidth: "4px" }} title={`${key}: ${count}`} />
+            })}
+          </div>
+          <div style={{ display: "flex", gap: "16px", fontSize: "10px" }}>
+            {[
+              { key: "informational", label: "Informational", color: "var(--primary-2)" },
+              { key: "transactional", label: "Transactional", color: "var(--success)" },
+              { key: "branded", label: "Branded", color: "var(--warning)" },
+            ].map(({ key, label, color }) => {
+              const count = intentCounts[key] ?? 0
+              if (count === 0) return null
+              return <span key={key} style={{ color }}><strong>{Math.round(count / intentTotal * 100)}%</strong> {label}</span>
+            })}
+          </div>
         </div>
       )}
 
