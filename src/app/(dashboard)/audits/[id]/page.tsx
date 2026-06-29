@@ -658,6 +658,10 @@ export default async function AuditPage({
         const tooShort = indexable.filter(p => p.title && p.titleLength < 30)
         const tooLong = indexable.filter(p => p.title && p.titleLength > 60)
         const optimal = indexable.filter(p => p.title && p.titleLength >= 30 && p.titleLength <= 60)
+        // Count duplicate titles
+        const titleMap2 = new Map<string, number>()
+        for (const p of indexable) { if (p.title) titleMap2.set(p.title.toLowerCase(), (titleMap2.get(p.title.toLowerCase()) ?? 0) + 1) }
+        const dupTitleCount = [...titleMap2.values()].filter(c => c > 1).reduce((s, c) => s + c, 0)
         if (missing.length === 0 && tooShort.length === 0 && tooLong.length === 0) return null
         return (
           <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
@@ -675,6 +679,7 @@ export default async function AuditPage({
               {tooShort.length > 0 && <span style={{ color: "var(--warning)" }}><strong>{tooShort.length}</strong> too short (&lt;30)</span>}
               {tooLong.length > 0 && <span style={{ color: "oklch(0.70 0.15 50)" }}><strong>{tooLong.length}</strong> too long (&gt;60)</span>}
               {optimal.length > 0 && <span style={{ color: "var(--success)" }}><strong>{optimal.length}</strong> optimal</span>}
+              {dupTitleCount > 0 && <span style={{ color: "var(--warning)", marginLeft: "auto" }}><strong>{dupTitleCount}</strong> duplicates</span>}
             </div>
           </div>
         )
