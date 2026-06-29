@@ -332,6 +332,28 @@ export default async function DashboardPage() {
             </div>
           )}
 
+          {/* Scheduled audits */}
+          {(() => {
+            const scheduled = sites.filter(s => s.auditSchedule && s.auditSchedule !== "off")
+            if (scheduled.length === 0) return null
+            return (
+              <div style={{ marginTop: "20px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>
+                  ⏱ Scheduled
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  {scheduled.map(s => (
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    <Link key={s.id} href={`/sites/${s.id}` as any} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "oklch(0.16 0.04 270 / 0.15)", border: "1px solid oklch(0.60 0.10 270 / 0.2)", borderRadius: "var(--radius-md)", textDecoration: "none" }}>
+                      <span style={{ fontSize: "11px", color: "var(--foreground-2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.displayName ?? s.domain}</span>
+                      <span style={{ fontSize: "9px", color: "oklch(0.70 0.12 270)", fontWeight: 700, textTransform: "uppercase", flexShrink: 0 }}>{s.auditSchedule}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Recently fixed issues */}
           {recentlyFixed.length > 0 && (
             <div style={{ marginTop: "24px" }}>

@@ -91,6 +91,12 @@ export default async function SitePage({
         .slice(0, 8)
     : []
 
+  // HTTP mixed content check — detect pages served over HTTP
+  const httpPages = latestAudit?.pageAnalyses
+    ? (latestAudit.pageAnalyses as PageAnalysis[]).filter(p => p.url.startsWith("http://"))
+    : []
+  const hasHttpIssue = httpPages.length > 0
+
   const scoreColor = latestScore == null ? "var(--foreground-3)"
     : latestScore >= 90 ? "var(--success)"
     : latestScore >= 70 ? "var(--primary-2)"
@@ -365,6 +371,21 @@ export default async function SitePage({
                 <span style={{ fontSize: "10px", color: "var(--foreground-3)", flexShrink: 0 }}>{p.incomingInternalLinks} links in</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* HTTPS warning */}
+      {hasHttpIssue && (
+        <div style={{ background: "oklch(0.14 0.05 50 / 0.3)", border: "1px solid oklch(0.70 0.15 50 / 0.3)", borderRadius: "var(--radius-xl)", padding: "12px 18px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "18px", flexShrink: 0 }}>🔓</span>
+          <div>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "oklch(0.80 0.15 50)", marginBottom: "2px" }}>
+              {httpPages.length} page{httpPages.length !== 1 ? "s" : ""} served over HTTP — not HTTPS
+            </div>
+            <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>
+              HTTP pages hurt rankings and user trust. Redirect all HTTP URLs to HTTPS.
+            </div>
           </div>
         </div>
       )}

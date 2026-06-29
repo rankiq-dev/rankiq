@@ -394,6 +394,9 @@ export default async function AuditPage({
         const longPagesNoH3 = pageAnalyses.filter(p => p.wordCount >= 1000 && p.h3Count === 0 && !p.isNoindex).length
         const noindexCount = pageAnalyses.filter(p => p.isNoindex).length
         const noindexRatioPct = pageAnalyses.length > 0 ? Math.round(noindexCount / pageAnalyses.length * 100) : 0
+        const totalImages = pageAnalyses.reduce((s, p) => s + (p.imageCount ?? 0), 0)
+        const totalMissingAlt = pageAnalyses.reduce((s, p) => s + (p.imagesMissingAlt ?? 0), 0)
+        const imgAltCoveragePct = totalImages > 0 ? Math.round((1 - totalMissingAlt / totalImages) * 100) : 100
         const pct = (n: number) => `${Math.round(n / pageAnalyses.length * 100)}%`
         return (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "24px" }}>
@@ -414,6 +417,7 @@ export default async function AuditPage({
               { label: "Metadata quality", value: `${metadataQualityPct}%`, sub: `${metadataPerfect} pages perfect`, color: metadataQualityPct >= 70 ? "var(--success)" : metadataQualityPct >= 40 ? "var(--warning)" : "var(--destructive)" },
               ...(longPagesNoH3 > 0 ? [{ label: "Long pages no H3", value: longPagesNoH3.toString(), sub: "1000w+ missing H3", color: "var(--warning)" }] : []),
               ...(noindexCount > 0 ? [{ label: "Noindex pages", value: noindexCount.toString(), sub: `${noindexRatioPct}% of crawl`, color: noindexRatioPct > 40 ? "var(--destructive)" : noindexRatioPct > 20 ? "var(--warning)" : "var(--foreground-3)" }] : []),
+              ...(totalImages > 0 ? [{ label: "Image alt coverage", value: `${imgAltCoveragePct}%`, sub: `${totalMissingAlt} images missing`, color: imgAltCoveragePct >= 95 ? "var(--success)" : imgAltCoveragePct >= 80 ? "var(--warning)" : "var(--destructive)" }] : []),
               { label: "Avg internal links", value: pageAnalyses.length > 0 ? Math.round(pageAnalyses.reduce((s, p) => s + p.internalLinkCount, 0) / pageAnalyses.length).toString() : "0", sub: "per page", color: "var(--primary-2)" },
             ].map(({ label, value, sub, color }) => (
               <div key={label} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "12px 16px", position: "relative", overflow: "hidden" }}>

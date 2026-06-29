@@ -239,6 +239,32 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* Question-based keywords — good FAQ/featured snippet candidates */}
+      {allKeywords.length >= 5 && (() => {
+        const QUESTION_WORDS = ["how", "what", "why", "when", "where", "who", "which", "can", "does", "is", "are", "will", "should"]
+        const questionKws = allKeywords
+          .filter(k => QUESTION_WORDS.some(w => k.keyword.toLowerCase().startsWith(w + " ")))
+          .sort((a, b) => b.impressions - a.impressions)
+          .slice(0, 5)
+        if (questionKws.length === 0) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.04 270 / 0.15)", border: "1px solid oklch(0.60 0.10 270 / 0.25)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "oklch(0.72 0.12 270)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              ? Question keywords — add FAQ schema to claim featured snippets
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              {questionKws.map(k => (
+                <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                  <span style={{ fontWeight: 600, color: "var(--foreground)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{k.keyword}</span>
+                  <span style={{ color: "var(--foreground-3)", fontFamily: "var(--font-mono)", flexShrink: 0 }}>#{parseFloat(k.positionAvg).toFixed(0)}</span>
+                  <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{k.impressions.toLocaleString()} impr</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Page 2 opportunity keywords */}
       {allKeywords.length > 0 && (() => {
         const page2 = allKeywords
