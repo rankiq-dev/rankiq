@@ -39,6 +39,28 @@ export default async function ActionPlanPage({
   const fixedCount = ranked.filter(i => i.isFixed).length
   const fixPct = ranked.length > 0 ? Math.round((fixedCount / ranked.length) * 100) : 0
 
+  // Time-by-category totals
+  const FIX_MINUTES: Record<string, number> = {
+    missing_title: 5, short_title: 5, long_title: 5,
+    missing_meta_description: 10, missing_h1: 10, multiple_h1: 15,
+    missing_canonical: 15, missing_image_alt: 30, thin_content: 120,
+    broken_link: 30, redirect_chain: 60, orphan_page: 45,
+    missing_schema: 60, no_schema: 60, missing_schema_markup: 60,
+    duplicate_title: 30, duplicate_meta_description: 30, page_not_found: 30,
+    slow_page: 120, missing_sitemap: 30,
+  }
+  const timeByCategory = ranked
+    .filter(i => !i.isFixed)
+    .reduce<Record<string, number>>((acc, i) => {
+      const cat = i.category
+      const mins = FIX_MINUTES[i.type] ?? 60
+      acc[cat] = (acc[cat] ?? 0) + mins
+      return acc
+    }, {})
+  const totalMinutes = Object.values(timeByCategory).reduce((s, m) => s + m, 0)
+  const fmtTime = (m: number) => m < 60 ? `${m} min` : m % 60 === 0 ? `${m / 60} hr` : `${Math.floor(m / 60)}h ${m % 60}m`
+  const catEntries = Object.entries(timeByCategory).sort((a, b) => b[1] - a[1])
+
   return (
     <div style={{ padding: "32px 40px", maxWidth: "900px" }}>
       {/* Header */}
@@ -131,6 +153,39 @@ export default async function ActionPlanPage({
             <div style={{ fontSize: "28px", fontWeight: 800, color: "var(--success)", fontFamily: "var(--font-mono)", lineHeight: 1 }}>
               {ranked.filter(i => i.fixInstructions).length}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Time by category */}
+      {hasActionPlan && catEntries.length > 0 && (
+        <div style={{
+          background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+          border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+          padding: "16px 20px", marginBottom: "20px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              ⏱ Estimated fix time by category
+            </div>
+            <span style={{ fontSize: "12px", color: "var(--primary-2)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
+              Total: {fmtTime(totalMinutes)}
+            </span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            {catEntries.map(([cat, mins]) => (
+              <div key={cat} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "11px", color: "var(--foreground-2)", width: "110px", flexShrink: 0, textTransform: "capitalize" }}>
+                  {cat.replace(/_/g, " ")}
+                </span>
+                <div style={{ flex: 1, height: "5px", background: "oklch(0.20 0.006 230)", borderRadius: "3px" }}>
+                  <div style={{ height: "100%", width: `${Math.min(100, Math.round(mins / totalMinutes * 100))}%`, background: "var(--primary)", borderRadius: "3px", opacity: 0.8 }} />
+                </div>
+                <span style={{ fontSize: "11px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)", width: "52px", textAlign: "right", flexShrink: 0 }}>
+                  {fmtTime(mins)}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}

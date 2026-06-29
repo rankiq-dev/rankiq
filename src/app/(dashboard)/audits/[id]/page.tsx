@@ -309,6 +309,10 @@ export default async function AuditPage({
           <StatCard label="Pages crawled" value={audit.pagesCount ?? 0} color="oklch(0.65 0.008 230)" />
           <StatCard label="Issues found" value={summary.totalCount} color="oklch(0.65 0.008 230)" sub={issueDelta != null ? (issueDelta > 0 ? `↑ ${issueDelta} vs prev` : issueDelta < 0 ? `↓ ${Math.abs(issueDelta)} vs prev` : "Same as prev") : undefined} subColor={issueDelta != null ? (issueDelta > 0 ? "var(--destructive)" : issueDelta < 0 ? "var(--success)" : "var(--foreground-3)") : undefined} />
           <StatCard label="Avg on-page score" value={pageAnalyses.length > 0 ? Math.round(pageAnalyses.reduce((s, p) => s + p.onPageScore, 0) / pageAnalyses.length) : 0} color="oklch(0.68 0.16 155)" suffix="/100" />
+          {pageAnalyses.length > 0 && (() => {
+            const totalWords = pageAnalyses.reduce((s, p) => s + (p.wordCount ?? 0), 0)
+            return <StatCard label="Total word count" value={totalWords >= 1000 ? `${(totalWords / 1000).toFixed(1)}k` : totalWords} color="oklch(0.55 0.13 178)" />
+          })()}
         </div>
       </div>
 
@@ -388,6 +392,8 @@ export default async function AuditPage({
         const metadataPerfect = pageAnalyses.filter(p => p.title && p.title.length >= 30 && p.title.length <= 60 && p.metaDescription && p.metaDescription.length >= 120 && p.metaDescription.length <= 160 && !p.isNoindex).length
         const metadataQualityPct = pageAnalyses.length > 0 ? Math.round(metadataPerfect / pageAnalyses.length * 100) : 0
         const longPagesNoH3 = pageAnalyses.filter(p => p.wordCount >= 1000 && p.h3Count === 0 && !p.isNoindex).length
+        const noindexCount = pageAnalyses.filter(p => p.isNoindex).length
+        const noindexRatioPct = pageAnalyses.length > 0 ? Math.round(noindexCount / pageAnalyses.length * 100) : 0
         const pct = (n: number) => `${Math.round(n / pageAnalyses.length * 100)}%`
         return (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "24px" }}>
@@ -407,6 +413,7 @@ export default async function AuditPage({
               ...(avgCrawlDepth != null ? [{ label: "Avg crawl depth", value: avgCrawlDepth.toString(), sub: "URL segments deep", color: parseFloat(avgCrawlDepth) <= 3 ? "var(--success)" : parseFloat(avgCrawlDepth) <= 5 ? "var(--warning)" : "var(--destructive)" }] : []),
               { label: "Metadata quality", value: `${metadataQualityPct}%`, sub: `${metadataPerfect} pages perfect`, color: metadataQualityPct >= 70 ? "var(--success)" : metadataQualityPct >= 40 ? "var(--warning)" : "var(--destructive)" },
               ...(longPagesNoH3 > 0 ? [{ label: "Long pages no H3", value: longPagesNoH3.toString(), sub: "1000w+ missing H3", color: "var(--warning)" }] : []),
+              ...(noindexCount > 0 ? [{ label: "Noindex pages", value: noindexCount.toString(), sub: `${noindexRatioPct}% of crawl`, color: noindexRatioPct > 40 ? "var(--destructive)" : noindexRatioPct > 20 ? "var(--warning)" : "var(--foreground-3)" }] : []),
               { label: "Avg internal links", value: pageAnalyses.length > 0 ? Math.round(pageAnalyses.reduce((s, p) => s + p.internalLinkCount, 0) / pageAnalyses.length).toString() : "0", sub: "per page", color: "var(--primary-2)" },
             ].map(({ label, value, sub, color }) => (
               <div key={label} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "12px 16px", position: "relative", overflow: "hidden" }}>
@@ -1163,7 +1170,7 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
-function StatCard({ label, value, color, suffix = "", sub, subColor }: { label: string; value: number; color: string; suffix?: string; sub?: string; subColor?: string }) {
+function StatCard({ label, value, color, suffix = "", sub, subColor }: { label: string; value: number | string; color: string; suffix?: string; sub?: string; subColor?: string }) {
   return (
     <div style={{
       background: "var(--glass-bg)", backdropFilter: "blur(20px)",
