@@ -480,6 +480,45 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* H1 quality panel */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const missingH1 = pageAnalyses.filter(p => !p.h1Text && !p.isNoindex)
+        const multipleH1 = pageAnalyses.filter(p => (p.h1Count ?? 0) > 1 && !p.isNoindex)
+        const h1Texts = pageAnalyses.filter(p => p.h1Text && !p.isNoindex).map(p => p.h1Text!.toLowerCase().trim())
+        const h1Counts: Record<string, number> = {}
+        h1Texts.forEach(t => { h1Counts[t] = (h1Counts[t] ?? 0) + 1 })
+        const duplicateH1s = Object.entries(h1Counts).filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1]).slice(0, 3)
+        if (missingH1.length === 0 && multipleH1.length === 0 && duplicateH1s.length === 0) return null
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+              H1 quality check
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {missingH1.length > 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ fontSize: "11px", color: "var(--destructive)", fontWeight: 700, flexShrink: 0 }}>✗ Missing H1</span>
+                  <span style={{ fontSize: "11px", color: "var(--foreground-2)" }}>{missingH1.length} page{missingH1.length !== 1 ? "s" : ""} have no H1 tag</span>
+                  <span style={{ fontSize: "10px", color: "var(--foreground-3)", marginLeft: "auto" }}>{missingH1.slice(0, 2).map(p => p.url.replace(/^https?:\/\/[^/]+/, "").slice(0, 30)).join(", ")}{missingH1.length > 2 ? ` +${missingH1.length - 2} more` : ""}</span>
+                </div>
+              )}
+              {multipleH1.length > 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ fontSize: "11px", color: "var(--warning)", fontWeight: 700, flexShrink: 0 }}>⚠ Multiple H1s</span>
+                  <span style={{ fontSize: "11px", color: "var(--foreground-2)" }}>{multipleH1.length} page{multipleH1.length !== 1 ? "s" : ""} have more than one H1</span>
+                </div>
+              )}
+              {duplicateH1s.length > 0 && (
+                <div>
+                  <span style={{ fontSize: "11px", color: "var(--warning)", fontWeight: 700 }}>⚠ Duplicate H1s: </span>
+                  <span style={{ fontSize: "11px", color: "var(--foreground-2)" }}>{duplicateH1s.map(([text, n]) => `"${text.slice(0, 40)}" ×${n}`).join(", ")}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })()}
+
       {audit.status === "queued" || audit.status === "running" ? (
         <RunningState status={audit.status} />
       ) : (
