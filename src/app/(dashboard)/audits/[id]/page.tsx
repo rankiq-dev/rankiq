@@ -586,6 +586,30 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* Multiple H1 pages list */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const multiH1 = pageAnalyses
+          .filter(p => !p.isNoindex && (p.h1Count ?? 0) > 1)
+          .sort((a, b) => (b.h1Count ?? 0) - (a.h1Count ?? 0))
+          .slice(0, 6)
+        if (multiH1.length < 2) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.05 70 / 0.2)", border: "1px solid oklch(0.80 0.15 75 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--warning)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              Pages with multiple H1 tags — should have exactly one
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {multiH1.map(p => (
+                <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}</span>
+                  <span style={{ color: "var(--warning)", fontWeight: 700, flexShrink: 0 }}>{p.h1Count} H1s</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* H1 quality panel */}
       {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
         const missingH1 = pageAnalyses.filter(p => !p.h1Text && !p.isNoindex)

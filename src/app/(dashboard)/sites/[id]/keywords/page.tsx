@@ -389,6 +389,30 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* Keyword concentration: top 5 keywords % of total clicks */}
+      {allKeywords.length >= 5 && (() => {
+        const totalClicks = allKeywords.reduce((s, k) => s + k.clicks, 0)
+        if (totalClicks === 0) return null
+        const top5 = [...allKeywords].sort((a, b) => b.clicks - a.clicks).slice(0, 5)
+        const top5Clicks = top5.reduce((s, k) => s + k.clicks, 0)
+        const concentrationPct = Math.round(top5Clicks / totalClicks * 100)
+        const isConcentrated = concentrationPct >= 80
+        return (
+          <div style={{ background: "var(--glass-bg)", border: `1px solid ${isConcentrated ? "oklch(0.70 0.15 50 / 0.3)" : "var(--glass-border)"}`, borderRadius: "var(--radius-xl)", padding: "12px 18px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "16px" }}>
+            <div>
+              <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "2px" }}>Keyword concentration</div>
+              <div style={{ fontSize: "20px", fontWeight: 800, color: isConcentrated ? "oklch(0.78 0.13 50)" : "var(--success)", fontFamily: "var(--font-mono)" }}>{concentrationPct}%</div>
+              <div style={{ fontSize: "10px", color: "var(--foreground-3)" }}>top 5 keywords of total clicks</div>
+            </div>
+            {isConcentrated && (
+              <div style={{ flex: 1, fontSize: "11px", color: "var(--foreground-2)" }}>
+                ⚠ High concentration — your traffic relies heavily on just {top5.length} keywords. Diversify by targeting more long-tail terms.
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
       {/* Traffic value estimate: clicks × position-based difficulty weight */}
       {allKeywords.length >= 5 && (() => {
         const totalClicks = allKeywords.reduce((s, k) => s + k.clicks, 0)
