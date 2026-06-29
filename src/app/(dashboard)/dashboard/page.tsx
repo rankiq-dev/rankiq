@@ -163,6 +163,22 @@ export default async function DashboardPage() {
         hasKeywords={false}
       />
 
+      {/* Sites missing GSC connection */}
+      {(() => {
+        const noGsc = sites.filter(s => !s.gscConnected)
+        if (noGsc.length === 0 || noGsc.length === sites.length) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.04 270 / 0.3)", border: "1px solid oklch(0.60 0.10 270 / 0.3)", borderRadius: "var(--radius-lg)", padding: "10px 16px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px", fontSize: "12px" }}>
+            <span style={{ fontSize: "14px" }}>🔌</span>
+            <span style={{ color: "var(--foreground-2)", flex: 1 }}>
+              <strong style={{ color: "oklch(0.70 0.12 270)" }}>{noGsc.length} site{noGsc.length !== 1 ? "s" : ""}</strong> not connected to Google Search Console:{" "}
+              {noGsc.slice(0, 3).map(s => s.displayName ?? s.domain).join(", ")}{noGsc.length > 3 ? ` +${noGsc.length - 3} more` : ""}
+            </span>
+            <span style={{ fontSize: "10px", color: "var(--foreground-3)", flexShrink: 0 }}>Connect for keyword data</span>
+          </div>
+        )
+      })()}
+
       {/* Stale sites alert */}
       {staleSites.length > 0 && (
         <div style={{
