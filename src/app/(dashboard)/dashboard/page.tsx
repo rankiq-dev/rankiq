@@ -111,6 +111,18 @@ export default async function DashboardPage() {
     .sort((a, b) => new Date(b.audit!.createdAt ?? 0).getTime() - new Date(a.audit!.createdAt ?? 0).getTime())
     .slice(0, 5)
 
+  // Most improved site: biggest positive score delta between last 2 completed audits
+  const siteImprovements: { site: typeof sites[0]; gain: number; score: number }[] = []
+  for (const siteAuditData of completeAuditsWithSite) {
+    const allSiteAudits = await getAuditsForSite(siteAuditData.site.id, 3)
+    const completed = allSiteAudits.filter(a => a.status === "complete" && a.healthScore != null)
+    if (completed.length >= 2) {
+      const gain = (completed[0]!.healthScore ?? 0) - (completed[1]!.healthScore ?? 0)
+      if (gain > 0) siteImprovements.push({ site: siteAuditData.site, gain, score: completed[0]!.healthScore! })
+    }
+  }
+  const mostImprovedSite = siteImprovements.sort((a, b) => b.gain - a.gain)[0] ?? null
+
   return (
     <div style={{ padding: "32px 40px", maxWidth: "1200px" }}>
 
@@ -236,6 +248,7 @@ export default async function DashboardPage() {
           <MiniKpi label="Total Pages Crawled" value={totalPagesCrawled.toLocaleString()} color="var(--foreground-2)" />
           {totalOpenIssues > 0 && <MiniKpi label="Open Issues" value={totalOpenIssues.toLocaleString()} color={totalOpenIssues > 50 ? "var(--destructive)" : totalOpenIssues > 20 ? "var(--warning)" : "var(--foreground-2)"} />}
           {improvementStreak >= 2 && <MiniKpi label="🔥 Score Streak" value={`${improvementStreak} audits`} color="var(--success)" />}
+          {mostImprovedSite && <MiniKpi label={`↑ Most improved: ${mostImprovedSite.site.displayName ?? mostImprovedSite.site.domain}`} value={`+${mostImprovedSite.gain} pts`} color="var(--success)" />}
         </div>
       )}
 

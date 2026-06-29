@@ -183,6 +183,34 @@ export default async function KeywordsPage({
         </div>
       )}
 
+      {/* Longtail vs head term split */}
+      {allKeywords.length >= 5 && (() => {
+        const longtail = allKeywords.filter(k => k.keyword.trim().split(/\s+/).length >= 4)
+        const head = allKeywords.filter(k => k.keyword.trim().split(/\s+/).length <= 2)
+        const mid = allKeywords.filter(k => { const w = k.keyword.trim().split(/\s+/).length; return w === 3 })
+        const total = allKeywords.length
+        const ltPct = Math.round(longtail.length / total * 100)
+        const hPct = Math.round(head.length / total * 100)
+        const mPct = 100 - ltPct - hPct
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              Keyword type distribution
+            </div>
+            <div style={{ display: "flex", height: "6px", borderRadius: "3px", overflow: "hidden", marginBottom: "8px", gap: "1px" }}>
+              <div style={{ flex: head.length, background: "var(--destructive)", minWidth: head.length > 0 ? "4px" : undefined }} />
+              <div style={{ flex: mid.length, background: "var(--warning)", minWidth: mid.length > 0 ? "4px" : undefined }} />
+              <div style={{ flex: longtail.length, background: "var(--success)", minWidth: longtail.length > 0 ? "4px" : undefined }} />
+            </div>
+            <div style={{ display: "flex", gap: "16px", fontSize: "10px" }}>
+              <span style={{ color: "var(--destructive)" }}><strong>{hPct}%</strong> head (1–2w)</span>
+              <span style={{ color: "var(--warning)" }}><strong>{mPct}%</strong> mid (3w)</span>
+              <span style={{ color: "var(--success)" }}><strong>{ltPct}%</strong> longtail (4w+)</span>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Estimated total monthly search volume */}
       {allKeywords.length >= 3 && (() => {
         const totalKws = allKeywords.filter(k => parseFloat(k.ctrPct) > 0 && k.impressions > 10)
