@@ -7,6 +7,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import type { AuditIssue } from "@/db/schema"
 import { MarkFixedButton } from "./MarkFixedButton"
+import { CopyPlanLinkButton } from "./CopyPlanLinkButton"
 
 export const metadata: Metadata = { title: "Action Plan" }
 
@@ -117,6 +118,7 @@ export default async function ActionPlanPage({
               }}>
                 ⚡ Jira JSON
               </a>
+              <CopyPlanLinkButton auditId={id} />
             </div>
           )}
         </div>

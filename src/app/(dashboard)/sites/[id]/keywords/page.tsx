@@ -213,6 +213,32 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* Top 3 traffic-driving keywords highlight */}
+      {allKeywords.length >= 3 && (() => {
+        const top3 = [...allKeywords].sort((a, b) => b.clicks - a.clicks).slice(0, 3)
+        const totalClicks = allKeywords.reduce((s, k) => s + k.clicks, 0)
+        return (
+          <div style={{ background: "oklch(0.14 0.04 196 / 0.2)", border: "1px solid oklch(0.55 0.13 178 / 0.25)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary-2)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+              Top traffic drivers
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {top3.map((k, idx) => {
+                const pct = totalClicks > 0 ? Math.round(k.clicks / totalClicks * 100) : 0
+                return (
+                  <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span style={{ fontSize: "10px", fontWeight: 800, color: idx === 0 ? "var(--primary-2)" : "var(--foreground-3)", width: "14px", flexShrink: 0 }}>#{idx + 1}</span>
+                    <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--foreground)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{k.keyword}</span>
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--primary-2)", flexShrink: 0 }}>{k.clicks.toLocaleString()} clicks</span>
+                    <span style={{ fontSize: "10px", color: "var(--foreground-3)", flexShrink: 0 }}>{pct}% of traffic</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Featured snippet opportunities: positions 1-5 with high impressions */}
       {allKeywords.length > 0 && (() => {
         const snippetCandidates = allKeywords
