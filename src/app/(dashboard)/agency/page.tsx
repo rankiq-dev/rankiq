@@ -45,6 +45,7 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
   const avgHealth = siteData.length > 0
     ? Math.round(siteData.reduce((sum, d) => sum + (d.audit?.healthScore ?? 0), 0) / siteData.length)
     : 0
+  const totalPagesCrawled = siteData.reduce((s, d) => s + (d.audit?.pagesCount ?? 0), 0)
 
   return (
     <div style={{ padding: "32px 40px", maxWidth: "1200px", minHeight: "100vh" }}>
@@ -124,6 +125,7 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
           glow="oklch(0.65 0.20 27 / 0.35)" icon={<AlertIcon />} />
         <KpiCard label="Total Issues" value={`${siteData.reduce((s, d) => s + d.issueCount, 0)}`} unit="across all"
           color="var(--warning)" glow="oklch(0.80 0.15 75 / 0.35)" icon={<IssueIcon />} />
+        {totalPagesCrawled > 0 && <KpiCard label="Pages Crawled" value={totalPagesCrawled > 999 ? `${(totalPagesCrawled / 1000).toFixed(1)}K` : `${totalPagesCrawled}`} unit="total" color="var(--foreground-2)" />}
       </div>
 
       {/* Health Distribution Bar */}
@@ -457,8 +459,8 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
   )
 }
 
-function KpiCard({ label, value, unit, color, glow, icon }: {
-  label: string; value: string; unit: string; color: string; glow: string; icon: React.ReactNode
+function KpiCard({ label, value, unit, color, glow = "transparent", icon = null }: {
+  label: string; value: string; unit: string; color: string; glow?: string; icon?: React.ReactNode
 }) {
   return (
     <div style={{

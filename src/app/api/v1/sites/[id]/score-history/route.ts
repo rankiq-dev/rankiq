@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { getSiteById } from "@/db/repositories/sites"
 import { getAuditsForSite } from "@/db/repositories/audits"
 
-/** GET /api/v1/sites/:id/score-history — time series of health scores */
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+/** GET /api/v1/sites/:id/score-history?limit=20 — time series of health scores with summary */
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
@@ -12,11 +12,24 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const site = await getSiteById(id, session.user.id)
   if (!site) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
+  const limit = Math.min(50, parseInt(req.nextUrl.searchParams.get("limit") ?? "20"))
   const audits = await getAuditsForSite(id)
   const history = audits
     .filter(a => a.status === "complete" && a.healthScore != null && a.completedAt != null)
-    .map(a => ({ date: a.completedAt, score: a.healthScore, pagesCount: a.pagesCount }))
-    .sort((a, b) => new Date(a.date!).getTime() - new Date(b.date!).getTime())
+    .sort((a, b) => new Date(a.completedAt!).getTime() - new Date(b.completedAt!).getTime())
+    .slice(-limit)
+    .map(a => ({ auditId: a.id, date: a.completedAt?.toISOString().slice(0, 10) ?? null, score: a.healthScore, pagesCount: a.pagesCount ?? null }))
 
-  return NextResponse.json({ siteId: id, domain: site.domain, history })
+  const first = history[0]
+  const latest = history.at(-1)
+  const trend = first && latest && history.length >= 2 ? (latest.score! - first.score!) : null
+
+  return NextResponse.json({
+    data: {
+      siteId: id,
+      domain: site.domain,
+      history,
+      summary: { totalAudits: history.length, latestScore: latest?.score ?? null, firstScore: first?.score ?? null, overallTrend: trend },
+    },
+  })
 }
