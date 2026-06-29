@@ -235,6 +235,38 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* Position distribution histogram */}
+      {allKeywords.length >= 5 && (() => {
+        const buckets = [
+          { label: "#1", min: 1, max: 1, color: "oklch(0.70 0.18 155)" },
+          { label: "#2–3", min: 2, max: 3, color: "var(--success)" },
+          { label: "#4–10", min: 4, max: 10, color: "var(--primary-2)" },
+          { label: "#11–20", min: 11, max: 20, color: "var(--warning)" },
+          { label: "21+", min: 21, max: 9999, color: "var(--destructive)" },
+        ].map(b => ({
+          ...b,
+          count: allKeywords.filter(k => { const p = parseFloat(k.positionAvg); return p >= b.min && p <= b.max }).length,
+        })).filter(b => b.count > 0)
+        if (buckets.length < 2) return null
+        const max = Math.max(...buckets.map(b => b.count))
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+              Keyword position distribution
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "6px", height: "48px" }}>
+              {buckets.map(b => (
+                <div key={b.label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+                  <div style={{ background: b.color, width: "100%", height: `${Math.round(b.count / max * 40)}px`, borderRadius: "2px 2px 0 0", minHeight: "3px" }} />
+                  <div style={{ fontSize: "9px", color: "var(--foreground-3)", fontWeight: 700, textAlign: "center" }}>{b.label}</div>
+                  <div style={{ fontSize: "9px", color: b.color, fontWeight: 700 }}>{b.count}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* CTR by position bucket */}
       {allKeywords.length >= 10 && (() => {
         const buckets = [

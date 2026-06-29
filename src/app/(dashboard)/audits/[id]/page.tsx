@@ -419,6 +419,7 @@ export default async function AuditPage({
               ...(noindexCount > 0 ? [{ label: "Noindex pages", value: noindexCount.toString(), sub: `${noindexRatioPct}% of crawl`, color: noindexRatioPct > 40 ? "var(--destructive)" : noindexRatioPct > 20 ? "var(--warning)" : "var(--foreground-3)" }] : []),
               ...(totalImages > 0 ? [{ label: "Image alt coverage", value: `${imgAltCoveragePct}%`, sub: `${totalMissingAlt} images missing`, color: imgAltCoveragePct >= 95 ? "var(--success)" : imgAltCoveragePct >= 80 ? "var(--warning)" : "var(--destructive)" }] : []),
               { label: "Avg internal links", value: pageAnalyses.length > 0 ? Math.round(pageAnalyses.reduce((s, p) => s + p.internalLinkCount, 0) / pageAnalyses.length).toString() : "0", sub: "per page", color: "var(--primary-2)" },
+              ...(totalImages > 0 ? [{ label: "Avg images/page", value: (totalImages / pageAnalyses.length).toFixed(1), sub: `${totalImages} total`, color: "var(--primary-2)" }] : []),
             ].map(({ label, value, sub, color }) => (
               <div key={label} style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "12px 16px", position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, ${color}, transparent)` }} />
