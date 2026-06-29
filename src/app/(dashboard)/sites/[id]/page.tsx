@@ -334,6 +334,11 @@ export default async function SitePage({
               </div>
               <p style={{ fontSize: "12px", color: "var(--foreground-3)", lineHeight: 1.65, marginBottom: "14px" }}>
                 Keyword ranking data from the last 28 days is synced and shown below.
+                {keywords.length > 0 && keywords[0]?.dateRangeEnd && (
+                  <span style={{ marginLeft: "6px", fontSize: "11px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)" }}>
+                    · data through {new Date(keywords[0].dateRangeEnd).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </span>
+                )}
               </p>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                 <Link href={`/sites/${id}/keywords`} style={{

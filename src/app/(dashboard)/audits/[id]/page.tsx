@@ -480,6 +480,35 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* Meta description quality breakdown */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const indexable = pageAnalyses.filter(p => !p.isNoindex)
+        const missing = indexable.filter(p => !p.metaDescription)
+        const tooShort = indexable.filter(p => p.metaDescription && p.metaDescription.length < 70)
+        const tooLong = indexable.filter(p => p.metaDescription && p.metaDescription.length > 160)
+        const perfect = indexable.filter(p => p.metaDescription && p.metaDescription.length >= 70 && p.metaDescription.length <= 160)
+        if (indexable.length === 0 || (missing.length === 0 && tooShort.length === 0 && tooLong.length === 0)) return null
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+              Meta description quality
+            </div>
+            <div style={{ display: "flex", height: "6px", borderRadius: "3px", overflow: "hidden", marginBottom: "8px" }}>
+              {missing.length > 0 && <div style={{ flex: missing.length, background: "var(--destructive)", minWidth: "4px" }} title={`Missing: ${missing.length}`} />}
+              {tooShort.length > 0 && <div style={{ flex: tooShort.length, background: "var(--warning)", minWidth: "4px" }} title={`Too short: ${tooShort.length}`} />}
+              {tooLong.length > 0 && <div style={{ flex: tooLong.length, background: "oklch(0.70 0.15 50)", minWidth: "4px" }} title={`Too long: ${tooLong.length}`} />}
+              {perfect.length > 0 && <div style={{ flex: perfect.length, background: "var(--success)", minWidth: "4px" }} title={`Perfect: ${perfect.length}`} />}
+            </div>
+            <div style={{ display: "flex", gap: "16px", fontSize: "10px" }}>
+              {missing.length > 0 && <span style={{ color: "var(--destructive)" }}><strong>{missing.length}</strong> missing</span>}
+              {tooShort.length > 0 && <span style={{ color: "var(--warning)" }}><strong>{tooShort.length}</strong> too short</span>}
+              {tooLong.length > 0 && <span style={{ color: "oklch(0.70 0.15 50)" }}><strong>{tooLong.length}</strong> too long</span>}
+              {perfect.length > 0 && <span style={{ color: "var(--success)" }}><strong>{perfect.length}</strong> perfect</span>}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Longest pages — top word count, possible candidates for content splitting */}
       {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
         const longest = [...pageAnalyses]
