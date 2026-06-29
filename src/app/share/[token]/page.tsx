@@ -47,6 +47,11 @@ export default async function SharedAuditPage({ params }: { params: Promise<{ to
   const scoreColor = score >= 90 ? "oklch(0.65 0.15 145)" : score >= 70 ? "oklch(0.65 0.13 196)" : score >= 50 ? "oklch(0.75 0.15 75)" : "oklch(0.65 0.20 27)"
   const critical = issues.filter(i => i.severity === "critical").length
   const warnings = issues.filter(i => i.severity === "warning").length
+  const byCategory = issues.reduce<Record<string, number>>((acc, i) => {
+    acc[i.category] = (acc[i.category] ?? 0) + 1
+    return acc
+  }, {})
+  const catEntries = Object.entries(byCategory).sort((a, b) => b[1] - a[1])
 
   return (
     <div style={{
@@ -131,6 +136,26 @@ export default async function SharedAuditPage({ params }: { params: Promise<{ to
             </div>
           ))}
         </div>
+
+        {/* Category breakdown */}
+        {catEntries.length > 0 && (
+          <div style={{ background: "oklch(0.13 0.008 230)", border: "1px solid oklch(0.20 0.008 230)", borderRadius: "12px", padding: "16px 20px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "oklch(0.50 0.008 230)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "12px" }}>
+              Issues by Category
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {catEntries.map(([cat, count]) => (
+                <div key={cat} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ fontSize: "11px", color: "oklch(0.65 0.008 230)", width: "110px", flexShrink: 0, textTransform: "capitalize" }}>{cat.replace(/_/g, " ")}</span>
+                  <div style={{ flex: 1, height: "5px", background: "oklch(0.17 0.008 230)", borderRadius: "3px" }}>
+                    <div style={{ height: "100%", width: `${Math.min(100, Math.round(count / issues.length * 100))}%`, background: "oklch(0.55 0.13 178)", borderRadius: "3px" }} />
+                  </div>
+                  <span style={{ fontSize: "11px", color: "oklch(0.55 0.008 230)", width: "28px", textAlign: "right", fontFamily: "monospace", flexShrink: 0 }}>{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Issues table */}
         <div style={{ background: "oklch(0.13 0.008 230)", border: "1px solid oklch(0.20 0.008 230)", borderRadius: "12px", overflow: "hidden" }}>

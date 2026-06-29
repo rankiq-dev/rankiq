@@ -287,7 +287,7 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {["Site", "Health", "Status", "Critical", "Warnings", "Last Audit", "Actions"].map(h => (
+                {["Site", "Health", "Status", "Critical", "Warnings", "Open Issues", "Last Audit", "Actions"].map(h => (
                   <th key={h} style={{
                     padding: "10px 16px", fontSize: "10px", fontWeight: 700,
                     color: "var(--foreground-3)", textAlign: h === "Site" ? "left" : "center",
@@ -298,7 +298,7 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
               </tr>
             </thead>
             <tbody>
-              {filteredSiteData.map(({ site, audit, criticalCount, warningCount }, i) => {
+              {filteredSiteData.map(({ site, audit, criticalCount, warningCount, issueCount }, i) => {
                 const score = audit?.healthScore ?? null
                 const scoreColor = score === null ? "var(--foreground-3)"
                   : score >= 90 ? "var(--success)"
@@ -353,6 +353,13 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
                         <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--warning)" }}>{warningCount}</span>
                       ) : (
                         <span style={{ fontSize: "13px", color: "var(--foreground-3)" }}>0</span>
+                      )}
+                    </td>
+                    <td style={{ padding: "14px 16px", textAlign: "center" }}>
+                      {issueCount > 0 ? (
+                        <span style={{ fontSize: "13px", fontWeight: 700, color: issueCount > 20 ? "var(--destructive)" : issueCount > 10 ? "var(--warning)" : "var(--foreground-2)" }}>{issueCount}</span>
+                      ) : (
+                        <span style={{ fontSize: "13px", color: "var(--success)" }}>✓</span>
                       )}
                     </td>
                     <td style={{ padding: "14px 16px", textAlign: "center" }}>

@@ -76,6 +76,14 @@ export default async function SitePage({
         .slice(0, 3)
     : []
 
+  // Orphan pages: indexable, no incoming internal links, not the homepage
+  const orphanPages = latestAudit?.pageAnalyses
+    ? (latestAudit.pageAnalyses as PageAnalysis[])
+        .filter((p: PageAnalysis) => !p.isNoindex && (p.incomingInternalLinks ?? 0) === 0 && p.url.replace(/\/$/, "") !== `https://${site.domain}` && p.url.replace(/\/$/, "") !== `http://${site.domain}`)
+        .sort((a: PageAnalysis, b: PageAnalysis) => (b.wordCount ?? 0) - (a.wordCount ?? 0))
+        .slice(0, 5)
+    : []
+
   // Top pages by incoming internal links
   const topPages = latestAudit?.pageAnalyses
     ? (latestAudit.pageAnalyses as PageAnalysis[])
@@ -358,6 +366,29 @@ export default async function SitePage({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Orphan pages alert */}
+      {orphanPages.length > 0 && (
+        <div style={{ background: "oklch(0.14 0.04 27 / 0.25)", border: "1px solid oklch(0.65 0.20 27 / 0.25)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+            ⚠ Orphan pages — indexable but no internal links pointing here
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            {orphanPages.map((p: PageAnalysis) => (
+              <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, fontFamily: "var(--font-mono)", color: "var(--foreground-2)", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}
+                </a>
+                <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{p.wordCount?.toLocaleString() ?? 0}w</span>
+                <span style={{ color: p.onPageScore >= 70 ? "var(--success)" : "var(--warning)", fontFamily: "var(--font-mono)", flexShrink: 0 }}>{p.onPageScore}/100</span>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "8px", marginBottom: 0 }}>
+            Add internal links from other pages to distribute link equity to these pages.
+          </p>
         </div>
       )}
 
