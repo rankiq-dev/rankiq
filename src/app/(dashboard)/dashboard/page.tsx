@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
 import { getUserById } from "@/db/repositories/users"
 import { getSitesByUser } from "@/db/repositories/sites"
-import { getLatestAuditForSite, getIssuesByAudit } from "@/db/repositories/audits"
+import { getLatestAuditForSite, getIssuesByAudit, getAuditsForSite } from "@/db/repositories/audits"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import type { Metadata } from "next"
@@ -76,6 +76,22 @@ export default async function DashboardPage() {
         .map(i => ({ ...i, siteDomain: site.displayName ?? site.domain, auditId: audit!.id }))
     })
   )).flat().sort((a, b) => new Date(b.fixedAt!).getTime() - new Date(a.fixedAt!).getTime()).slice(0, 5)
+
+  // Improvement streak: count of consecutive score improvements across the most active site
+  const mostActiveSiteIdx = latestAudits.reduce((best, a, i) => {
+    const bAudit = latestAudits[best]
+    return (a?.pagesCount ?? 0) > (bAudit?.pagesCount ?? 0) ? i : best
+  }, 0)
+  const streakSiteId = sites[mostActiveSiteIdx]?.id
+  let improvementStreak = 0
+  if (streakSiteId) {
+    const siteAuditHistory = await getAuditsForSite(streakSiteId, 10)
+    const completed = siteAuditHistory.filter(a => a.status === "complete" && a.healthScore != null)
+    for (let i = 0; i + 1 < completed.length; i++) {
+      if ((completed[i]!.healthScore ?? 0) >= (completed[i + 1]!.healthScore ?? 0)) improvementStreak++
+      else break
+    }
+  }
 
   // Recent audit activity feed (last 5 audits across all sites)
   const recentActivity = latestAudits
@@ -166,12 +182,13 @@ export default async function DashboardPage() {
 
       {/* KPI strip */}
       {sites.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px", marginBottom: "32px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "12px", marginBottom: "32px" }}>
           <MiniKpi label="Avg Health Score" value={avgHealth != null ? `${avgHealth}` : "—"} color={avgHealth != null && avgHealth >= 90 ? "var(--success)" : avgHealth != null && avgHealth >= 70 ? "var(--primary-2)" : "var(--warning)"} />
           <MiniKpi label="Audits Done" value={`${completedAudits} / ${sites.length}`} color="var(--primary-2)" />
           <MiniKpi label="Sites Monitored" value={`${sites.length}`} color="var(--info)" />
           <MiniKpi label={runningAudits > 0 ? "Auditing Now" : "Low Score Sites"} value={runningAudits > 0 ? `${runningAudits}` : `${totalCritical}`} color={runningAudits > 0 ? "var(--primary)" : totalCritical > 0 ? "var(--destructive)" : "var(--success)"} />
           <MiniKpi label="Total Pages Crawled" value={totalPagesCrawled.toLocaleString()} color="var(--foreground-2)" />
+          {improvementStreak >= 2 && <MiniKpi label="🔥 Score Streak" value={`${improvementStreak} audits`} color="var(--success)" />}
         </div>
       )}
 

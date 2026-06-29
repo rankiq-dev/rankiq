@@ -1382,6 +1382,22 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter, so
           <BulkFixButton auditId={auditId} totalCount={issues.length} fixedCount={issues.filter(i => i.isFixed).length} />
         </div>
       </div>
+      {/* Quick wins callout — show when not already filtered */}
+      {!statusFilter && !sevFilter && !catFilter && (() => {
+        const quickWins = issues.filter(i => !i.isFixed && QUICK_WIN_TYPES.has(i.type))
+        if (quickWins.length === 0) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.04 196 / 0.3)", border: "1px solid oklch(0.55 0.13 178 / 0.3)", borderRadius: "var(--radius-md)", padding: "8px 14px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "14px" }}>⚡</span>
+            <span style={{ fontSize: "12px", color: "var(--primary-2)", flex: 1 }}>
+              <strong>{quickWins.length}</strong> quick win{quickWins.length !== 1 ? "s" : ""} — metadata fixes you can resolve in minutes
+            </span>
+            <Link href={`/audits/${auditId}?status=quick` as any} style={{ fontSize: "11px", fontWeight: 700, color: "var(--primary)", textDecoration: "none", padding: "3px 10px", border: "1px solid oklch(0.55 0.13 178 / 0.4)", borderRadius: "6px", background: "var(--primary-soft)" }}>
+              View →
+            </Link>
+          </div>
+        )
+      })()}
       {/* Status tabs: Open / Fixed / All */}
       <div style={{ display: "flex", gap: "4px", marginBottom: "12px", background: "oklch(0.12 0.008 230 / 0.5)", borderRadius: "8px", padding: "3px", width: "fit-content" }}>
         {[
