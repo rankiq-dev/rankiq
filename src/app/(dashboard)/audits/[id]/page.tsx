@@ -559,6 +559,37 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* Word count distribution */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const indexable = pageAnalyses.filter(p => !p.isNoindex && (p.wordCount ?? 0) > 0)
+        if (indexable.length < 5) return null
+        const buckets = [
+          { label: "<100", count: indexable.filter(p => (p.wordCount ?? 0) < 100).length, color: "var(--destructive)" },
+          { label: "100–300", count: indexable.filter(p => { const w = p.wordCount ?? 0; return w >= 100 && w < 300 }).length, color: "var(--warning)" },
+          { label: "300–600", count: indexable.filter(p => { const w = p.wordCount ?? 0; return w >= 300 && w < 600 }).length, color: "oklch(0.70 0.15 50)" },
+          { label: "600–1500", count: indexable.filter(p => { const w = p.wordCount ?? 0; return w >= 600 && w < 1500 }).length, color: "var(--primary-2)" },
+          { label: "1500+", count: indexable.filter(p => (p.wordCount ?? 0) >= 1500).length, color: "var(--success)" },
+        ].filter(b => b.count > 0)
+        if (buckets.length < 2) return null
+        const max = Math.max(...buckets.map(b => b.count))
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+              Word count distribution — {indexable.length} indexed pages
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "6px", height: "52px" }}>
+              {buckets.map(b => (
+                <div key={b.label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+                  <div style={{ background: b.color, width: "100%", height: `${Math.round(b.count / max * 40)}px`, borderRadius: "2px 2px 0 0", minHeight: "4px" }} />
+                  <div style={{ fontSize: "9px", color: "var(--foreground-3)", fontWeight: 700, textAlign: "center" }}>{b.label}</div>
+                  <div style={{ fontSize: "9px", color: b.color, fontWeight: 700 }}>{b.count}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Longest pages — top word count, possible candidates for content splitting */}
       {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
         const longest = [...pageAnalyses]
