@@ -134,6 +134,15 @@ export default async function SitePage({
       })()
     : null
 
+  // Schema coverage
+  const schemaCovPct = latestAudit?.pageAnalyses
+    ? (() => {
+        const pages = (latestAudit.pageAnalyses as PageAnalysis[]).filter(p => !p.isNoindex)
+        if (pages.length === 0) return null
+        return Math.round(pages.filter(p => p.hasJsonLd).length / pages.length * 100)
+      })()
+    : null
+
   // Crawl depth distribution (URL segment count - 1 for domain)
   const crawlDepthBuckets = latestAudit?.pageAnalyses
     ? (() => {
@@ -322,6 +331,7 @@ export default async function SitePage({
             })()}
             {internalLinkingScore != null && <StatPill label="Link equity" value={`${internalLinkingScore}/100`} />}
             {avgPage1Ctr > 0 && <StatPill label="Avg p1 CTR" value={`${avgPage1Ctr.toFixed(1)}%`} />}
+            {schemaCovPct != null && <StatPill label="Schema cov." value={`${schemaCovPct}%`} />}
           </div>
         </div>
       )}
