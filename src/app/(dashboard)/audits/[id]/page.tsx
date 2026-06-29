@@ -393,6 +393,9 @@ export default async function AuditPage({
         const metadataPerfect = pageAnalyses.filter(p => p.title && p.title.length >= 30 && p.title.length <= 60 && p.metaDescription && p.metaDescription.length >= 120 && p.metaDescription.length <= 160 && !p.isNoindex).length
         const metadataQualityPct = pageAnalyses.length > 0 ? Math.round(metadataPerfect / pageAnalyses.length * 100) : 0
         const longPagesNoH3 = pageAnalyses.filter(p => p.wordCount >= 1000 && p.h3Count === 0 && !p.isNoindex).length
+        const richPagesNoH3 = pageAnalyses.filter(p => !p.isNoindex && p.wordCount >= 600 && (p.h3Count ?? 0) === 0)
+        const richPagesTotal = pageAnalyses.filter(p => !p.isNoindex && p.wordCount >= 600)
+        const h3CoveragePct = richPagesTotal.length > 0 ? Math.round((richPagesTotal.length - richPagesNoH3.length) / richPagesTotal.length * 100) : 100
         const noindexCount = pageAnalyses.filter(p => p.isNoindex).length
         const noindexRatioPct = pageAnalyses.length > 0 ? Math.round(noindexCount / pageAnalyses.length * 100) : 0
         const totalImages = pageAnalyses.reduce((s, p) => s + (p.imageCount ?? 0), 0)
@@ -418,6 +421,7 @@ export default async function AuditPage({
               ...(avgCrawlDepth != null ? [{ label: "Avg crawl depth", value: avgCrawlDepth.toString(), sub: "URL segments deep", color: parseFloat(avgCrawlDepth) <= 3 ? "var(--success)" : parseFloat(avgCrawlDepth) <= 5 ? "var(--warning)" : "var(--destructive)" }] : []),
               { label: "Metadata quality", value: `${metadataQualityPct}%`, sub: `${metadataPerfect} pages perfect`, color: metadataQualityPct >= 70 ? "var(--success)" : metadataQualityPct >= 40 ? "var(--warning)" : "var(--destructive)" },
               ...(longPagesNoH3 > 0 ? [{ label: "Long pages no H3", value: longPagesNoH3.toString(), sub: "1000w+ missing H3", color: "var(--warning)" }] : []),
+              ...(richPagesTotal.length > 0 ? [{ label: "H3 coverage", value: `${h3CoveragePct}%`, sub: "of 600w+ pages", color: h3CoveragePct >= 80 ? "var(--success)" : h3CoveragePct >= 50 ? "var(--warning)" : "var(--destructive)" }] : []),
               ...(noindexCount > 0 ? [{ label: "Noindex pages", value: noindexCount.toString(), sub: `${noindexRatioPct}% of crawl`, color: noindexRatioPct > 40 ? "var(--destructive)" : noindexRatioPct > 20 ? "var(--warning)" : "var(--foreground-3)" }] : []),
               ...(totalImages > 0 ? [{ label: "Image alt coverage", value: `${imgAltCoveragePct}%`, sub: `${totalMissingAlt} images missing`, color: imgAltCoveragePct >= 95 ? "var(--success)" : imgAltCoveragePct >= 80 ? "var(--warning)" : "var(--destructive)" }] : []),
               { label: "Avg internal links", value: pageAnalyses.length > 0 ? Math.round(pageAnalyses.reduce((s, p) => s + p.internalLinkCount, 0) / pageAnalyses.length).toString() : "0", sub: "per page", color: "var(--primary-2)" },
