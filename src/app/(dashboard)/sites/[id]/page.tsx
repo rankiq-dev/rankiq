@@ -58,6 +58,10 @@ export default async function SitePage({
   const firstAuditDate = completedAudits.length > 0 ? completedAudits[0]?.completedAt : null
   const monitoringDays = firstAuditDate ? Math.floor((Date.now() - new Date(firstAuditDate).getTime()) / 86400000) : null
 
+  // Avg CTR for page 1 keywords (benchmark: rank 1 ~28%, rank 10 ~5%)
+  const page1Kws = keywords.filter(k => parseFloat(k.positionAvg) <= 10 && parseFloat(k.ctrPct) > 0)
+  const avgPage1Ctr = page1Kws.length > 0 ? page1Kws.reduce((s, k) => s + parseFloat(k.ctrPct), 0) / page1Kws.length : 0
+
   // Keyword velocity: count of keywords that improved vs declined
   const improvedCount = keywords.filter(k => (k.positionChange ?? 0) > 0).length
   const declinedCount = keywords.filter(k => (k.positionChange ?? 0) < 0).length
@@ -317,6 +321,7 @@ export default async function SitePage({
               return <StatPill label="Crawl budget used" value={`${crawlPct}%`} />
             })()}
             {internalLinkingScore != null && <StatPill label="Link equity" value={`${internalLinkingScore}/100`} />}
+            {avgPage1Ctr > 0 && <StatPill label="Avg p1 CTR" value={`${avgPage1Ctr.toFixed(1)}%`} />}
           </div>
         </div>
       )}
