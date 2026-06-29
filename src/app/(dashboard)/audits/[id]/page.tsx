@@ -380,6 +380,8 @@ export default async function AuditPage({
         const h1DiversityPct = pagesWithH1.length > 0 ? Math.round(uniqueH1s / pagesWithH1.length * 100) : 100
         const avgWordsPerH2Section = pagesWithH2.length > 0 ? Math.round(pagesWithH2.reduce((s, p) => s + Math.round(p.wordCount / Math.max(p.h2Count, 1)), 0) / pagesWithH2.length) : 0
         const avgH2Count = pageAnalyses.length > 0 ? (pageAnalyses.reduce((s, p) => s + p.h2Count, 0) / pageAnalyses.length).toFixed(1) : "0"
+        const sortedByWords = [...withWords].sort((a, b) => (a.wordCount ?? 0) - (b.wordCount ?? 0))
+        const medianWordCount = sortedByWords.length > 0 ? (sortedByWords[Math.floor(sortedByWords.length / 2)]?.wordCount ?? 0) : 0
         const thin = pageAnalyses.filter(p => (p.wordCount ?? 0) > 0 && (p.wordCount ?? 0) < 300).length
         const rich = pageAnalyses.filter(p => (p.wordCount ?? 0) >= 600).length
         const withSchema = pageAnalyses.filter(p => p.hasJsonLd).length
@@ -406,6 +408,7 @@ export default async function AuditPage({
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "24px" }}>
             {[
               { label: "Avg word count", value: avgWords.toLocaleString(), sub: "per page", color: avgWords > 500 ? "var(--success)" : avgWords > 200 ? "var(--warning)" : "var(--destructive)" },
+              ...(medianWordCount > 0 ? [{ label: "Median word count", value: medianWordCount.toLocaleString(), sub: "per page", color: medianWordCount > 400 ? "var(--success)" : medianWordCount > 200 ? "var(--warning)" : "var(--destructive)" }] : []),
               ...(avgWordsPerH2Section > 0 ? [{ label: "Avg words/section", value: avgWordsPerH2Section.toLocaleString(), sub: "per H2", color: avgWordsPerH2Section > 150 ? "var(--success)" : "var(--warning)" }] : []),
               { label: "Avg H2 count", value: avgH2Count, sub: "per page", color: parseFloat(avgH2Count) >= 2 ? "var(--success)" : parseFloat(avgH2Count) >= 1 ? "var(--primary-2)" : "var(--warning)" },
               ...(pagesWithH1.length > 1 ? [{ label: "H1 diversity", value: `${h1DiversityPct}%`, sub: `${uniqueH1s}/${pagesWithH1.length} unique`, color: h1DiversityPct >= 95 ? "var(--success)" : h1DiversityPct >= 80 ? "var(--warning)" : "var(--destructive)" }] : []),
