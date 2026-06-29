@@ -74,7 +74,7 @@ export default async function AuditComparePage({
   const labelB = new Date(auditB.createdAt!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 
   // Content quality comparison from pageAnalyses
-  type PageAnalysis = { wordCount?: number; isNoindex?: boolean; hasJsonLd?: boolean; h1Text?: string; imagesMissingAlt?: number; imageCount?: number; hasCanonical?: boolean; onPageScore?: number }
+  type PageAnalysis = { wordCount?: number; isNoindex?: boolean; hasJsonLd?: boolean; h1Text?: string; imagesMissingAlt?: number; imageCount?: number; hasCanonical?: boolean; onPageScore?: number; internalLinkCount?: number }
   const pagesA = (auditA.pageAnalyses ? (auditA.pageAnalyses as PageAnalysis[]) : []).filter(p => !p.isNoindex)
   const pagesB = (auditB.pageAnalyses ? (auditB.pageAnalyses as PageAnalysis[]) : []).filter(p => !p.isNoindex)
   const avgWordA = pagesA.length > 0 ? Math.round(pagesA.reduce((s, p) => s + (p.wordCount ?? 0), 0) / pagesA.length) : null
@@ -87,6 +87,8 @@ export default async function AuditComparePage({
   const canonB = pagesB.length > 0 ? Math.round(pagesB.filter(p => p.hasCanonical).length / pagesB.length * 100) : null
   const avgScoreA = pagesA.length > 0 ? Math.round(pagesA.reduce((s, p) => s + (p.onPageScore ?? 0), 0) / pagesA.length) : null
   const avgScoreB = pagesB.length > 0 ? Math.round(pagesB.reduce((s, p) => s + (p.onPageScore ?? 0), 0) / pagesB.length) : null
+  const avgLinksA = pagesA.length > 0 ? parseFloat((pagesA.reduce((s, p) => s + (p.internalLinkCount ?? 0), 0) / pagesA.length).toFixed(1)) : null
+  const avgLinksB = pagesB.length > 0 ? parseFloat((pagesB.reduce((s, p) => s + (p.internalLinkCount ?? 0), 0) / pagesB.length).toFixed(1)) : null
 
   // Count issues by type in both audits
   const ruleCountA = new Map<string, number>()
@@ -237,13 +239,14 @@ export default async function AuditComparePage({
           padding: "20px 28px", marginBottom: "16px",
         }}>
           <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "14px" }}>Content Quality</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "12px" }}>
             {[
               { label: "Avg word count", a: avgWordA, b: avgWordB, betterIfHigher: true, fmt: (v: number) => v.toLocaleString() },
               { label: "Pages with schema", a: schemaA, b: schemaB, betterIfHigher: true, fmt: (v: number) => `${v}` },
               { label: "Pages missing H1", a: noH1A, b: noH1B, betterIfHigher: false, fmt: (v: number) => `${v}` },
               { label: "Canonical coverage", a: canonA, b: canonB, betterIfHigher: true, fmt: (v: number) => `${v}%` },
               { label: "Avg on-page score", a: avgScoreA, b: avgScoreB, betterIfHigher: true, fmt: (v: number) => `${v}` },
+              { label: "Avg internal links", a: avgLinksA, b: avgLinksB, betterIfHigher: true, fmt: (v: number) => `${v}` },
             ].map(({ label, a, b, betterIfHigher, fmt }) => {
               if (a == null || b == null) return null
               const diff = b - a
