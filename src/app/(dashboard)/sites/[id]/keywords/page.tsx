@@ -50,6 +50,7 @@ export default async function KeywordsPage({
   const kwFiltered = kwFilter === "drops" ? allKeywords.filter(k => (k.positionChange ?? 0) < -3)
     : kwFilter === "gains" ? allKeywords.filter(k => (k.positionChange ?? 0) > 3)
     : kwFilter === "page1" ? allKeywords.filter(k => parseFloat(k.positionAvg) <= 10)
+    : kwFilter === "ctr_gap" ? allKeywords.filter(k => { const pos = parseFloat(k.positionAvg); const bench = pos <= 1 ? 28 : pos <= 3 ? 15 : pos <= 5 ? 9 : pos <= 10 ? 5 : 1; return pos >= 1 && pos <= 10 && parseFloat(k.ctrPct) < bench })
     : allKeywords
   const filtered = q
     ? kwFiltered.filter(k => k.keyword.toLowerCase().includes(q.toLowerCase()))
@@ -583,6 +584,7 @@ export default async function KeywordsPage({
               { label: "↓ Drops", value: "drops" },
               { label: "↑ Gains", value: "gains" },
               { label: "Page 1", value: "page1" },
+              { label: "CTR gap", value: "ctr_gap" },
             ].map(({ label, value }) => (
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               <Link key={label} href={value ? `/sites/${id}/keywords?filter=${value}${q ? `&q=${q}` : ""}&sort=${sort}` : `/sites/${id}/keywords?sort=${sort}` as any} style={{

@@ -480,6 +480,30 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* Pages with no outgoing internal links — isolated pages */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const isolated = pageAnalyses
+          .filter(p => !p.isNoindex && p.internalLinkCount === 0 && (p.wordCount ?? 0) >= 200)
+          .sort((a, b) => (b.wordCount ?? 0) - (a.wordCount ?? 0))
+          .slice(0, 6)
+        if (isolated.length < 2) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.04 270 / 0.15)", border: "1px solid oklch(0.60 0.10 270 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "oklch(0.70 0.12 270)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              Pages with no outgoing internal links — add links to improve crawlability
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {isolated.map(p => (
+                <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}</span>
+                  <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{p.wordCount?.toLocaleString()}w</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Broken internal links quick list */}
       {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
         const brokenPages = pageAnalyses

@@ -95,6 +95,20 @@ export default async function SitePage({
         .slice(0, 8)
     : []
 
+  // Crawl depth distribution (URL segment count - 1 for domain)
+  const crawlDepthBuckets = latestAudit?.pageAnalyses
+    ? (() => {
+        const pages = latestAudit.pageAnalyses as PageAnalysis[]
+        const depths = pages.filter(p => !p.isNoindex).map(p => Math.max(0, p.url.split("/").length - 3))
+        return [
+          { label: "Depth 1", count: depths.filter(d => d <= 1).length, color: "var(--success)" },
+          { label: "Depth 2", count: depths.filter(d => d === 2).length, color: "var(--primary-2)" },
+          { label: "Depth 3", count: depths.filter(d => d === 3).length, color: "var(--warning)" },
+          { label: "Depth 4+", count: depths.filter(d => d >= 4).length, color: "var(--destructive)" },
+        ]
+      })()
+    : null
+
   // Top-scoring pages by on-page score
   const topScoringPages = latestAudit?.pageAnalyses
     ? (latestAudit.pageAnalyses as PageAnalysis[])
@@ -481,6 +495,32 @@ export default async function SitePage({
           </table>
         </div>
       )}
+
+      {/* Crawl depth distribution */}
+      {crawlDepthBuckets && crawlDepthBuckets.some(b => b.count > 0) && (() => {
+        const total = crawlDepthBuckets.reduce((s, b) => s + b.count, 0)
+        if (total === 0) return null
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              URL crawl depth distribution
+            </div>
+            <div style={{ display: "flex", height: "6px", borderRadius: "3px", overflow: "hidden", marginBottom: "8px" }}>
+              {crawlDepthBuckets.map(b => b.count > 0 && (
+                <div key={b.label} style={{ flex: b.count, background: b.color, minWidth: "4px" }} title={`${b.label}: ${b.count}`} />
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "12px", fontSize: "10px" }}>
+              {crawlDepthBuckets.filter(b => b.count > 0).map(b => (
+                <div key={b.label} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <div style={{ width: "6px", height: "6px", borderRadius: "1px", background: b.color, flexShrink: 0 }} />
+                  <span style={{ color: "var(--foreground-3)" }}>{b.label}: <strong style={{ color: b.color }}>{b.count}</strong></span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Top-scoring pages */}
       {topScoringPages.length >= 3 && (
