@@ -97,6 +97,12 @@ export default async function SitePage({
         .slice(0, 5)
     : []
 
+  // Content gaps: keywords with high impressions but 0 clicks (missed opportunities)
+  const contentGaps = keywords
+    .filter(k => k.clicks === 0 && k.impressions >= 20)
+    .sort((a, b) => b.impressions - a.impressions)
+    .slice(0, 5)
+
   // Top pages by incoming internal links
   const topPages = latestAudit?.pageAnalyses
     ? (latestAudit.pageAnalyses as PageAnalysis[])
@@ -663,6 +669,27 @@ export default async function SitePage({
           </div>
           <div style={{ marginTop: "8px" }}>
             <a href={`/sites/${id}/keywords`} style={{ fontSize: "11px", color: "var(--primary-2)", textDecoration: "none" }}>View all keywords →</a>
+          </div>
+        </div>
+      )}
+
+      {/* Content gaps: high-impression, zero-click keywords */}
+      {contentGaps.length >= 3 && (
+        <div style={{ background: "oklch(0.14 0.04 270 / 0.2)", border: "1px solid oklch(0.60 0.10 270 / 0.25)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "oklch(0.70 0.12 270)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+            Content gaps — ranked but not getting clicks
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            {contentGaps.map(k => (
+              <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)" }}>{k.keyword}</span>
+                <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>pos {parseFloat(k.positionAvg).toFixed(0)}</span>
+                <span style={{ color: "oklch(0.70 0.12 270)", fontWeight: 700, flexShrink: 0 }}>{k.impressions.toLocaleString()} impr</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "8px" }}>
+            These keywords get impressions but no clicks — improve titles/meta to boost CTR
           </div>
         </div>
       )}
