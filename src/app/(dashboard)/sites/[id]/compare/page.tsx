@@ -75,9 +75,9 @@ export default async function AuditComparePage({
 
   // Count issues by type in both audits
   const ruleCountA = new Map<string, number>()
-  for (const i of issuesA) ruleCountA.set(i.ruleId, (ruleCountA.get(i.ruleId) ?? 0) + 1)
+  for (const i of issuesA) ruleCountA.set(i.type, (ruleCountA.get(i.type) ?? 0) + 1)
   const ruleCountB = new Map<string, number>()
-  for (const i of issuesB) ruleCountB.set(i.ruleId, (ruleCountB.get(i.ruleId) ?? 0) + 1)
+  for (const i of issuesB) ruleCountB.set(i.type, (ruleCountB.get(i.type) ?? 0) + 1)
 
   const allRules = [...new Set([...ruleCountA.keys(), ...ruleCountB.keys()])].sort()
 

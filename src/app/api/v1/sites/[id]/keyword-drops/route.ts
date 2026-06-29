@@ -26,8 +26,8 @@ export async function GET(
     .sort((a, b) => (a.positionChange ?? 0) - (b.positionChange ?? 0))
     .slice(0, 20)
     .map(k => ({
-      keyword: k.query,
-      currentPosition: parseFloat(k.position),
+      keyword: k.keyword,
+      currentPosition: parseFloat(k.positionAvg),
       previousPosition: k.prevPosition ? parseFloat(k.prevPosition) : null,
       drop: Math.abs(k.positionChange ?? 0),
       clicks: k.clicks,

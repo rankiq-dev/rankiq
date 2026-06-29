@@ -16,6 +16,7 @@ import { BulkFixButton } from "./BulkFixButton"
 import { CopyIssuesButton } from "./CopyIssuesButton"
 import { AiTitleSuggester } from "./AiTitleSuggester"
 import { PageSpeedPanel } from "@/app/(dashboard)/sites/[id]/PageSpeedPanel"
+import { PrintButton } from "./PrintButton"
 
 export const metadata: Metadata = { title: "Audit Results" }
 
@@ -24,7 +25,7 @@ export default async function AuditPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ sev?: string; cat?: string; status?: string }>
+  searchParams: Promise<{ sev?: string; cat?: string; status?: string; sort?: string }>
 }) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
@@ -311,12 +312,13 @@ export default async function AuditPage({
         </div>
       </div>
 
-      {/* Category breakdown */}
+      {/* Category breakdown + Priority matrix */}
       {audit.status === "complete" && issues.length > 0 && (
-        <CategoryBreakdown issues={issues} auditId={id} />
+        <>
+          <CategoryBreakdown issues={issues} auditId={id} />
 
-        {/* Priority matrix: severity × fix time */}
-        {issues.filter(i => !i.isFixed).length > 0 && (() => {
+          {/* Priority matrix: severity × fix time */}
+          {issues.filter(i => !i.isFixed).length > 0 && (() => {
           function parseMin(label: string | undefined): number {
             if (!label) return 999
             if (label.endsWith("min")) return parseInt(label)
@@ -360,7 +362,8 @@ export default async function AuditPage({
               </div>
             </div>
           )
-        })()}
+          })()}
+        </>
       )}
 
       {/* Content quality strip */}
@@ -564,7 +567,7 @@ export default async function AuditPage({
             }
             const sorted = [...clusters.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
             if (sorted.length < 2) return null
-            const max = sorted[0][1]
+            const max = sorted[0]![1]
             return (
               <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "20px" }}>
                 <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
@@ -592,7 +595,7 @@ export default async function AuditPage({
               .sort((a, b) => b.incomingInternalLinks - a.incomingInternalLinks)
               .slice(0, 5)
             if (topLinked.length === 0) return null
-            const maxLinks = topLinked[0].incomingInternalLinks
+            const maxLinks = topLinked[0]!.incomingInternalLinks
             return (
               <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "20px" }}>
                 <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
@@ -630,7 +633,7 @@ export default async function AuditPage({
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
                   {broken.map((p, i) => {
-                    const barPct = broken[0].issueTypes.length > 0 ? (p.issueTypes.length / broken[0].issueTypes.length) * 100 : 0
+                    const barPct = broken[0]!.issueTypes.length > 0 ? (p.issueTypes.length / broken[0]!.issueTypes.length) * 100 : 0
                     const scoreColor = p.onPageScore >= 80 ? "var(--success)" : p.onPageScore >= 50 ? "var(--warning)" : "var(--destructive)"
                     return (
                       <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -1529,20 +1532,5 @@ function PagesSection({ pages, auditId }: { pages: PageAnalysis[]; auditId: stri
         })}
       </div>
     </section>
-  )
-}
-
-"use client"
-function PrintButton() {
-  return (
-    <button onClick={() => window.print()} style={{
-      display: "inline-flex", alignItems: "center", gap: "5px",
-      padding: "7px 12px", fontSize: "12px", fontWeight: 600,
-      background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
-      borderRadius: "var(--radius-md)", color: "var(--foreground-3)",
-      cursor: "pointer", fontFamily: "var(--font-sans), sans-serif",
-    }}>
-      🖨 Print
-    </button>
   )
 }

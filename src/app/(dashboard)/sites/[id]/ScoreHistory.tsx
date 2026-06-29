@@ -20,14 +20,14 @@ export async function ScoreHistory({ siteId }: { siteId: string }) {
   const points = scores.map((s, i) => {
     const x = pad + (i / (scores.length - 1)) * (W - pad * 2)
     const y = pad + (1 - (s - minS) / range) * (H - pad * 2)
-    return { x, y, s, date: dates[i], id: completed[i].id }
+    return { x, y, s, date: dates[i]!, id: completed[i]!.id }
   })
 
   const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")
-  const areaD = `${pathD} L${points[points.length - 1].x.toFixed(1)},${(H - pad).toFixed(1)} L${points[0].x.toFixed(1)},${(H - pad).toFixed(1)} Z`
+  const areaD = `${pathD} L${points.at(-1)!.x.toFixed(1)},${(H - pad).toFixed(1)} L${points[0]!.x.toFixed(1)},${(H - pad).toFixed(1)} Z`
 
-  const latest = scores[0]
-  const prev = scores[1]
+  const latest = scores[0] ?? 0
+  const prev = scores[1] ?? 0
   const delta = latest - prev
   const deltaColor = delta > 0 ? "var(--success)" : delta < 0 ? "var(--destructive)" : "var(--foreground-3)"
 

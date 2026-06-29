@@ -28,7 +28,7 @@ export function ParticleField() {
       vx: (Math.random() - 0.5) * 0.3,
       vy: (Math.random() - 0.5) * 0.3,
       r: Math.random() * 1.5 + 0.3,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      color: COLORS[Math.floor(Math.random() * COLORS.length)] ?? "#0d9488",
       alpha: Math.random() * 0.5 + 0.1,
     }))
 
@@ -72,13 +72,14 @@ export function ParticleField() {
       ctx.globalAlpha = 1
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x
-          const dy = particles[i].y - particles[j].y
+          const pi = particles[i]!, pj = particles[j]!
+          const dx = pi.x - pj.x
+          const dy = pi.y - pj.y
           const dist = Math.sqrt(dx * dx + dy * dy)
           if (dist < 100) {
             ctx.beginPath()
-            ctx.moveTo(particles[i].x, particles[i].y)
-            ctx.lineTo(particles[j].x, particles[j].y)
+            ctx.moveTo(pi.x, pi.y)
+            ctx.lineTo(pj.x, pj.y)
             ctx.strokeStyle = "#0d9488"
             ctx.globalAlpha = (1 - dist / 100) * 0.12
             ctx.lineWidth = 0.5

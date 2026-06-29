@@ -29,7 +29,7 @@ export async function GET(
   const date = audit.completedAt ? new Date(audit.completedAt).toISOString().slice(0, 10) : "report"
   const filename = `rankiq-audit-${domain}-${date}.pdf`
 
-  return new Response(pdf, {
+  return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="${filename}"`,

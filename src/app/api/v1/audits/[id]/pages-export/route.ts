@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const header = ["URL", "Status", "Title", "H1", "Word Count", "On-Page Score", "Incoming Links", "Has Canonical", "Has JSON-LD", "Images Missing Alt"]
   const rows = pages.map(p => [
     esc(p.url),
-    p.status,
+    p.isNoindex ? "noindex" : "index",
     esc(p.title),
     esc(p.h1Text),
     p.wordCount,

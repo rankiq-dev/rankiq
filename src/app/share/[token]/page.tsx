@@ -139,7 +139,7 @@ export default async function SharedAuditPage({ params }: { params: Promise<{ to
           </div>
           {issues.slice(0, 50).map(issue => {
             const sev = issue.severity
-            const bg = sev === "critical" ? "oklch(0.65 0.20 27)" : sev === "warning" ? "oklch(0.75 0.15 75)" : sev === "error" ? "oklch(0.65 0.20 27)" : "oklch(0.55 0.12 220)"
+            const bg = sev === "critical" ? "oklch(0.65 0.20 27)" : sev === "warning" ? "oklch(0.75 0.15 75)" : "oklch(0.55 0.12 220)"
             return (
               <div key={issue.id} style={{
                 display: "grid", gridTemplateColumns: "80px 1fr 80px",

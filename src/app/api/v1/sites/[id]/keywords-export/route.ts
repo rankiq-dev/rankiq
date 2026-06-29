@@ -16,12 +16,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const header = ["Keyword", "Position", "Position Change", "Clicks", "Impressions", "CTR"]
   const rows = keywords.map(k => [
-    `"${k.query.replace(/"/g, '""')}"`,
-    k.position,
+    `"${k.keyword.replace(/"/g, '""')}"`,
+    k.positionAvg,
     k.positionChange ?? "",
     k.clicks,
     k.impressions,
-    (parseFloat(k.ctr) * 100).toFixed(2) + "%",
+    parseFloat(k.ctrPct).toFixed(2) + "%",
   ])
 
   const csv = [header.join(","), ...rows.map(r => r.join(","))].join("\r\n")

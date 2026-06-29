@@ -35,7 +35,7 @@ export default async function KeywordsPage({
   const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions * 100).toFixed(1) : "0.0"
   const avgPos = allMetrics.length > 0 ? (allMetrics.reduce((s, m) => s + parseFloat(m.positionAvg), 0) / allMetrics.length).toFixed(1) : "—"
   const page1Count = allMetrics.filter(m => parseFloat(m.positionAvg) <= 10).length
-  const pos1Count = allKeywords.filter(k => k.position != null && parseFloat(String(k.position)) < 2).length
+  const pos1Count = allKeywords.filter(k => parseFloat(k.positionAvg) < 2).length
   const winRate = allKeywords.length > 0 ? Math.round(pos1Count / allKeywords.length * 100) : 0
 
   // Compute quick-win opportunities: position 4-20, impressions > 10
@@ -49,17 +49,17 @@ export default async function KeywordsPage({
   // Filter
   const kwFiltered = kwFilter === "drops" ? allKeywords.filter(k => (k.positionChange ?? 0) < -3)
     : kwFilter === "gains" ? allKeywords.filter(k => (k.positionChange ?? 0) > 3)
-    : kwFilter === "page1" ? allKeywords.filter(k => k.position != null && k.position <= 10)
+    : kwFilter === "page1" ? allKeywords.filter(k => parseFloat(k.positionAvg) <= 10)
     : allKeywords
   const filtered = q
-    ? kwFiltered.filter(k => k.query.toLowerCase().includes(q.toLowerCase()))
+    ? kwFiltered.filter(k => k.keyword.toLowerCase().includes(q.toLowerCase()))
     : kwFiltered
 
   // Sort
   const sorted = [...filtered].sort((a, b) => {
-    if (sort === "position") return parseFloat(a.position) - parseFloat(b.position)
+    if (sort === "position") return parseFloat(a.positionAvg) - parseFloat(b.positionAvg)
     if (sort === "impressions") return b.impressions - a.impressions
-    if (sort === "ctr") return parseFloat(b.ctr) - parseFloat(a.ctr)
+    if (sort === "ctr") return parseFloat(b.ctrPct) - parseFloat(a.ctrPct)
     if (sort === "change") return (b.positionChange ?? 0) - (a.positionChange ?? 0)
     return b.clicks - a.clicks // default: clicks
   })
@@ -107,7 +107,7 @@ export default async function KeywordsPage({
                 border: "1px solid var(--glass-border)", borderRadius: "var(--radius-md)", textDecoration: "none",
               }}>↓ CSV</a>
             )}
-            {!site.gscSiteUrl && (
+            {!site.gscConnected && (
               <Link href={`/sites/${id}`} style={{
                 padding: "8px 16px", fontSize: "12px", fontWeight: 700,
                 background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
@@ -161,10 +161,10 @@ export default async function KeywordsPage({
             const totalClicks = allKeywords.reduce((s, k) => s + k.clicks, 0)
             const totalImpressions = allKeywords.reduce((s, k) => s + k.impressions, 0)
             const avgPosition = allKeywords.length > 0
-              ? (allKeywords.reduce((s, k) => s + parseFloat(k.position), 0) / allKeywords.length).toFixed(1)
+              ? (allKeywords.reduce((s, k) => s + parseFloat(k.positionAvg), 0) / allKeywords.length).toFixed(1)
               : "—"
             const avgCtr = allKeywords.length > 0
-              ? ((allKeywords.reduce((s, k) => s + parseFloat(k.ctr), 0) / allKeywords.length) * 100).toFixed(2)
+              ? (allKeywords.reduce((s, k) => s + parseFloat(k.ctrPct), 0) / allKeywords.length).toFixed(2)
               : "—"
             return [
               { label: "Total Clicks", value: totalClicks.toLocaleString(), color: "var(--primary-2)" },
@@ -185,11 +185,11 @@ export default async function KeywordsPage({
       {/* Position distribution bar */}
       {allKeywords.length > 0 && (() => {
         const buckets = [
-          { label: "Top 3", color: "var(--success)", count: allKeywords.filter(k => parseFloat(k.position) <= 3).length },
-          { label: "4–10", color: "var(--primary)", count: allKeywords.filter(k => { const p = parseFloat(k.position); return p > 3 && p <= 10 }).length },
-          { label: "11–20", color: "var(--warning)", count: allKeywords.filter(k => { const p = parseFloat(k.position); return p > 10 && p <= 20 }).length },
-          { label: "21–50", color: "oklch(0.65 0.12 40)", count: allKeywords.filter(k => { const p = parseFloat(k.position); return p > 20 && p <= 50 }).length },
-          { label: "50+", color: "var(--foreground-3)", count: allKeywords.filter(k => parseFloat(k.position) > 50).length },
+          { label: "Top 3", color: "var(--success)", count: allKeywords.filter(k => parseFloat(k.positionAvg) <= 3).length },
+          { label: "4–10", color: "var(--primary)", count: allKeywords.filter(k => { const p = parseFloat(k.positionAvg); return p > 3 && p <= 10 }).length },
+          { label: "11–20", color: "var(--warning)", count: allKeywords.filter(k => { const p = parseFloat(k.positionAvg); return p > 10 && p <= 20 }).length },
+          { label: "21–50", color: "oklch(0.65 0.12 40)", count: allKeywords.filter(k => { const p = parseFloat(k.positionAvg); return p > 20 && p <= 50 }).length },
+          { label: "50+", color: "var(--foreground-3)", count: allKeywords.filter(k => parseFloat(k.positionAvg) > 50).length },
         ]
         const total = allKeywords.length
         return (
@@ -216,8 +216,8 @@ export default async function KeywordsPage({
       {/* Featured snippet opportunities: positions 1-5 with high impressions */}
       {allKeywords.length > 0 && (() => {
         const snippetCandidates = allKeywords
-          .filter(k => k.position != null && k.position >= 1 && k.position <= 5)
-          .sort((a, b) => parseInt(b.impressions) - parseInt(a.impressions))
+          .filter(k => { const p = parseFloat(k.positionAvg); return p >= 1 && p <= 5 })
+          .sort((a, b) => b.impressions - a.impressions)
           .slice(0, 3)
         if (snippetCandidates.length === 0) return null
         return (
@@ -229,8 +229,8 @@ export default async function KeywordsPage({
               {snippetCandidates.map(k => (
                 <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "11px" }}>
                   <span style={{ fontWeight: 700, color: "var(--foreground)" }}>{k.keyword}</span>
-                  <span style={{ color: "var(--success)", fontFamily: "var(--font-mono)", fontSize: "10px" }}>#{k.position?.toFixed(0)}</span>
-                  <span style={{ color: "var(--foreground-3)", fontSize: "10px" }}>{parseInt(k.impressions).toLocaleString()} impressions</span>
+                  <span style={{ color: "var(--success)", fontFamily: "var(--font-mono)", fontSize: "10px" }}>#{parseFloat(k.positionAvg).toFixed(0)}</span>
+                  <span style={{ color: "var(--foreground-3)", fontSize: "10px" }}>{k.impressions.toLocaleString()} impressions</span>
                   <span style={{ color: "var(--foreground-3)", fontSize: "10px", marginLeft: "auto" }}>→ Add FAQ or summary section</span>
                 </div>
               ))}
@@ -242,8 +242,8 @@ export default async function KeywordsPage({
       {/* Page 2 opportunity keywords */}
       {allKeywords.length > 0 && (() => {
         const page2 = allKeywords
-          .filter(k => k.position != null && k.position > 10 && k.position <= 20)
-          .sort((a, b) => parseInt(b.impressions) - parseInt(a.impressions))
+          .filter(k => { const p = parseFloat(k.positionAvg); return p > 10 && p <= 20 })
+          .sort((a, b) => b.impressions - a.impressions)
           .slice(0, 5)
         if (page2.length === 0) return null
         return (
@@ -255,10 +255,10 @@ export default async function KeywordsPage({
               {page2.map(k => (
                 <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "12px" }}>
                   <span style={{ fontWeight: 700, color: "var(--foreground)" }}>{k.keyword}</span>
-                  <span style={{ color: "var(--warning)", fontFamily: "var(--font-mono)", fontSize: "11px" }}>pos {k.position?.toFixed(0)}</span>
-                  <span style={{ color: "var(--foreground-3)", fontSize: "11px" }}>{parseInt(k.impressions).toLocaleString()} impr/mo</span>
+                  <span style={{ color: "var(--warning)", fontFamily: "var(--font-mono)", fontSize: "11px" }}>pos {parseFloat(k.positionAvg).toFixed(0)}</span>
+                  <span style={{ color: "var(--foreground-3)", fontSize: "11px" }}>{k.impressions.toLocaleString()} impr/mo</span>
                   <div style={{ flex: 1, height: "3px", background: "oklch(0.20 0.006 230)", borderRadius: "2px" }}>
-                    <div style={{ height: "100%", width: `${Math.min((parseInt(k.impressions) / (parseInt(page2[0].impressions) || 1)) * 100, 100)}%`, background: "var(--primary)", borderRadius: "2px" }} />
+                    <div style={{ height: "100%", width: `${Math.min((k.impressions / (page2[0]!.impressions || 1)) * 100, 100)}%`, background: "var(--primary)", borderRadius: "2px" }} />
                   </div>
                 </div>
               ))}
@@ -272,10 +272,10 @@ export default async function KeywordsPage({
         const CTR_BENCHMARKS: Record<number, number> = { 1: 0.28, 2: 0.15, 3: 0.11, 4: 0.08, 5: 0.07 }
         const underperforming = allKeywords
           .filter(k => {
-            const pos = Math.round(k.position ?? 99)
+            const pos = Math.round(parseFloat(k.positionAvg))
             const bench = CTR_BENCHMARKS[pos]
             if (!bench) return false
-            const actualCtr = parseFloat(k.ctr) / 100
+            const actualCtr = parseFloat(k.ctrPct) / 100
             return actualCtr < bench * 0.5 && k.impressions >= 50
           })
           .sort((a, b) => b.impressions - a.impressions)
@@ -288,12 +288,12 @@ export default async function KeywordsPage({
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
               {underperforming.map(k => {
-                const bench = CTR_BENCHMARKS[Math.round(k.position ?? 1)] ?? 0.05
+                const bench = CTR_BENCHMARKS[Math.round(parseFloat(k.positionAvg))] ?? 0.05
                 return (
-                  <div key={k.query} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px" }}>
-                    <span style={{ fontWeight: 600, color: "var(--foreground-2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{k.query}</span>
-                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--foreground-3)", flexShrink: 0 }}>#{k.position?.toFixed(1)} pos</span>
-                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--destructive)", flexShrink: 0 }}>{(parseFloat(k.ctr)).toFixed(1)}% CTR</span>
+                  <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px" }}>
+                    <span style={{ fontWeight: 600, color: "var(--foreground-2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{k.keyword}</span>
+                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--foreground-3)", flexShrink: 0 }}>#{parseFloat(k.positionAvg).toFixed(1)} pos</span>
+                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--destructive)", flexShrink: 0 }}>{parseFloat(k.ctrPct).toFixed(1)}% CTR</span>
                     <span style={{ fontFamily: "var(--font-mono)", color: "oklch(0.70 0.12 270)", flexShrink: 0 }}>vs {(bench * 100).toFixed(0)}% avg</span>
                   </div>
                 )
@@ -342,7 +342,7 @@ export default async function KeywordsPage({
             const transPrefixes = ["buy", "price", "cost", "cheap", "best", "review", "hire", "service", "near me", "order", "discount", "deal", "promo"]
             let info = 0, trans = 0, nav = 0
             for (const kw of allKeywords) {
-              const q = kw.query.toLowerCase()
+              const q = kw.keyword.toLowerCase()
               if (transPrefixes.some(p => q.includes(p))) trans++
               else if (infoPrefixes.some(p => q.startsWith(p) || q.includes(` ${p} `))) info++
               else nav++
@@ -419,14 +419,14 @@ export default async function KeywordsPage({
               </thead>
               <tbody>
                 {paginated.map((kw, i) => {
-                  const pos = parseFloat(kw.position)
+                  const pos = parseFloat(kw.positionAvg)
                   const change = kw.positionChange
                   return (
                     <tr key={kw.id} style={{ borderBottom: i < paginated.length - 1 ? "1px solid oklch(0.98 0 0 / 0.04)" : "none" }}>
                       <td style={{ padding: "10px 20px", fontSize: "13px", color: "var(--foreground)", maxWidth: "300px" }}>
-                        <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{kw.query}</div>
+                        <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{kw.keyword}</div>
                       </td>
-                      <td style={{ padding: "10px 20px", fontSize: "13px", textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 700, color: posColor(kw.position) }}>
+                      <td style={{ padding: "10px 20px", fontSize: "13px", textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 700, color: posColor(kw.positionAvg) }}>
                         <span style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "6px" }}>
                           {pos.toFixed(1)}
                           {pos <= 10 && (
@@ -461,13 +461,13 @@ export default async function KeywordsPage({
                       </td>
                       <td style={{ padding: "10px 20px", fontSize: "12px", textAlign: "right" }}>
                         {(() => {
-                          const actualCtr = parseFloat(kw.ctr)
-                          const pos = kw.position ?? 0
+                          const ctrPct = parseFloat(kw.ctrPct)
+                          const actualCtrRatio = ctrPct / 100
                           const benchmark = pos <= 1 ? 0.28 : pos <= 2 ? 0.15 : pos <= 3 ? 0.11 : pos <= 4 ? 0.08 : pos <= 5 ? 0.07 : pos <= 10 ? 0.04 : 0.015
-                          const isAbove = actualCtr >= benchmark
+                          const isAbove = actualCtrRatio >= benchmark
                           return (
-                            <span title={`Industry avg at pos ${pos?.toFixed(0)}: ${(benchmark * 100).toFixed(1)}%`} style={{ color: isAbove ? "var(--success)" : "var(--foreground-3)" }}>
-                              {(actualCtr * 100).toFixed(1)}%
+                            <span title={`Industry avg at pos ${pos.toFixed(0)}: ${(benchmark * 100).toFixed(1)}%`} style={{ color: isAbove ? "var(--success)" : "var(--foreground-3)" }}>
+                              {ctrPct.toFixed(1)}%
                               {pos > 0 && <span style={{ fontSize: "9px", marginLeft: "3px" }}>{isAbove ? "↑" : "↓"}</span>}
                             </span>
                           )
@@ -480,7 +480,6 @@ export default async function KeywordsPage({
                       </td>
                       <td style={{ padding: "10px 20px", fontSize: "11px", textAlign: "right" }}>
                         {(() => {
-                          const pos = typeof kw.position === "number" ? kw.position : parseFloat(String(kw.position))
                           const oppScore = kw.impressions > 0 && pos > 0 ? Math.round(Math.min(100, (kw.impressions / Math.max(kw.clicks, 1)) * (pos / 10) * 10)) : 0
                           const oppColor = oppScore >= 70 ? "var(--success)" : oppScore >= 40 ? "var(--warning)" : "var(--foreground-3)"
                           return <span style={{ color: oppColor, fontWeight: oppScore >= 70 ? 700 : 400 }} title="Opportunity score: high impressions + poor CTR = high potential">{oppScore > 0 ? oppScore : "—"}</span>

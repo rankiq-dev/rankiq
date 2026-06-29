@@ -206,7 +206,8 @@ export default async function DashboardPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
             {(() => {
               const needsReview = latestAudits
-                .map((a, i) => ({ site: sites[i], score: a?.healthScore }))
+                .map((a, i) => ({ site: sites[i]!, score: a?.healthScore }))
+                .filter(d => d.site != null)
                 .filter(d => d.score != null && d.score < 60)
                 .sort((a, b) => (a.score ?? 100) - (b.score ?? 100))
                 .slice(0, 3)

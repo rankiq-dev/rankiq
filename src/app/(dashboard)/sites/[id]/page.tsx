@@ -53,7 +53,7 @@ export default async function SitePage({
   const authUrl = site.gscConnected ? null : getGscAuthUrl(id, session.user.id)
 
   const latestScore = latestAudit?.healthScore ?? null
-  const prevScore = completedAudits.length >= 2 ? completedAudits[completedAudits.length - 2].healthScore : null
+  const prevScore = completedAudits.length >= 2 ? (completedAudits[completedAudits.length - 2]?.healthScore ?? null) : null
   const trend = latestScore != null && prevScore != null ? latestScore - prevScore : null
 
   // Keyword drops: keywords that fell 5+ positions
@@ -426,10 +426,10 @@ export default async function SitePage({
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
             {keywordDrops.map(k => (
-              <div key={k.query} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px" }}>
-                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground)", fontFamily: "var(--font-mono)" }}>{k.query}</span>
+              <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px" }}>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground)", fontFamily: "var(--font-mono)" }}>{k.keyword}</span>
                 <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>was #{parseFloat(k.prevPosition ?? "0").toFixed(1)} →</span>
-                <span style={{ color: "var(--warning)", fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>#{parseFloat(k.position).toFixed(1)}</span>
+                <span style={{ color: "var(--warning)", fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>#{parseFloat(k.positionAvg).toFixed(1)}</span>
                 <span style={{ color: "var(--destructive)", fontWeight: 700, fontSize: "11px", flexShrink: 0 }}>↓ {Math.abs(k.positionChange ?? 0)}</span>
               </div>
             ))}
@@ -451,10 +451,10 @@ export default async function SitePage({
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
             {keywordGains.map(k => (
-              <div key={k.query} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px" }}>
-                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground)", fontFamily: "var(--font-mono)" }}>{k.query}</span>
+              <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "12px" }}>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground)", fontFamily: "var(--font-mono)" }}>{k.keyword}</span>
                 <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>was #{parseFloat(k.prevPosition ?? "0").toFixed(1)} →</span>
-                <span style={{ color: "var(--success)", fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>#{parseFloat(k.position).toFixed(1)}</span>
+                <span style={{ color: "var(--success)", fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>#{parseFloat(k.positionAvg).toFixed(1)}</span>
                 <span style={{ color: "var(--success)", fontWeight: 700, fontSize: "11px", flexShrink: 0 }}>↑ {Math.abs(k.positionChange ?? 0)}</span>
               </div>
             ))}

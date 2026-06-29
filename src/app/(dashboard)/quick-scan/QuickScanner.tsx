@@ -92,7 +92,7 @@ export function QuickScanner() {
             fontFamily: "var(--font-mono), monospace", outline: "none",
           }}
         />
-        <button onClick={scan} disabled={loading || !url.trim()} style={{
+        <button onClick={() => scan()} disabled={loading || !url.trim()} style={{
           padding: "11px 24px", fontSize: "13px", fontWeight: 700,
           background: "linear-gradient(135deg, var(--primary), var(--primary-2))",
           color: "var(--primary-foreground)", border: "none", borderRadius: "var(--radius-md)",
