@@ -55,6 +55,8 @@ export default async function SitePage({
   const latestScore = latestAudit?.healthScore ?? null
   const prevScore = completedAudits.length >= 2 ? (completedAudits[completedAudits.length - 2]?.healthScore ?? null) : null
   const trend = latestScore != null && prevScore != null ? latestScore - prevScore : null
+  const firstAuditDate = completedAudits.length > 0 ? completedAudits[0]?.completedAt : null
+  const monitoringDays = firstAuditDate ? Math.floor((Date.now() - new Date(firstAuditDate).getTime()) / 86400000) : null
 
   // Keyword velocity: count of keywords that improved vs declined
   const improvedCount = keywords.filter(k => (k.positionChange ?? 0) > 0).length
@@ -250,6 +252,7 @@ export default async function SitePage({
           </div>
           <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
             <StatPill label="Audits Run" value={`${completedAudits.length}`} />
+            {monitoringDays != null && monitoringDays > 0 && <StatPill label="Monitoring since" value={monitoringDays >= 30 ? `${Math.floor(monitoringDays / 30)}mo` : `${monitoringDays}d`} />}
             <StatPill label="Pages (latest)" value={`${latestAudit?.pagesCount ?? 0}`} />
             <StatPill label="Keywords" value={`${keywords.length}`} />
             {keywords.length > 0 && (() => {
