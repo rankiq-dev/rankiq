@@ -333,12 +333,10 @@ export default async function SitePage({
                 <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--success)" }}>Connected</span>
               </div>
               <p style={{ fontSize: "12px", color: "var(--foreground-3)", lineHeight: 1.65, marginBottom: "14px" }}>
-                Keyword ranking data from the last 28 days is synced and shown below.
-                {keywords.length > 0 && keywords[0]?.dateRangeEnd && (
-                  <span style={{ marginLeft: "6px", fontSize: "11px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)" }}>
-                    · data through {new Date(keywords[0].dateRangeEnd).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  </span>
-                )}
+                {keywords.length > 0
+                  ? <>Keyword ranking data from the last 28 days is synced and shown below.{keywords[0]?.dateRangeEnd && <span style={{ marginLeft: "6px", fontSize: "11px", color: "var(--foreground-3)", fontFamily: "var(--font-mono)" }}>· data through {new Date(keywords[0].dateRangeEnd).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>}</>
+                  : "GSC is connected — keyword data will appear here once we've synced your Search Console data."
+                }
               </p>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                 <Link href={`/sites/${id}/keywords`} style={{

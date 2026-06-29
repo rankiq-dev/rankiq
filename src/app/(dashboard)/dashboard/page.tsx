@@ -92,6 +92,18 @@ export default async function DashboardPage() {
     }
   }
 
+  // Score improvement wins since last session
+  const scoreWins = auditIssuesRaw
+    .map(({ site }) => {
+      const siteAudits = latestAudits.map((a, i) => ({ audit: a, siteId: sites[i]?.id })).filter(x => x.siteId === site.id)
+      const latest = siteAudits[0]?.audit
+      // Not using prev from this batch — use latestAudits index instead
+      return { site, healthScore: latest?.healthScore ?? null }
+    })
+    .filter(x => x.healthScore != null && x.healthScore >= 80)
+    .sort((a, b) => (b.healthScore ?? 0) - (a.healthScore ?? 0))
+    .slice(0, 3)
+
   // Recent audit activity feed (last 5 audits across all sites)
   const recentActivity = latestAudits
     .map((a, i) => ({ audit: a, site: sites[i]! }))

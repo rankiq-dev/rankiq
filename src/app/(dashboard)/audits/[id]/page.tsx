@@ -480,6 +480,31 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* Broken internal links quick list */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const brokenPages = pageAnalyses
+          .filter(p => (p.issueTypes ?? []).includes("broken_internal_link") && !p.isNoindex)
+          .slice(0, 8)
+        if (brokenPages.length === 0) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.05 27 / 0.2)", border: "1px solid oklch(0.65 0.20 27 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              Pages with broken internal links
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {brokenPages.map(p => (
+                <div key={p.url} style={{ fontSize: "11px", color: "var(--foreground-2)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}
+                </div>
+              ))}
+              {pageAnalyses.filter(p => (p.issueTypes ?? []).includes("broken_internal_link")).length > 8 && (
+                <div style={{ fontSize: "10px", color: "var(--foreground-3)" }}>+{pageAnalyses.filter(p => (p.issueTypes ?? []).includes("broken_internal_link")).length - 8} more pages</div>
+              )}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Meta description quality breakdown */}
       {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
         const indexable = pageAnalyses.filter(p => !p.isNoindex)
