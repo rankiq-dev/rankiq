@@ -183,6 +183,42 @@ export default async function KeywordsPage({
         </div>
       )}
 
+      {/* CTR by position bucket */}
+      {allKeywords.length >= 10 && (() => {
+        const buckets = [
+          { label: "#1", min: 1, max: 1, bench: 28 },
+          { label: "#2–3", min: 2, max: 3, bench: 15 },
+          { label: "#4–5", min: 4, max: 5, bench: 9 },
+          { label: "#6–10", min: 6, max: 10, bench: 5 },
+        ]
+        const rows = buckets.map(b => {
+          const kws = allKeywords.filter(k => { const p = parseFloat(k.positionAvg); return p >= b.min && p <= b.max })
+          if (kws.length === 0) return null
+          const avgCtr = kws.reduce((s, k) => s + parseFloat(k.ctrPct), 0) / kws.length
+          const diff = avgCtr - b.bench
+          return { label: b.label, avgCtr, bench: b.bench, diff, count: kws.length }
+        }).filter(Boolean)
+        if (rows.length < 2) return null
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+              CTR vs expected by position
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              {rows.map(r => !r ? null : (
+                <div key={r.label} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                  <span style={{ width: "48px", fontWeight: 700, color: "var(--foreground-3)", flexShrink: 0 }}>{r.label}</span>
+                  <span style={{ color: "var(--foreground-2)", flexShrink: 0 }}>{r.avgCtr.toFixed(1)}% actual</span>
+                  <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>vs {r.bench}% avg</span>
+                  <span style={{ color: r.diff >= 0 ? "var(--success)" : "var(--destructive)", fontWeight: 700, flexShrink: 0, fontFamily: "var(--font-mono)" }}>{r.diff >= 0 ? "+" : ""}{r.diff.toFixed(1)}%</span>
+                  <span style={{ color: "var(--foreground-3)", fontSize: "10px", marginLeft: "auto", flexShrink: 0 }}>{r.count} kw</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Keyword movers summary */}
       {allKeywords.some(k => k.positionChange != null) && (() => {
         const gainers = allKeywords.filter(k => (k.positionChange ?? 0) > 3).sort((a, b) => (b.positionChange ?? 0) - (a.positionChange ?? 0)).slice(0, 3)
