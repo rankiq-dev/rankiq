@@ -467,6 +467,30 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* Content pillars — richest pages */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const rich = pageAnalyses.filter(p => !p.isNoindex && (p.wordCount ?? 0) >= 800)
+          .sort((a, b) => (b.wordCount ?? 0) - (a.wordCount ?? 0))
+          .slice(0, 5)
+        if (rich.length < 3) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.06 155 / 0.1)", border: "1px solid oklch(0.68 0.16 155 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+              Content pillars — top {rich.length} richest pages
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {rich.map(p => (
+                <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}</span>
+                  <span style={{ color: "var(--success)", fontWeight: 700, flexShrink: 0 }}>{(p.wordCount ?? 0).toLocaleString()}w</span>
+                  <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>score {p.onPageScore}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Missing canonicals list */}
       {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
         const noCanonical = pageAnalyses.filter(p => !p.hasCanonical && !p.isNoindex).slice(0, 8)
