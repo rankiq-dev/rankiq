@@ -182,6 +182,39 @@ export default async function KeywordsPage({
         </div>
       )}
 
+      {/* Keyword movers summary */}
+      {allKeywords.some(k => k.positionChange != null) && (() => {
+        const gainers = allKeywords.filter(k => (k.positionChange ?? 0) > 3).sort((a, b) => (b.positionChange ?? 0) - (a.positionChange ?? 0)).slice(0, 3)
+        const losers = allKeywords.filter(k => (k.positionChange ?? 0) < -3).sort((a, b) => (a.positionChange ?? 0) - (b.positionChange ?? 0)).slice(0, 3)
+        if (gainers.length === 0 && losers.length === 0) return null
+        return (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
+            {gainers.length > 0 && (
+              <div style={{ background: "oklch(0.14 0.07 155 / 0.25)", border: "1px solid oklch(0.68 0.16 155 / 0.2)", borderRadius: "var(--radius-xl)", padding: "12px 16px" }}>
+                <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>↑ Top movers</div>
+                {gainers.map(k => (
+                  <div key={k.keyword} style={{ fontSize: "11px", color: "var(--foreground-2)", display: "flex", justifyContent: "space-between", gap: "8px", marginBottom: "3px" }}>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{k.keyword}</span>
+                    <span style={{ color: "var(--success)", fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>+{k.positionChange}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {losers.length > 0 && (
+              <div style={{ background: "oklch(0.14 0.05 27 / 0.25)", border: "1px solid oklch(0.65 0.20 27 / 0.2)", borderRadius: "var(--radius-xl)", padding: "12px 16px" }}>
+                <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>↓ Top drops</div>
+                {losers.map(k => (
+                  <div key={k.keyword} style={{ fontSize: "11px", color: "var(--foreground-2)", display: "flex", justifyContent: "space-between", gap: "8px", marginBottom: "3px" }}>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{k.keyword}</span>
+                    <span style={{ color: "var(--destructive)", fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>{k.positionChange}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
       {/* Position distribution bar */}
       {allKeywords.length > 0 && (() => {
         const buckets = [

@@ -1460,6 +1460,13 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter, so
   }
 
   const QUICK_WIN_TYPES = new Set(["missing_title_tag","missing_h1","missing_meta_description","title_too_long","title_too_short","meta_description_too_long","no_canonical_tag","noindex_page","robots_noindex"])
+
+  // Celebrate fixed issues when some (not all) are fixed
+  const recentlyFixed = issues.filter(i => i.isFixed).sort((a, b) => {
+    if (!a.fixedAt && !b.fixedAt) return 0
+    return new Date(b.fixedAt ?? 0).getTime() - new Date(a.fixedAt ?? 0).getTime()
+  }).slice(0, 3)
+
   const filtered = issues.filter(i =>
     (!sevFilter || i.severity === sevFilter) &&
     (!catFilter || i.category === catFilter) &&
@@ -1536,6 +1543,15 @@ function IssuesSection({ issues, auditId, sevFilter, catFilter, statusFilter, so
           <BulkFixButton auditId={auditId} totalCount={issues.length} fixedCount={issues.filter(i => i.isFixed).length} />
         </div>
       </div>
+      {/* Fixed issues celebration banner */}
+      {!statusFilter && recentlyFixed.length > 0 && fixedCount < issues.length && (
+        <div style={{ background: "oklch(0.14 0.05 155 / 0.2)", border: "1px solid oklch(0.68 0.16 155 / 0.25)", borderRadius: "var(--radius-lg)", padding: "10px 16px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "10px", fontSize: "12px" }}>
+          <span style={{ fontSize: "16px", flexShrink: 0 }}>✓</span>
+          <span style={{ color: "var(--success)", fontWeight: 700 }}>{fixedCount} issue{fixedCount !== 1 ? "s" : ""} fixed</span>
+          <span style={{ color: "var(--foreground-3)" }}>— {recentlyFixed.map(i => i.title).join(", ")}{recentlyFixed.length < fixedCount ? ` +${fixedCount - recentlyFixed.length} more` : ""}</span>
+        </div>
+      )}
+
       {/* Quick wins callout — show when not already filtered */}
       {!statusFilter && !sevFilter && !catFilter && (() => {
         const quickWins = issues.filter(i => !i.isFixed && QUICK_WIN_TYPES.has(i.type))
