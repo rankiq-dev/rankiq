@@ -47,6 +47,7 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
     : 0
   const totalPagesCrawled = siteData.reduce((s, d) => s + (d.audit?.pagesCount ?? 0), 0)
   const avgIssuesPerSite = siteData.length > 0 ? Math.round(siteData.reduce((s, d) => s + d.issueCount, 0) / siteData.length) : 0
+  const totalCriticalIssues = siteData.reduce((s, d) => s + d.criticalCount, 0)
   const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
   const staleSites = siteData.filter(d => d.audit?.completedAt == null || new Date(d.audit.completedAt) < fourteenDaysAgo)
 
@@ -142,6 +143,7 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
           color="var(--warning)" glow="oklch(0.80 0.15 75 / 0.35)" icon={<IssueIcon />} />
         {totalPagesCrawled > 0 && <KpiCard label="Pages Crawled" value={totalPagesCrawled > 999 ? `${(totalPagesCrawled / 1000).toFixed(1)}K` : `${totalPagesCrawled}`} unit="total" color="var(--foreground-2)" />}
         {avgIssuesPerSite > 0 && <KpiCard label="Avg Issues / Site" value={`${avgIssuesPerSite}`} unit="issues" color="var(--foreground-2)" />}
+        {totalCriticalIssues > 0 && <KpiCard label="Total Critical" value={`${totalCriticalIssues}`} unit="across all" color="var(--destructive)" glow="oklch(0.65 0.20 27 / 0.3)" />}
       </div>
 
       {/* Health Distribution Bar */}
