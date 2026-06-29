@@ -47,6 +47,8 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
     : 0
   const totalPagesCrawled = siteData.reduce((s, d) => s + (d.audit?.pagesCount ?? 0), 0)
   const avgIssuesPerSite = siteData.length > 0 ? Math.round(siteData.reduce((s, d) => s + d.issueCount, 0) / siteData.length) : 0
+  const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
+  const staleSites = siteData.filter(d => d.audit?.completedAt == null || new Date(d.audit.completedAt) < fourteenDaysAgo)
 
   return (
     <div style={{ padding: "32px 40px", maxWidth: "1200px", minHeight: "100vh" }}>
@@ -103,6 +105,18 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
           </div>
         </div>
       </div>
+
+      {/* Stale audits callout */}
+      {staleSites.length > 0 && staleSites.length < totalSites && (
+        <div style={{ background: "oklch(0.14 0.05 50 / 0.2)", border: "1px solid oklch(0.70 0.15 50 / 0.25)", borderRadius: "var(--radius-lg)", padding: "10px 18px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "12px", fontSize: "12px" }}>
+          <span style={{ fontSize: "16px", flexShrink: 0 }}>⏰</span>
+          <span style={{ color: "var(--foreground-2)", flex: 1 }}>
+            <strong style={{ color: "var(--warning)" }}>{staleSites.length} site{staleSites.length !== 1 ? "s" : ""}</strong> haven&apos;t been audited in 14+ days:{" "}
+            {staleSites.slice(0, 3).map(d => d.site.displayName ?? d.site.domain).join(", ")}{staleSites.length > 3 ? ` +${staleSites.length - 3} more` : ""}
+          </span>
+          <span style={{ fontSize: "10px", color: "var(--foreground-3)", flexShrink: 0 }}>Schedule or run a new audit</span>
+        </div>
+      )}
 
       {/* GSC gap callout */}
       {noGscSites.length > 0 && noGscSites.length < totalSites && (
