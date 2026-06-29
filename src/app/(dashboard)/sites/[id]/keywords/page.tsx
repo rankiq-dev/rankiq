@@ -355,6 +355,41 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* Brand vs non-brand split */}
+      {allKeywords.length >= 5 && (() => {
+        const domainName = site.domain.replace(/^www\./, "").split(".")[0]?.toLowerCase() ?? ""
+        if (!domainName) return null
+        const branded = allKeywords.filter(k => k.keyword.toLowerCase().includes(domainName))
+        const nonBranded = allKeywords.filter(k => !k.keyword.toLowerCase().includes(domainName))
+        if (branded.length === 0) return null
+        const brandedClicks = branded.reduce((s, k) => s + k.clicks, 0)
+        const nonBrandedClicks = nonBranded.reduce((s, k) => s + k.clicks, 0)
+        const total = brandedClicks + nonBrandedClicks
+        if (total === 0) return null
+        const brandedPct = Math.round(brandedClicks / total * 100)
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              Brand vs non-brand traffic split
+            </div>
+            <div style={{ display: "flex", height: "6px", borderRadius: "3px", overflow: "hidden", marginBottom: "8px" }}>
+              <div style={{ flex: brandedPct, background: "var(--primary-2)", minWidth: brandedPct > 0 ? "4px" : 0 }} />
+              <div style={{ flex: 100 - brandedPct, background: "var(--success)", minWidth: (100 - brandedPct) > 0 ? "4px" : 0 }} />
+            </div>
+            <div style={{ display: "flex", gap: "20px", fontSize: "11px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ width: "8px", height: "8px", borderRadius: "2px", background: "var(--primary-2)", flexShrink: 0 }} />
+                <span style={{ color: "var(--foreground-2)" }}>Brand: <strong style={{ color: "var(--primary-2)" }}>{brandedPct}%</strong> · {branded.length} kw · {brandedClicks.toLocaleString()} clicks</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ width: "8px", height: "8px", borderRadius: "2px", background: "var(--success)", flexShrink: 0 }} />
+                <span style={{ color: "var(--foreground-2)" }}>Non-brand: <strong style={{ color: "var(--success)" }}>{100 - brandedPct}%</strong> · {nonBranded.length} kw · {nonBrandedClicks.toLocaleString()} clicks</span>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Keyword clusters — group keywords sharing the same first two words */}
       {allKeywords.length >= 10 && (() => {
         const clusters: Record<string, typeof allKeywords> = {}

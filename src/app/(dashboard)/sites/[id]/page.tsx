@@ -91,6 +91,14 @@ export default async function SitePage({
         .slice(0, 8)
     : []
 
+  // Top-scoring pages by on-page score
+  const topScoringPages = latestAudit?.pageAnalyses
+    ? (latestAudit.pageAnalyses as PageAnalysis[])
+        .filter(p => !p.isNoindex)
+        .sort((a, b) => b.onPageScore - a.onPageScore)
+        .slice(0, 5)
+    : []
+
   // HTTP mixed content check — detect pages served over HTTP
   const httpPages = latestAudit?.pageAnalyses
     ? (latestAudit.pageAnalyses as PageAnalysis[]).filter(p => p.url.startsWith("http://"))
@@ -464,6 +472,24 @@ export default async function SitePage({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Top-scoring pages */}
+      {topScoringPages.length >= 3 && (
+        <div style={{ background: "var(--glass-bg)", backdropFilter: "blur(20px)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "16px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+            ★ Best-optimised pages
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            {topScoringPages.map(p => (
+              <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}</span>
+                <span style={{ color: "var(--success)", fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>{p.onPageScore}/100</span>
+                <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{p.wordCount?.toLocaleString()}w</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
