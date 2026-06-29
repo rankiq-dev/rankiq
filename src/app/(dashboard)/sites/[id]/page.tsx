@@ -74,6 +74,13 @@ export default async function SitePage({
     .sort((a, b) => (b.positionChange ?? 0) - (a.positionChange ?? 0))
     .slice(0, 5)
 
+  // Keywords entering top 10 (prev > 10 and current <= 10)
+  const enteringTop10 = keywords.filter(k => {
+    const curr = parseFloat(k.positionAvg)
+    const prev = k.prevPosition != null ? parseFloat(k.prevPosition) : null
+    return curr <= 10 && prev != null && prev > 10
+  }).slice(0, 5)
+
   // Content pillars: high word count pages
   const contentPillars = latestAudit?.pageAnalyses
     ? (latestAudit.pageAnalyses as PageAnalysis[])
@@ -656,6 +663,24 @@ export default async function SitePage({
           </div>
           <div style={{ marginTop: "8px" }}>
             <a href={`/sites/${id}/keywords`} style={{ fontSize: "11px", color: "var(--primary-2)", textDecoration: "none" }}>View all keywords →</a>
+          </div>
+        </div>
+      )}
+
+      {/* Keywords entering top 10 */}
+      {enteringTop10.length > 0 && (
+        <div style={{ background: "oklch(0.14 0.05 155 / 0.2)", border: "1px solid oklch(0.68 0.16 155 / 0.25)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+            🎯 {enteringTop10.length} keyword{enteringTop10.length > 1 ? "s" : ""} entered the top 10
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            {enteringTop10.map(k => (
+              <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)" }}>{k.keyword}</span>
+                <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>was #{parseFloat(k.prevPosition!).toFixed(0)}</span>
+                <span style={{ color: "var(--success)", fontWeight: 700, flexShrink: 0 }}>→ #{parseFloat(k.positionAvg).toFixed(0)}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
