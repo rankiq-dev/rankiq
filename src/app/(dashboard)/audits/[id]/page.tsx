@@ -431,6 +431,55 @@ export default async function AuditPage({
         )
       })()}
 
+      {/* Thin content pages list */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const thinPages = pageAnalyses
+          .filter(p => (p.wordCount ?? 0) > 0 && (p.wordCount ?? 0) < 300 && !p.isNoindex)
+          .sort((a, b) => (a.wordCount ?? 0) - (b.wordCount ?? 0))
+          .slice(0, 8)
+        if (thinPages.length < 2) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.05 50 / 0.2)", border: "1px solid oklch(0.70 0.15 50 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "oklch(0.78 0.13 50)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+              Thin content pages — fewer than 300 words (top {thinPages.length})
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {thinPages.map(p => (
+                <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "")}</span>
+                  <span style={{ color: "oklch(0.78 0.13 50)", fontWeight: 700, flexShrink: 0 }}>{p.wordCount ?? 0}w</span>
+                  <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>score {p.onPageScore}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Missing canonicals list */}
+      {pageAnalyses.length > 0 && audit.status === "complete" && (() => {
+        const noCanonical = pageAnalyses.filter(p => !p.hasCanonical && !p.isNoindex).slice(0, 8)
+        if (noCanonical.length < 2) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.04 270 / 0.15)", border: "1px solid oklch(0.60 0.10 270 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "oklch(0.70 0.12 270)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+              Missing canonical tags — {pageAnalyses.filter(p => !p.hasCanonical && !p.isNoindex).length} pages
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {noCanonical.map(p => (
+                <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "")}</span>
+                  <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>score {p.onPageScore}</span>
+                </div>
+              ))}
+              {pageAnalyses.filter(p => !p.hasCanonical && !p.isNoindex).length > 8 && (
+                <span style={{ fontSize: "10px", color: "var(--foreground-3)" }}>+{pageAnalyses.filter(p => !p.hasCanonical && !p.isNoindex).length - 8} more</span>
+              )}
+            </div>
+          </div>
+        )
+      })()}
+
       {audit.status === "queued" || audit.status === "running" ? (
         <RunningState status={audit.status} />
       ) : (

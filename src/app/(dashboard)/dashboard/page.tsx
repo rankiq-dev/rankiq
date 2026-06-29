@@ -179,6 +179,25 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* Low-score sites needing attention */}
+      {(() => {
+        const lowScoreSites = latestAudits
+          .map((a, i) => ({ audit: a, site: sites[i]! }))
+          .filter(x => x.audit?.status === "complete" && (x.audit.healthScore ?? 100) < 50)
+          .sort((a, b) => (a.audit!.healthScore ?? 0) - (b.audit!.healthScore ?? 0))
+          .slice(0, 3)
+        if (lowScoreSites.length === 0) return null
+        return (
+          <div style={{ background: "oklch(0.14 0.05 27 / 0.4)", border: "1px solid oklch(0.65 0.20 27 / 0.3)", borderRadius: "var(--radius-lg)", padding: "10px 16px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px", fontSize: "12px" }}>
+            <span style={{ color: "var(--destructive)", fontSize: "14px", flexShrink: 0 }}>🔴</span>
+            <span style={{ color: "var(--foreground-2)", flex: 1 }}>
+              <strong style={{ color: "var(--destructive)" }}>{lowScoreSites.length} site{lowScoreSites.length !== 1 ? "s" : ""} need attention</strong>{" — "}
+              {lowScoreSites.map(x => `${x.site.displayName ?? x.site.domain} (${x.audit!.healthScore})`).join(", ")}
+            </span>
+          </div>
+        )
+      })()}
+
       {/* KPI strip */}
       {sites.length > 0 && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "12px", marginBottom: "32px" }}>
