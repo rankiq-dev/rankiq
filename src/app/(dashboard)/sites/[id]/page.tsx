@@ -134,6 +134,17 @@ export default async function SitePage({
       })()
     : null
 
+  // Quick wins from pageAnalyses
+  const quickWinCount = latestAudit?.pageAnalyses
+    ? (() => {
+        const pa = latestAudit.pageAnalyses as PageAnalysis[]
+        const noTitle = pa.filter(p => !p.isNoindex && !p.title).length
+        const noH1 = pa.filter(p => !p.isNoindex && !p.h1Text).length
+        const noCanon = pa.filter(p => !p.isNoindex && !p.hasCanonical).length
+        return noTitle + noH1 + noCanon
+      })()
+    : null
+
   // Schema coverage
   const schemaCovPct = latestAudit?.pageAnalyses
     ? (() => {
@@ -332,6 +343,7 @@ export default async function SitePage({
             {internalLinkingScore != null && <StatPill label="Link equity" value={`${internalLinkingScore}/100`} />}
             {avgPage1Ctr > 0 && <StatPill label="Avg p1 CTR" value={`${avgPage1Ctr.toFixed(1)}%`} />}
             {schemaCovPct != null && <StatPill label="Schema cov." value={`${schemaCovPct}%`} />}
+            {quickWinCount != null && quickWinCount > 0 && <StatPill label="Quick wins" value={`${quickWinCount}`} />}
           </div>
         </div>
       )}
