@@ -111,6 +111,19 @@ export default async function SitePage({
       })()
     : null
 
+  // Page score distribution
+  const pageScoreBuckets = latestAudit?.pageAnalyses
+    ? (() => {
+        const pages = (latestAudit.pageAnalyses as PageAnalysis[]).filter(p => !p.isNoindex)
+        return [
+          { label: "Poor (<50)", count: pages.filter(p => p.onPageScore < 50).length, color: "var(--destructive)" },
+          { label: "Fair (50–74)", count: pages.filter(p => p.onPageScore >= 50 && p.onPageScore < 75).length, color: "var(--warning)" },
+          { label: "Good (75–89)", count: pages.filter(p => p.onPageScore >= 75 && p.onPageScore < 90).length, color: "var(--primary-2)" },
+          { label: "Excellent (90+)", count: pages.filter(p => p.onPageScore >= 90).length, color: "var(--success)" },
+        ]
+      })()
+    : null
+
   // Top-scoring pages by on-page score
   const topScoringPages = latestAudit?.pageAnalyses
     ? (latestAudit.pageAnalyses as PageAnalysis[])
@@ -519,6 +532,32 @@ export default async function SitePage({
             </div>
             <div style={{ display: "flex", gap: "12px", fontSize: "10px" }}>
               {crawlDepthBuckets.filter(b => b.count > 0).map(b => (
+                <div key={b.label} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <div style={{ width: "6px", height: "6px", borderRadius: "1px", background: b.color, flexShrink: 0 }} />
+                  <span style={{ color: "var(--foreground-3)" }}>{b.label}: <strong style={{ color: b.color }}>{b.count}</strong></span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Page score distribution */}
+      {pageScoreBuckets && pageScoreBuckets.some(b => b.count > 0) && (() => {
+        const total = pageScoreBuckets.reduce((s, b) => s + b.count, 0)
+        if (total === 0) return null
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+              Page on-page score distribution
+            </div>
+            <div style={{ display: "flex", height: "6px", borderRadius: "3px", overflow: "hidden", marginBottom: "8px" }}>
+              {pageScoreBuckets.map(b => b.count > 0 && (
+                <div key={b.label} style={{ flex: b.count, background: b.color, minWidth: "4px" }} title={`${b.label}: ${b.count}`} />
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "12px", fontSize: "10px" }}>
+              {pageScoreBuckets.filter(b => b.count > 0).map(b => (
                 <div key={b.label} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   <div style={{ width: "6px", height: "6px", borderRadius: "1px", background: b.color, flexShrink: 0 }} />
                   <span style={{ color: "var(--foreground-3)" }}>{b.label}: <strong style={{ color: b.color }}>{b.count}</strong></span>

@@ -46,6 +46,7 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
     ? Math.round(siteData.reduce((sum, d) => sum + (d.audit?.healthScore ?? 0), 0) / siteData.length)
     : 0
   const totalPagesCrawled = siteData.reduce((s, d) => s + (d.audit?.pagesCount ?? 0), 0)
+  const avgIssuesPerSite = siteData.length > 0 ? Math.round(siteData.reduce((s, d) => s + d.issueCount, 0) / siteData.length) : 0
 
   return (
     <div style={{ padding: "32px 40px", maxWidth: "1200px", minHeight: "100vh" }}>
@@ -126,6 +127,7 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
         <KpiCard label="Total Issues" value={`${siteData.reduce((s, d) => s + d.issueCount, 0)}`} unit="across all"
           color="var(--warning)" glow="oklch(0.80 0.15 75 / 0.35)" icon={<IssueIcon />} />
         {totalPagesCrawled > 0 && <KpiCard label="Pages Crawled" value={totalPagesCrawled > 999 ? `${(totalPagesCrawled / 1000).toFixed(1)}K` : `${totalPagesCrawled}`} unit="total" color="var(--foreground-2)" />}
+        {avgIssuesPerSite > 0 && <KpiCard label="Avg Issues / Site" value={`${avgIssuesPerSite}`} unit="issues" color="var(--foreground-2)" />}
       </div>
 
       {/* Health Distribution Bar */}
