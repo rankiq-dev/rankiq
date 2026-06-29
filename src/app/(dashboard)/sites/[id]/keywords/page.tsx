@@ -183,6 +183,30 @@ export default async function KeywordsPage({
         </div>
       )}
 
+      {/* Estimated total monthly search volume */}
+      {allKeywords.length >= 3 && (() => {
+        const totalKws = allKeywords.filter(k => parseFloat(k.ctrPct) > 0 && k.impressions > 10)
+        if (totalKws.length === 0) return null
+        const totalEstVolume = totalKws.reduce((s, k) => {
+          const ctr = parseFloat(k.ctrPct) / 100
+          return s + Math.round(k.impressions / Math.max(ctr, 0.01))
+        }, 0)
+        return (
+          <div style={{ background: "oklch(0.14 0.04 196 / 0.15)", border: "1px solid oklch(0.55 0.13 178 / 0.2)", borderRadius: "var(--radius-xl)", padding: "12px 18px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "16px" }}>
+            <div>
+              <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "2px" }}>Est. total monthly searches</div>
+              <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--primary-2)", fontFamily: "var(--font-mono)" }}>
+                {totalEstVolume > 1000000 ? `${Math.round(totalEstVolume / 1000000)}M` : totalEstVolume > 1000 ? `${Math.round(totalEstVolume / 1000)}K` : totalEstVolume.toLocaleString()}
+              </div>
+              <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "2px" }}>across {totalKws.length} tracked keywords</div>
+            </div>
+            <div style={{ fontSize: "11px", color: "var(--foreground-3)", flex: 1 }}>
+              Estimated from impressions ÷ CTR. Actual volumes may vary.
+            </div>
+          </div>
+        )
+      })()}
+
       {/* CTR by position bucket */}
       {allKeywords.length >= 10 && (() => {
         const buckets = [
