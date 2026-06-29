@@ -41,6 +41,7 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
     : baseFiltered
   const healthySites = siteData.filter(d => (d.audit?.healthScore ?? 0) >= 90).length
   const criticalSites = siteData.filter(d => d.criticalCount > 0).length
+  const noGscSites = siteData.filter(d => !d.site.gscConnected)
   const avgHealth = siteData.length > 0
     ? Math.round(siteData.reduce((sum, d) => sum + (d.audit?.healthScore ?? 0), 0) / siteData.length)
     : 0
@@ -100,6 +101,18 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
           </div>
         </div>
       </div>
+
+      {/* GSC gap callout */}
+      {noGscSites.length > 0 && noGscSites.length < totalSites && (
+        <div style={{ background: "oklch(0.14 0.04 270 / 0.25)", border: "1px solid oklch(0.60 0.10 270 / 0.3)", borderRadius: "var(--radius-lg)", padding: "10px 18px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "12px", fontSize: "12px" }}>
+          <span style={{ fontSize: "16px", flexShrink: 0 }}>🔌</span>
+          <span style={{ color: "var(--foreground-2)", flex: 1 }}>
+            <strong style={{ color: "oklch(0.70 0.12 270)" }}>{noGscSites.length} site{noGscSites.length !== 1 ? "s" : ""}</strong> have no Google Search Console data:{" "}
+            {noGscSites.slice(0, 3).map(d => d.site.displayName ?? d.site.domain).join(", ")}{noGscSites.length > 3 ? ` +${noGscSites.length - 3} more` : ""}
+          </span>
+          <span style={{ fontSize: "10px", color: "var(--foreground-3)", flexShrink: 0 }}>Connect GSC per site for keyword insights</span>
+        </div>
+      )}
 
       {/* Portfolio KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "32px" }}>

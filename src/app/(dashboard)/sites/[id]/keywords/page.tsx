@@ -388,6 +388,33 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* Traffic value estimate: clicks × position-based difficulty weight */}
+      {allKeywords.length >= 5 && (() => {
+        const totalClicks = allKeywords.reduce((s, k) => s + k.clicks, 0)
+        if (totalClicks === 0) return null
+        // Simple value proxy: clicks weighted by position (rank 1 = more competitive than rank 10)
+        const trafficValue = allKeywords.reduce((s, k) => {
+          const pos = parseFloat(k.positionAvg)
+          const difficulty = pos <= 3 ? 3 : pos <= 10 ? 2 : 1
+          return s + k.clicks * difficulty
+        }, 0)
+        const top1k = allKeywords.filter(k => parseFloat(k.positionAvg) <= 10).reduce((s, k) => s + k.clicks, 0)
+        return (
+          <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px", display: "flex", gap: "20px", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Traffic score</div>
+              <div style={{ fontSize: "22px", fontWeight: 800, color: "var(--primary-2)", fontFamily: "var(--font-mono)" }}>{trafficValue.toLocaleString()}</div>
+              <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "2px" }}>weighted by rank quality</div>
+            </div>
+            <div>
+              <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Page 1 clicks</div>
+              <div style={{ fontSize: "22px", fontWeight: 800, color: "var(--success)", fontFamily: "var(--font-mono)" }}>{top1k.toLocaleString()}</div>
+              <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "2px" }}>from top 10 positions</div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Zero-click keywords — high impressions but 0 clicks (answer boxes, etc.) */}
       {allKeywords.length >= 5 && (() => {
         const zeroClick = allKeywords
