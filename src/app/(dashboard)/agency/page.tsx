@@ -10,11 +10,11 @@ import { QuickAddSite } from "./QuickAddSite"
 
 export const metadata: Metadata = { title: "Agency Dashboard" }
 
-export default async function AgencyPage({ searchParams }: { searchParams: Promise<{ health?: string; sort?: string }> }) {
+export default async function AgencyPage({ searchParams }: { searchParams: Promise<{ health?: string; sort?: string; schedule?: string }> }) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const { health: healthFilter, sort: agencySort } = await searchParams
+  const { health: healthFilter, sort: agencySort, schedule: scheduleFilter } = await searchParams
   const sites = await getSitesByUser(session.user.id)
 
   const siteData = await Promise.all(
@@ -28,10 +28,13 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
   )
 
   const totalSites = sites.length
-  const baseFiltered = healthFilter === "critical" ? siteData.filter(d => (d.audit?.healthScore ?? 100) < 50)
-    : healthFilter === "warning" ? siteData.filter(d => { const s = d.audit?.healthScore ?? 100; return s >= 50 && s < 80 })
-    : healthFilter === "good" ? siteData.filter(d => (d.audit?.healthScore ?? 0) >= 80)
+  const scheduleFiltered = scheduleFilter === "scheduled" ? siteData.filter(d => d.site.auditSchedule && d.site.auditSchedule !== "off")
+    : scheduleFilter === "unscheduled" ? siteData.filter(d => !d.site.auditSchedule || d.site.auditSchedule === "off")
     : siteData
+  const baseFiltered = healthFilter === "critical" ? scheduleFiltered.filter(d => (d.audit?.healthScore ?? 100) < 50)
+    : healthFilter === "warning" ? scheduleFiltered.filter(d => { const s = d.audit?.healthScore ?? 100; return s >= 50 && s < 80 })
+    : healthFilter === "good" ? scheduleFiltered.filter(d => (d.audit?.healthScore ?? 0) >= 80)
+    : scheduleFiltered
   const filteredSiteData = agencySort === "worst" ? [...baseFiltered].sort((a, b) => (a.audit?.healthScore ?? 100) - (b.audit?.healthScore ?? 100))
     : agencySort === "best" ? [...baseFiltered].sort((a, b) => (b.audit?.healthScore ?? 0) - (a.audit?.healthScore ?? 0))
     : agencySort === "issues" ? [...baseFiltered].sort((a, b) => b.criticalCount - a.criticalCount)
@@ -263,6 +266,18 @@ export default async function AgencyPage({ searchParams }: { searchParams: Promi
                 borderRadius: "20px", textDecoration: "none",
                 color: agencySort === value ? "var(--primary-2)" : "var(--foreground-3)",
               }}>{label}</Link>
+            ))}
+          </div>
+
+          {/* Schedule filter */}
+          <div style={{ display: "flex", gap: "4px", marginBottom: "8px" }}>
+            {[
+              { label: "All", value: undefined },
+              { label: "⏱ Scheduled", value: "scheduled" },
+              { label: "Manual only", value: "unscheduled" },
+            ].map(({ label, value }) => (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              <Link key={label} href={value ? `/agency?schedule=${value}${healthFilter ? `&health=${healthFilter}` : ""}` : (healthFilter ? `/agency?health=${healthFilter}` : "/agency") as any} style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 600, background: scheduleFilter === value ? "var(--glass-bg)" : "transparent", border: `1px solid ${scheduleFilter === value ? "oklch(0.55 0.13 178 / 0.3)" : "var(--glass-border)"}`, borderRadius: "20px", textDecoration: "none", color: scheduleFilter === value ? "var(--primary-2)" : "var(--foreground-3)" }}>{label}</Link>
             ))}
           </div>
 

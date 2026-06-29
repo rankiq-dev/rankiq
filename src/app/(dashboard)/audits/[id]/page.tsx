@@ -689,6 +689,27 @@ export default async function AuditPage({
             <PageSpeedPanel siteId={audit.siteId} />
           </div>
 
+          {/* Quick top-5 "focus pages" list */}
+          {sortedPages.length >= 3 && (() => {
+            const focus = sortedPages.filter(p => !p.isNoindex && p.onPageScore < 70).slice(0, 5)
+            if (focus.length === 0) return null
+            return (
+              <div style={{ background: "oklch(0.14 0.05 27 / 0.15)", border: "1px solid oklch(0.65 0.20 27 / 0.2)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--destructive)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>
+                  Pages needing the most attention (score &lt;70)
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                  {focus.map(p => (
+                    <div key={p.url} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                      <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}</span>
+                      <span style={{ color: p.onPageScore < 40 ? "var(--destructive)" : "var(--warning)", fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>{p.onPageScore}/100</span>
+                      <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{p.wordCount?.toLocaleString() ?? 0}w</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
           {sortedPages.length > 0 && <PagesSection pages={sortedPages} auditId={id} />}
 
           {/* Internal linking opportunities */}
