@@ -97,6 +97,12 @@ export default async function SitePage({
         .slice(0, 5)
     : []
 
+  // Page 1 potential: keywords at position 11-20 with decent impressions
+  const page1PotentialKws = keywords
+    .filter(k => { const p = parseFloat(k.positionAvg); return p >= 11 && p <= 20 && k.impressions >= 15 })
+    .sort((a, b) => b.impressions - a.impressions)
+    .slice(0, 5)
+
   // Content gaps: keywords with high impressions but 0 clicks (missed opportunities)
   const contentGaps = keywords
     .filter(k => k.clicks === 0 && k.impressions >= 20)
@@ -669,6 +675,27 @@ export default async function SitePage({
           </div>
           <div style={{ marginTop: "8px" }}>
             <a href={`/sites/${id}/keywords`} style={{ fontSize: "11px", color: "var(--primary-2)", textDecoration: "none" }}>View all keywords →</a>
+          </div>
+        </div>
+      )}
+
+      {/* Page 1 potential */}
+      {page1PotentialKws.length >= 3 && (
+        <div style={{ background: "oklch(0.14 0.05 196 / 0.2)", border: "1px solid oklch(0.55 0.13 178 / 0.25)", borderRadius: "var(--radius-xl)", padding: "14px 18px", marginBottom: "16px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary-2)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+            🚀 Page 1 potential — {page1PotentialKws.length} keywords near the top 10
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            {page1PotentialKws.map(k => (
+              <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)" }}>{k.keyword}</span>
+                <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>pos #{parseFloat(k.positionAvg).toFixed(0)}</span>
+                <span style={{ color: "var(--primary-2)", fontWeight: 700, flexShrink: 0 }}>{k.impressions.toLocaleString()} impr</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: "10px", color: "var(--foreground-3)", marginTop: "8px" }}>
+            Strengthen these pages with more content and internal links to push to page 1
           </div>
         </div>
       )}
