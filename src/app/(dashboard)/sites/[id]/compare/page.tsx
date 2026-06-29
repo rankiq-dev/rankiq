@@ -148,6 +148,38 @@ export default async function AuditComparePage({
         </div>
       </div>
 
+      {/* Pages count comparison */}
+      {(auditA.pagesCount != null || auditB.pagesCount != null) && (() => {
+        const pA = auditA.pagesCount ?? 0
+        const pB = auditB.pagesCount ?? 0
+        const pDiff = pB - pA
+        return (
+          <div style={{
+            background: "var(--glass-bg)", backdropFilter: "blur(20px)",
+            border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)",
+            padding: "20px 28px", marginBottom: "16px",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}>
+            <div>
+              <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--primary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>Pages Crawled</div>
+              <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "20px", fontWeight: 700, color: "var(--foreground)" }}>{pA}</span>
+                <span style={{ fontSize: "12px", color: "var(--foreground-3)" }}>→</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "20px", fontWeight: 700, color: "var(--foreground)" }}>{pB}</span>
+              </div>
+            </div>
+            <div style={{
+              padding: "6px 14px", borderRadius: "20px",
+              background: pDiff > 0 ? "var(--success-bg)" : pDiff < 0 ? "var(--destructive-bg)" : "oklch(0.18 0.006 230)",
+              color: pDiff > 0 ? "var(--success)" : pDiff < 0 ? "var(--destructive)" : "var(--foreground-3)",
+              fontSize: "12px", fontWeight: 700,
+            }}>
+              {pDiff === 0 ? "No change" : pDiff > 0 ? `+${pDiff} pages` : `${pDiff} pages`}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Per-rule breakdown */}
       {allRules.length > 0 && (
         <div style={{

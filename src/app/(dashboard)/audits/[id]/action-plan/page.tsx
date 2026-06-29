@@ -13,21 +13,27 @@ export const metadata: Metadata = { title: "Action Plan" }
 
 export default async function ActionPlanPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ severity?: string }>
 }) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
   const { id } = await params
+  const { severity: severityFilter } = await searchParams
   const audit = await getAuditById(id)
   if (!audit) notFound()
 
   const site = await getSiteById(audit.siteId, session.user.id)
   if (!site) notFound()
 
-  const issues = await getIssuesByAudit(id, { limit: 20 })
-  const ranked = [...issues].sort((a, b) => {
+  const issues = await getIssuesByAudit(id, { limit: 100 })
+  const filtered = severityFilter && ["critical", "warning", "info"].includes(severityFilter)
+    ? issues.filter(i => i.severity === severityFilter)
+    : issues
+  const ranked = [...filtered].sort((a, b) => {
     if (a.revenueImpactRank == null && b.revenueImpactRank == null) return 0
     if (a.revenueImpactRank == null) return 1
     if (b.revenueImpactRank == null) return -1
@@ -210,6 +216,26 @@ export default async function ActionPlanPage({
           <div style={{ height: "4px", background: "var(--border)", borderRadius: "2px", overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${fixPct}%`, background: "linear-gradient(90deg, var(--primary), var(--success))", borderRadius: "2px", transition: "width 0.5s ease-out" }} />
           </div>
+        </div>
+      )}
+
+      {/* Severity filter tabs */}
+      {hasActionPlan && (
+        <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
+          {[
+            { label: "All", value: undefined },
+            { label: `Critical (${issues.filter(i => i.severity === "critical").length})`, value: "critical" },
+            { label: `Warning (${issues.filter(i => i.severity === "warning").length})`, value: "warning" },
+            { label: `Info (${issues.filter(i => i.severity === "info").length})`, value: "info" },
+          ].map(tab => (
+            <Link key={tab.label} href={tab.value ? `?severity=${tab.value}` : `?`} style={{
+              padding: "5px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, textDecoration: "none",
+              background: severityFilter === tab.value ? "var(--primary)" : "var(--glass-bg)",
+              color: severityFilter === tab.value ? "var(--primary-foreground)" : "var(--foreground-3)",
+              border: `1px solid ${severityFilter === tab.value ? "var(--primary)" : "var(--glass-border)"}`,
+              transition: "all 0.15s ease",
+            }}>{tab.label}</Link>
+          ))}
         </div>
       )}
 
