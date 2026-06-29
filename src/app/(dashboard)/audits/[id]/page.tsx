@@ -701,7 +701,41 @@ export default async function AuditPage({
               </div>
             )
           })()}
-          {/* Internal link count distribution */}
+          {/* Incoming internal links distribution (link equity) */}
+          {pageAnalyses.length > 0 && (() => {
+            const incomingBuckets = [
+              { label: "0 (orphan)", min: 0, max: 0, color: "var(--destructive)" },
+              { label: "1–2", min: 1, max: 2, color: "var(--warning)" },
+              { label: "3–8", min: 3, max: 8, color: "var(--primary-2)" },
+              { label: "9+", min: 9, max: Infinity, color: "var(--success)" },
+            ].map(b => ({
+              ...b,
+              count: pageAnalyses.filter(p => !p.isNoindex && (p.incomingInternalLinks ?? 0) >= b.min && (p.incomingInternalLinks ?? 0) <= b.max).length,
+            }))
+            const maxInc = Math.max(...incomingBuckets.map(b => b.count), 1)
+            return (
+              <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "16px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--foreground-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>
+                  Incoming internal links per page (link equity distribution)
+                </div>
+                <div style={{ display: "flex", gap: "8px", height: "50px", alignItems: "flex-end" }}>
+                  {incomingBuckets.map(b => (
+                    <div key={b.label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", height: "100%", justifyContent: "flex-end" }}>
+                      <div style={{ fontSize: "10px", fontWeight: 700, color: b.color, fontFamily: "var(--font-mono)" }}>{b.count}</div>
+                      <div style={{ width: "100%", height: `${Math.max((b.count / maxInc) * 36, b.count > 0 ? 4 : 0)}px`, background: b.color, borderRadius: "3px 3px 0 0", opacity: 0.8 }} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                  {incomingBuckets.map(b => (
+                    <div key={b.label} style={{ flex: 1, textAlign: "center", fontSize: "9px", color: "var(--foreground-3)" }}>{b.label}</div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Internal link count distribution (outgoing) */}
           {pageAnalyses.length > 0 && (() => {
             const buckets = [
               { label: "0 links", min: 0, max: 0, color: "var(--destructive)" },
