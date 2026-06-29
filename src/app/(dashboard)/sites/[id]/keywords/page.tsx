@@ -38,6 +38,12 @@ export default async function KeywordsPage({
   const pos1Count = allKeywords.filter(k => parseFloat(k.positionAvg) < 2).length
   const winRate = allKeywords.length > 0 ? Math.round(pos1Count / allKeywords.length * 100) : 0
 
+  // New keywords this period (no previous position data)
+  const newKeywords = allKeywords
+    .filter(k => k.prevPosition == null && parseFloat(k.positionAvg) <= 20)
+    .sort((a, b) => b.impressions - a.impressions)
+    .slice(0, 5)
+
   // Compute quick-win opportunities: position 4-20, impressions > 10
   const maxImpressions = Math.max(...allMetrics.map(m => m.impressions), 1)
   const opportunities = allMetrics
@@ -234,6 +240,24 @@ export default async function KeywordsPage({
           </div>
         )
       })()}
+
+      {/* New keywords this period */}
+      {newKeywords.length >= 2 && (
+        <div style={{ background: "oklch(0.14 0.06 155 / 0.15)", border: "1px solid oklch(0.68 0.16 155 / 0.25)", borderRadius: "var(--radius-xl)", padding: "12px 18px", marginBottom: "16px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+            ✨ {allKeywords.filter(k => k.prevPosition == null).length} new keywords detected this period
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+            {newKeywords.map(k => (
+              <div key={k.keyword} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)" }}>{k.keyword}</span>
+                <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>pos #{parseFloat(k.positionAvg).toFixed(0)}</span>
+                <span style={{ color: "var(--success)", flexShrink: 0 }}>{k.impressions.toLocaleString()} impr</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Position distribution histogram */}
       {allKeywords.length >= 5 && (() => {
