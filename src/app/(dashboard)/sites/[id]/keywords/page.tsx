@@ -367,6 +367,26 @@ export default async function KeywordsPage({
         )
       })()}
 
+      {/* #1 position keywords callout */}
+      {pos1Count >= 1 && (() => {
+        const number1s = allKeywords.filter(k => parseFloat(k.positionAvg) < 2).sort((a, b) => b.clicks - a.clicks).slice(0, 5)
+        return (
+          <div style={{ background: "oklch(0.14 0.06 155 / 0.2)", border: "1px solid oklch(0.68 0.16 155 / 0.3)", borderRadius: "var(--radius-xl)", padding: "12px 18px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ flexShrink: 0 }}>
+              <div style={{ fontSize: "28px", fontWeight: 900, color: "var(--success)", fontFamily: "var(--font-mono)", lineHeight: 1 }}>{pos1Count}</div>
+              <div style={{ fontSize: "9px", color: "var(--foreground-3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>ranking #1</div>
+            </div>
+            <div style={{ flex: 1 }}>
+              {number1s.map(k => (
+                <div key={k.keyword} style={{ fontSize: "11px", color: "var(--foreground-2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  🥇 {k.keyword} <span style={{ color: "var(--foreground-3)", fontFamily: "var(--font-mono)" }}>({k.clicks.toLocaleString()} clicks)</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Top 3 traffic-driving keywords highlight */}
       {allKeywords.length >= 3 && (() => {
         const top3 = [...allKeywords].sort((a, b) => b.clicks - a.clicks).slice(0, 3)
