@@ -31,8 +31,15 @@ export async function GET(
   const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}${apiKey ? `&key=${apiKey}` : ""}&category=performance`
 
   try {
-    const res = await fetch(endpoint, { signal: AbortSignal.timeout(30000) })
-    if (!res.ok) return NextResponse.json({ error: `PageSpeed API error: ${res.status}` }, { status: 502 })
+    const res = await fetch(endpoint, {
+      signal: AbortSignal.timeout(30000),
+      // Cache for 1 hour to avoid hammering API rate limits (429)
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) {
+      if (res.status === 429) return NextResponse.json({ error: "PageSpeed API rate limit reached. Add PAGESPEED_API_KEY to .env for higher limits." }, { status: 429 })
+      return NextResponse.json({ error: `PageSpeed API error: ${res.status}` }, { status: 502 })
+    }
 
     const data = await res.json() as {
       lighthouseResult?: {
