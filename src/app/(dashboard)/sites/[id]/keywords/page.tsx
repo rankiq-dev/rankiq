@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 import { auth } from "@/auth"
 import { getSiteById } from "@/db/repositories/sites"
+import { getLatestAuditForSite } from "@/db/repositories/audits"
 import { getKeywordPositionChanges, getKeywordMetricsBySite } from "@/db/repositories/gsc"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
@@ -24,10 +25,12 @@ export default async function KeywordsPage({
   const site = await getSiteById(id, session.user.id)
   if (!site) notFound()
 
-  const [allKeywords, allMetrics] = await Promise.all([
+  const [allKeywords, allMetrics, latestAudit] = await Promise.all([
     getKeywordPositionChanges(id, 200),
     getKeywordMetricsBySite(id, 200),
+    getLatestAuditForSite(id),
   ])
+  const latestAuditId = latestAudit?.id ?? null
 
   // Performance summary
   const totalClicks = allMetrics.reduce((s, m) => s + m.clicks, 0)
@@ -57,6 +60,12 @@ export default async function KeywordsPage({
   }
   const intentCounts = allMetrics.reduce((acc, k) => { const seg = classifyKw(k.keyword); acc[seg] = (acc[seg] ?? 0) + 1; return acc }, {} as Record<string, number>)
   const intentTotal = allMetrics.length
+
+  // Content gaps: position 11-30, high impressions (page 2 keywords)
+  const contentGaps = allMetrics
+    .filter(m => { const p = parseFloat(m.positionAvg); return p > 10 && p <= 30 && m.impressions > 50 })
+    .sort((a, b) => b.impressions - a.impressions)
+    .slice(0, 5)
 
   // Compute quick-win opportunities: position 4-20, impressions > 10
   const maxImpressions = Math.max(...allMetrics.map(m => m.impressions), 1)
@@ -170,6 +179,28 @@ export default async function KeywordsPage({
                 <span style={{ fontFamily: "var(--font-mono)", color: "var(--warning)", fontWeight: 700, flexShrink: 0 }}>#{o.position.toFixed(1)}</span>
                 <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{o.impressions.toLocaleString()} impr</span>
                 <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{o.clicks} clicks</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {contentGaps.length > 0 && (
+        <div style={{ background: "oklch(0.55 0.14 60 / 0.08)", border: "1px solid oklch(0.55 0.14 60 / 0.22)", borderRadius: "var(--radius-xl)", padding: "16px 20px", marginBottom: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+            <div style={{ fontSize: "9px", fontWeight: 700, color: "oklch(0.70 0.14 60)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              ◎ Content Gaps — page 2 keywords with high impressions
+            </div>
+            <Link href={`/audits/${latestAuditId ?? ""}/content-brief`} style={{ fontSize: "10px", color: "var(--primary-2)", textDecoration: "none", fontWeight: 700 }}>
+              Generate Briefs →
+            </Link>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            {contentGaps.map(o => (
+              <div key={o.keyword} style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "12px" }}>
+                <span style={{ fontFamily: "var(--font-mono)", color: "var(--foreground)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.keyword}</span>
+                <span style={{ fontFamily: "var(--font-mono)", color: "oklch(0.70 0.14 60)", fontWeight: 700, flexShrink: 0 }}>#{parseFloat(o.positionAvg).toFixed(1)}</span>
+                <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>{o.impressions.toLocaleString()} impr</span>
               </div>
             ))}
           </div>

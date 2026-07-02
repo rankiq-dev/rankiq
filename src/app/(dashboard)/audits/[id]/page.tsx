@@ -200,6 +200,19 @@ export default async function AuditPage({
             {audit.status === "complete" && (
               <PrintButton />
             )}
+            {audit.status === "complete" && (
+              <Link
+                href={`/audits/${id}/content-brief`}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "5px",
+                  padding: "7px 14px", fontSize: "12px", fontWeight: 700,
+                  background: "oklch(0.55 0.13 178 / 0.12)", border: "1px solid oklch(0.55 0.13 178 / 0.25)",
+                  color: "var(--primary-2)", borderRadius: "var(--radius-md)",
+                  textDecoration: "none",
+                }}>
+                ✦ Content Briefs
+              </Link>
+            )}
             <Link
               href={`/audits/${id}/action-plan`}
               style={{
