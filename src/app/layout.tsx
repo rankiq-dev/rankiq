@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Syne, JetBrains_Mono } from "next/font/google"
 import { cookies } from "next/headers"
 import "./globals.css"
@@ -16,6 +16,8 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
   display: "swap",
 })
+
+export const viewport: Viewport = { width: "device-width", initialScale: 1 }
 
 export const metadata: Metadata = {
   title: {

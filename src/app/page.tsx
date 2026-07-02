@@ -128,6 +128,47 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* How it works */}
+      <section style={{ padding: "80px 40px", maxWidth: "900px", margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: "56px" }}>
+          <h2 style={{ fontSize: "32px", fontWeight: 800, letterSpacing: "-0.8px", color: "oklch(0.92 0.008 230)", marginBottom: "12px" }}>
+            From crawl to action plan in 4 steps
+          </h2>
+          <p style={{ fontSize: "15px", color: "oklch(0.55 0.008 230)" }}>
+            No SEO expertise needed. RankIQ does the analysis — you get a prioritised fix list.
+          </p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0" }}>
+          {[
+            { step: "01", icon: "🔗", title: "Add your domain", desc: "Paste your website URL. No code, no plugins, no DNS changes." },
+            { step: "02", icon: "🕷️", title: "RankIQ crawls", desc: "Our crawler visits every page and checks 21 SEO signals across technical, on-page, and content dimensions." },
+            { step: "03", icon: "🤖", title: "AI scores + ranks", desc: "Claude AI ranks every issue by estimated revenue impact and writes a plain-English fix for each one." },
+            { step: "04", icon: "✅", title: "You fix & grow", desc: "Work through your personalised action plan. Re-audit weekly to track progress." },
+          ].map((item, i, arr) => (
+            <div key={item.step} style={{ position: "relative", padding: "32px 24px 32px 0" }}>
+              {i < arr.length - 1 && (
+                <div style={{ position: "absolute", top: "52px", right: 0, width: "24px", display: "flex", justifyContent: "center" }}>
+                  <span style={{ fontSize: "16px", color: "oklch(0.35 0.008 230)" }}>→</span>
+                </div>
+              )}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+                <span style={{
+                  fontSize: "10px", fontWeight: 800, fontFamily: "var(--font-mono, monospace)",
+                  color: "oklch(0.55 0.13 196)", letterSpacing: "0.08em",
+                }}>{item.step}</span>
+                <div style={{
+                  width: "40px", height: "40px", borderRadius: "10px",
+                  background: "oklch(0.55 0.13 178 / 0.10)", border: "1px solid oklch(0.55 0.13 178 / 0.20)",
+                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px",
+                }}>{item.icon}</div>
+              </div>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "oklch(0.92 0.008 230)", marginBottom: "6px" }}>{item.title}</div>
+              <div style={{ fontSize: "13px", color: "oklch(0.50 0.008 230)", lineHeight: 1.6 }}>{item.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Features Grid */}
       <section style={{ padding: "0 40px 100px", maxWidth: "1200px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "48px" }}>

@@ -215,22 +215,9 @@ export default async function AuditPage({
         </div>
       </div>
 
-      {/* Live progress bar + auto-refresh when running or queued */}
-      {(audit.status === "queued" || audit.status === "running") && (
-        <AuditProgress auditId={id} initialStatus={audit.status} />
-      )}
-
-      {/* Failed state */}
-      {audit.status === "failed" && (
-        <div style={{ padding: "20px 24px", background: "oklch(0.14 0.07 27 / 0.8)", border: "1px solid oklch(0.55 0.20 27 / 0.3)", borderRadius: "12px", marginBottom: "32px" }}>
-          <div style={{ fontSize: "14px", fontWeight: 700, color: "oklch(0.78 0.20 27)", marginBottom: "8px" }}>⚠ Crawl Failed</div>
-          <p style={{ fontSize: "13px", color: "oklch(0.65 0.008 230)", lineHeight: 1.6, margin: 0 }}>
-            {audit.errorMessage ?? "The site could not be crawled."}
-          </p>
-          <p style={{ fontSize: "12px", color: "oklch(0.45 0.008 230)", marginTop: "12px", marginBottom: 0 }}>
-            Common causes: JavaScript-only rendering (React/Next.js/Vue apps), bot protection (Cloudflare), or the site being unreachable. Try running the audit again or contact support.
-          </p>
-        </div>
+      {/* Live progress / failed state — handles queued, running, and failed */}
+      {(audit.status === "queued" || audit.status === "running" || audit.status === "failed") && (
+        <AuditProgress auditId={id} siteId={audit.siteId} initialStatus={audit.status} />
       )}
 
       {/* Audit highlights — 3 key facts */}

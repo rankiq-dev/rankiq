@@ -229,6 +229,31 @@ export default async function SitePage({
         </div>
       )}
 
+      {/* First-audit onboarding banner — shown when site has no completed audit and no in-progress audit */}
+      {!latestAudit && !runningAudit && !failedAudit && (
+        <div style={{
+          background: "linear-gradient(135deg, oklch(0.55 0.13 178 / 0.08), oklch(0.65 0.13 196 / 0.05))",
+          border: "1px solid oklch(0.55 0.13 178 / 0.25)",
+          borderRadius: "var(--radius-xl)", padding: "24px 28px", marginBottom: "24px",
+          display: "flex", alignItems: "center", gap: "20px",
+        }}>
+          <div style={{
+            width: "44px", height: "44px", borderRadius: "12px", flexShrink: 0,
+            background: "var(--primary-soft)", display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "22px", boxShadow: "0 0 16px oklch(0.55 0.13 178 / 0.3)",
+          }}>🚀</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "14px", fontWeight: 800, color: "var(--foreground)", marginBottom: "4px" }}>
+              Run your first audit
+            </div>
+            <div style={{ fontSize: "12px", color: "var(--foreground-2)", lineHeight: 1.6 }}>
+              RankIQ will crawl <strong>{site.domain}</strong>, score every page, detect SEO issues, and generate an AI action plan — in under 5 minutes.
+            </div>
+          </div>
+          <RunAuditButton siteId={id} style="prominent" />
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "32px" }}>
         <div>

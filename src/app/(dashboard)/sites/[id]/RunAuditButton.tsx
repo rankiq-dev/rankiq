@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
-export function RunAuditButton({ siteId }: { siteId: string }) {
+export function RunAuditButton({ siteId, style: variant }: { siteId: string; style?: "prominent" | "default" }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -31,7 +31,7 @@ export function RunAuditButton({ siteId }: { siteId: string }) {
       disabled={loading}
       style={{
         display: "inline-flex", alignItems: "center", gap: "6px",
-        padding: "9px 18px", fontSize: "13px", fontWeight: 700,
+        padding: variant === "prominent" ? "11px 24px" : "9px 18px", fontSize: variant === "prominent" ? "14px" : "13px", fontWeight: 700,
         background: loading
           ? "oklch(0.35 0.08 178)"
           : "linear-gradient(135deg, var(--primary), var(--primary-2))",

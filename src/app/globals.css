@@ -127,6 +127,29 @@ body {
   .issue-card { page-break-inside: avoid; margin-bottom: 8px; }
 }
 
+/* ─── Mobile responsiveness ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Dashboard padding */
+  div[style*="padding: 32px 40px"] { padding: 16px 16px !important; }
+  div[style*="padding: 28px 40px"] { padding: 16px 16px !important; }
+
+  /* Sidebar — hide on small screens */
+  aside, [data-sidebar] { display: none !important; }
+
+  /* Main content fills full width when sidebar is hidden */
+  main { margin-left: 0 !important; width: 100% !important; }
+
+  /* 2-column grids collapse to 1 column */
+  div[style*="gridTemplateColumns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+  div[style*="gridTemplateColumns: \"1fr 1fr\""] { grid-template-columns: 1fr !important; }
+
+  /* KPI cards wrap */
+  div[style*="repeat(auto-fill, minmax(140px"] { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Tables scroll horizontally */
+  table { display: block; overflow-x: auto; }
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
