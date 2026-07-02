@@ -209,6 +209,42 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section style={{ padding: "80px 40px", maxWidth: "1100px", margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: "48px" }}>
+          <h2 style={{ fontSize: "28px", fontWeight: 800, letterSpacing: "-0.6px", color: "oklch(0.92 0.008 230)", marginBottom: "10px" }}>
+            What users are saying
+          </h2>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+          {[
+            { quote: "Finally, an SEO tool that tells me exactly what to fix instead of just listing problems. The AI action plan saved me hours.", name: "Priya S.", role: "E-commerce founder", init: "PS" },
+            { quote: "I manage 8 client sites and RankIQ's agency dashboard gives me a single view of everything. The competitor analysis feature is gold.", name: "Rajan M.", role: "SEO Agency owner", init: "RM" },
+            { quote: "As a non-technical founder, the plain-English explanations are perfect. I understood every issue and fixed most of them myself.", name: "Ananya K.", role: "SaaS startup founder", init: "AK" },
+          ].map(t => (
+            <div key={t.name} style={{
+              background: "oklch(0.11 0.008 230 / 0.8)", backdropFilter: "blur(20px)",
+              border: "1px solid oklch(0.98 0 0 / 0.07)", borderRadius: "16px", padding: "24px",
+            }}>
+              <div style={{ fontSize: "20px", color: "oklch(0.55 0.13 196)", marginBottom: "14px" }}>"</div>
+              <p style={{ fontSize: "13px", color: "oklch(0.65 0.008 230)", lineHeight: 1.7, marginBottom: "20px" }}>{t.quote}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{
+                  width: "36px", height: "36px", borderRadius: "50%",
+                  background: "linear-gradient(135deg, oklch(0.55 0.13 178), oklch(0.65 0.13 196))",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "11px", fontWeight: 800, color: "white",
+                }}>{t.init}</div>
+                <div>
+                  <div style={{ fontSize: "13px", fontWeight: 700, color: "oklch(0.85 0.008 230)" }}>{t.name}</div>
+                  <div style={{ fontSize: "11px", color: "oklch(0.45 0.008 230)" }}>{t.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Social proof / CTA */}
       <section style={{
         background: "oklch(0.11 0.008 230 / 0.8)", borderTop: "1px solid oklch(0.98 0 0 / 0.06)",
