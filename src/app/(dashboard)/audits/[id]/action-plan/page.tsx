@@ -393,7 +393,13 @@ function ActionCard({ issue, rank }: { issue: AuditIssue; rank: number }) {
           }}>
             {issue.severity}
           </span>
-          <MarkFixedButton issueId={issue.id} isFixed={issue.isFixed} />
+          <MarkFixedButton
+            issueId={issue.id}
+            isFixed={issue.isFixed}
+            verifiedFixed={issue.verifiedFixed}
+            assignedTo={issue.assignedTo}
+            fixNote={issue.fixNote}
+          />
         </div>
 
         <p style={{ fontSize: "13px", color: "var(--foreground-2)", lineHeight: 1.65, marginBottom: "10px" }}>

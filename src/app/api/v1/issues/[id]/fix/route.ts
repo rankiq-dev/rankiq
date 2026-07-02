@@ -34,12 +34,14 @@ export async function PATCH(
     return NextResponse.json({ error: { code: "NOT_FOUND", message: "Issue not found" } }, { status: 404 })
   }
 
-  /* Toggle: POST with { fixed: true } to mark fixed, { fixed: false } to unmark */
-  let body: { fixed?: boolean } = {}
+  let body: { fixed?: boolean; assignedTo?: string; fixNote?: string } = {}
   try { body = await req.json() } catch { /* no body = default to marking fixed */ }
   const markFixed = body.fixed !== false
 
-  await markIssueFixed(id, markFixed)
+  const updated = await markIssueFixed(id, markFixed, {
+    assignedTo: body.assignedTo,
+    fixNote: body.fixNote,
+  })
 
-  return NextResponse.json({ data: { id, isFixed: markFixed } })
+  return NextResponse.json({ data: { id, isFixed: markFixed, assignedTo: updated.assignedTo, fixNote: updated.fixNote } })
 }

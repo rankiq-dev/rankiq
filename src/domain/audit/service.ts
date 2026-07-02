@@ -1,6 +1,6 @@
 import { createQueue, QUEUE_NAMES } from "@/infra/queue"
 import { logger } from "@/infra/logger"
-import { createAudit, updateAuditStatus, bulkInsertIssues } from "@/db/repositories/audits"
+import { createAudit, updateAuditStatus, bulkInsertIssues, verifyFixedIssues } from "@/db/repositories/audits"
 import { getSiteById } from "@/db/repositories/sites"
 import { getUserById } from "@/db/repositories/users"
 import { crawlSite } from "./crawler"
@@ -103,6 +103,11 @@ export async function processCrawlJob(data: {
       pageAnalyses,
       completedAt: new Date(),
     })
+
+    /* Auto-verify previously-fixed issues that are no longer detected */
+    await verifyFixedIssues(data.siteId, auditId).catch(err =>
+      logger.warn({ err }, "verifyFixedIssues error (non-fatal)")
+    )
 
     /* Auto-trigger action plan after successful crawl */
     await actionPlanQueue.add(

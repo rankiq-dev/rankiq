@@ -65,14 +65,61 @@ export async function bulkInsertIssues(rows: NewAuditIssue[]): Promise<void> {
   }
 }
 
-export async function markIssueFixed(id: string, fixed = true): Promise<AuditIssue> {
+export async function markIssueFixed(
+  id: string,
+  fixed = true,
+  opts?: { assignedTo?: string; fixNote?: string }
+): Promise<AuditIssue> {
   const [row] = await db
     .update(auditIssues)
-    .set({ isFixed: fixed, fixedAt: fixed ? new Date() : null })
+    .set({
+      isFixed: fixed,
+      fixedAt: fixed ? new Date() : null,
+      ...(fixed && opts?.assignedTo !== undefined ? { assignedTo: opts.assignedTo || null } : {}),
+      ...(fixed && opts?.fixNote !== undefined ? { fixNote: opts.fixNote || null } : {}),
+      /* Clear verifiedFixed when reopening so next audit re-confirms */
+      ...(fixed ? {} : { verifiedFixed: false }),
+    })
     .where(eq(auditIssues.id, id))
     .returning()
   if (!row) throw new Error(`markIssueFixed: no issue found with id ${id}`)
   return row
+}
+
+/** After a new audit completes, mark previously-fixed issues as verifiedFixed=true
+ *  if the same issue TYPE is not detected in the new audit for the same site. */
+export async function verifyFixedIssues(siteId: string, newAuditId: string): Promise<void> {
+  /* Get issue types found in the new (just-completed) audit */
+  const newIssues = await db
+    .select({ type: auditIssues.type })
+    .from(auditIssues)
+    .innerJoin(audits, eq(auditIssues.auditId, audits.id))
+    .where(eq(audits.id, newAuditId))
+  const newIssueTypes = new Set(newIssues.map(i => i.type))
+
+  /* Find all fixed-but-not-yet-verified issues from prior audits for this site */
+  const priorFixed = await db
+    .select({ id: auditIssues.id, type: auditIssues.type })
+    .from(auditIssues)
+    .innerJoin(audits, eq(auditIssues.auditId, audits.id))
+    .where(
+      and(
+        eq(audits.siteId, siteId),
+        eq(auditIssues.isFixed, true),
+        eq(auditIssues.verifiedFixed, false)
+      )
+    )
+
+  /* Set verifiedFixed=true for any issue type NOT detected in new audit */
+  const toVerify = priorFixed.filter(i => !newIssueTypes.has(i.type)).map(i => i.id)
+  if (toVerify.length === 0) return
+
+  for (let i = 0; i < toVerify.length; i += 100) {
+    await db
+      .update(auditIssues)
+      .set({ verifiedFixed: true })
+      .where(inArray(auditIssues.id, toVerify.slice(i, i + 100)))
+  }
 }
 
 export async function bulkMarkIssuesFixed(auditId: string, ids: string[], fixed: boolean): Promise<number> {
