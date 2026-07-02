@@ -473,6 +473,14 @@ export default async function AuditPage({
                   <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--foreground-2)", fontFamily: "var(--font-mono)" }}>{p.url.replace(/^https?:\/\/[^/]+/, "") || "/"}</span>
                   <span style={{ color: "var(--success)", fontWeight: 700, flexShrink: 0 }}>{(p.wordCount ?? 0).toLocaleString()}w</span>
                   <span style={{ color: "var(--foreground-3)", flexShrink: 0 }}>score {p.onPageScore}</span>
+                  <a
+                    href={`/audits/${audit.id}/content-brief?url=${encodeURIComponent(p.url)}`}
+                    style={{
+                      padding: "2px 7px", borderRadius: "4px", fontSize: "9px", fontWeight: 700,
+                      background: "oklch(0.55 0.13 178 / 0.12)", border: "1px solid oklch(0.55 0.13 178 / 0.25)",
+                      color: "var(--primary-2)", textDecoration: "none", flexShrink: 0,
+                    }}
+                  >Brief →</a>
                 </div>
               ))}
             </div>
