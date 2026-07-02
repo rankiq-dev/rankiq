@@ -29,7 +29,7 @@ const PLANS = [
   {
     id: "growth" as const,
     name: "Growth",
-    price: 79,
+    price: 19,
     description: "For growing businesses managing multiple properties.",
     cta: "Upgrade to Growth",
     highlight: true,
@@ -47,7 +47,7 @@ const PLANS = [
   {
     id: "agency" as const,
     name: "Agency",
-    price: 199,
+    price: 49,
     description: "For agencies managing SEO across client portfolios.",
     cta: "Upgrade to Agency",
     highlight: false,
@@ -198,6 +198,36 @@ export default async function PricingPage() {
           </table>
         </div>
 
+        {/* Competitor comparison callout */}
+        <div style={{
+          maxWidth: "700px", margin: "0 auto 60px",
+          background: "oklch(0.55 0.13 178 / 0.07)", border: "1px solid oklch(0.55 0.13 178 / 0.2)",
+          borderRadius: "16px", padding: "28px 32px",
+        }}>
+          <div style={{ fontSize: "13px", fontWeight: 800, color: "oklch(0.75 0.13 196)", marginBottom: "16px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            How we compare
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "16px" }}>
+            {[
+              { tool: "Semrush", price: "$130", plan: "Starter", badge: "💸 7× more" },
+              { tool: "Ahrefs", price: "$129", plan: "Lite", badge: "💸 7× more" },
+              { tool: "SE Ranking", price: "$52", plan: "Essential", badge: "💸 3× more" },
+              { tool: "RankIQ", price: "$19", plan: "Growth", badge: "✅ You save 85%", highlight: true },
+            ].map(c => (
+              <div key={c.tool} style={{
+                padding: "14px 16px", borderRadius: "10px",
+                background: c.highlight ? "oklch(0.55 0.13 178 / 0.15)" : "oklch(0.14 0.006 230)",
+                border: `1px solid ${c.highlight ? "oklch(0.55 0.13 178 / 0.4)" : "oklch(0.98 0 0 / 0.06)"}`,
+              }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: c.highlight ? "oklch(0.82 0.13 178)" : "oklch(0.70 0.008 230)", marginBottom: "4px" }}>{c.tool}</div>
+                <div style={{ fontSize: "20px", fontWeight: 900, color: c.highlight ? "oklch(0.92 0.008 230)" : "oklch(0.55 0.008 230)", letterSpacing: "-0.5px", marginBottom: "4px" }}>{c.price}<span style={{ fontSize: "11px", fontWeight: 400 }}>/mo</span></div>
+                <div style={{ fontSize: "10px", color: "oklch(0.45 0.008 230)", marginBottom: "6px" }}>{c.plan}</div>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: c.highlight ? "oklch(0.65 0.16 155)" : "oklch(0.55 0.18 25)" }}>{c.badge}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* FAQ */}
         <div style={{ maxWidth: "700px", margin: "0 auto" }}>
           <h2 style={{ fontSize: "24px", fontWeight: 800, color: "oklch(0.92 0.008 230)", letterSpacing: "-0.5px", marginBottom: "32px", textAlign: "center" }}>
@@ -271,6 +301,11 @@ function PlanCard({ plan, isLoggedIn }: { plan: (typeof PLANS)[number]; isLogged
             </span>
             {plan.price > 0 && <span style={{ fontSize: "13px", color: "oklch(0.38 0.008 230)", marginBottom: "4px" }}>/mo</span>}
           </div>
+          {plan.price > 0 && (
+            <div style={{ fontSize: "11px", color: "oklch(0.55 0.13 178)", fontWeight: 600, marginBottom: "8px" }}>
+              vs Semrush ${plan.id === "growth" ? "130" : "500"}/mo · Ahrefs ${plan.id === "growth" ? "129" : "449"}/mo
+            </div>
+          )}
           <p style={{ fontSize: "12px", color: "oklch(0.50 0.008 230)", lineHeight: 1.6 }}>
             {plan.description}
           </p>

@@ -3,11 +3,21 @@ import { auth } from "@/auth"
 import { triggerAuditSchema } from "@/validators/audits"
 import { triggerAudit } from "@/domain/audit/service"
 import type { TriggerAuditResponse } from "@/lib/types/api"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: { code: "UNAUTHORIZED", message: "Not authenticated" } }, { status: 401 })
+  }
+
+  // Rate limit: max 10 audit triggers per hour per user
+  const rl = checkRateLimit(`audit:${session.user.id}`, 10, 60 * 60 * 1000)
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: { code: "RATE_LIMITED", message: "Too many audit requests. Please wait before triggering another audit." } },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    )
   }
 
   const body = await req.json().catch(() => ({}))

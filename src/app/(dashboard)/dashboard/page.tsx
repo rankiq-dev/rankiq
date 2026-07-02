@@ -607,13 +607,24 @@ function SiteGrid({ sites, latestAudits }: { sites: Site[]; latestAudits: (Audit
               </div>
             )}
 
-            {audit?.status === "complete" && (
-              <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-                <span style={{ fontSize: "10px", color: "var(--foreground-3)" }}>
-                  {audit.completedAt ? new Date(audit.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
-                </span>
-              </div>
-            )}
+            {audit?.status === "complete" && (() => {
+              const daysSince = audit.completedAt ? Math.floor((Date.now() - new Date(audit.completedAt).getTime()) / 86400000) : null
+              const isStale = daysSince != null && daysSince > 14
+              return (
+                <div style={{ display: "flex", gap: "8px", marginBottom: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "10px", color: "var(--foreground-3)" }}>
+                    {audit.completedAt ? new Date(audit.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
+                  </span>
+                  {isStale && (
+                    <span style={{
+                      padding: "1px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: 700,
+                      background: "oklch(0.55 0.14 60 / 0.12)", border: "1px solid oklch(0.55 0.14 60 / 0.3)",
+                      color: "oklch(0.70 0.14 60)", textTransform: "uppercase", letterSpacing: "0.05em",
+                    }}>⚡ {daysSince}d stale</span>
+                  )}
+                </div>
+              )
+            })()}
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ fontSize: "11px", color: "var(--foreground-3)" }}>{statusText}</div>
