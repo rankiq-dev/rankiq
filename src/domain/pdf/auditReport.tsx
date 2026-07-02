@@ -123,9 +123,10 @@ interface Props {
   site: Site
   audit: Audit
   issues: AuditIssue[]
+  agencyName?: string
 }
 
-function AuditPdf({ site, audit, issues }: Props) {
+function AuditPdf({ site, audit, issues, agencyName }: Props) {
   const score = audit.healthScore ?? 0
   const sc = scoreColor(score)
   const critical = issues.filter(i => i.severity === "critical")
@@ -139,8 +140,8 @@ function AuditPdf({ site, audit, issues }: Props) {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.logo}>RankIQ</Text>
-            <Text style={styles.tagline}>AI-Powered SEO Intelligence</Text>
+            <Text style={styles.logo}>{agencyName ?? "RankIQ"}</Text>
+            <Text style={styles.tagline}>{agencyName ? "Powered by RankIQ" : "AI-Powered SEO Intelligence"}</Text>
           </View>
           <View style={styles.headerRight}>
             <Text style={styles.headerLabel}>Audit Report</Text>
@@ -224,7 +225,7 @@ function AuditPdf({ site, audit, issues }: Props) {
   )
 }
 
-export async function generateAuditPdf(site: Site, audit: Audit, issues: AuditIssue[]): Promise<Buffer> {
-  const buffer = await renderToBuffer(<AuditPdf site={site} audit={audit} issues={issues} />)
+export async function generateAuditPdf(site: Site, audit: Audit, issues: AuditIssue[], agencyName?: string): Promise<Buffer> {
+  const buffer = await renderToBuffer(<AuditPdf site={site} audit={audit} issues={issues} agencyName={agencyName} />)
   return Buffer.from(buffer)
 }
