@@ -8,6 +8,7 @@ import { BackToTop } from "@/components/ui/BackToTop"
 import { ThemeToggle } from "@/components/ui/ThemeToggle"
 import { NotificationBell } from "@/components/ui/NotificationBell"
 import { getUserById } from "@/db/repositories/users"
+import { isAdminEmail } from "@/lib/admin"
 import { NavItem } from "./NavItem"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -15,6 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!session?.user?.id) redirect("/login")
   const user = session.user
   const dbUser = await getUserById(session.user.id)
+  const isAdmin = isAdminEmail(session.user.email)
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--background)", fontFamily: "var(--font-sans), sans-serif", color: "var(--foreground)", position: "relative" }}>
@@ -80,6 +82,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <NavItem href="/changelog" label="What's New" icon={
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1v3M7.5 11v3M1 7.5h3M11 7.5h3M3.2 3.2l2.1 2.1M9.7 9.7l2.1 2.1M3.2 11.8l2.1-2.1M9.7 5.3l2.1-2.1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.8"/></svg>
           } />
+          {isAdmin && (
+            <NavItem href="/admin" label="Admin" icon={
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1.5L13 4v4c0 3.5-2.3 5.9-5.5 6.5C4.3 13.9 2 11.5 2 8V4l5.5-2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" opacity="0.8"/><path d="M5.5 7.5L7 9L9.5 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            } />
+          )}
           <div style={{ margin: "8px 0", borderTop: "1px solid var(--glass-border)" }} />
           <NavItem href="/pricing" label="Upgrade" icon={
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1L9.5 5.5H14L10.5 8.5L12 13L7.5 10.5L3 13L4.5 8.5L1 5.5H5.5L7.5 1Z" fill="currentColor" opacity="0.8"/></svg>
