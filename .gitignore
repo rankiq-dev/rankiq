@@ -42,3 +42,6 @@ coverage/
 *.tsbuildinfo
 next-env.d.ts
 career-ops/
+
+.vercel
+.env*
