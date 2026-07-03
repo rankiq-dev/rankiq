@@ -184,8 +184,14 @@ export const auditIssues = pgTable(
     /* revenueImpactRank: 1 = highest estimated revenue impact, N = lowest.
        Rank is per-audit (not global); two issues in same audit never share a rank. */
     revenueImpactRank: integer("revenue_impact_rank"),
-    isFixed:  boolean("is_fixed").default(false).notNull(),
-    fixedAt:  timestamp("fixed_at", { withTimezone: true }),
+    isFixed:       boolean("is_fixed").default(false).notNull(),
+    fixedAt:       timestamp("fixed_at", { withTimezone: true }),
+    /* Who is responsible for this fix — free-text label (e.g. "Developer", "SEO team", email) */
+    assignedTo:    text("assigned_to"),
+    /* Optional note/evidence when marking fixed (e.g. "Updated all 12 title tags", URL proof) */
+    fixNote:       text("fix_note"),
+    /* True when the NEXT audit confirmed this issue is no longer detected */
+    verifiedFixed: boolean("verified_fixed").default(false).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
