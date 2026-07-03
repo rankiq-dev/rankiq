@@ -4,6 +4,13 @@ export const PLAN_LIMITS = {
   agency:  { sites: 25, pagesPerCrawl: 5000,auditsPerMonth: 100},
 } as const
 
+/** Monthly price in USD per plan — mirrors src/app/pricing/page.tsx. Used for MRR calc. */
+export const PLAN_PRICE_USD = {
+  starter: 0,
+  growth: 19,
+  agency: 49,
+} as const
+
 export const SEVERITY_ORDER = { critical: 0, warning: 1, info: 2 } as const
 
 export const ISSUE_CATEGORIES = [
