@@ -2,5 +2,5 @@
 buildCommand = "npm ci && npx playwright install chromium --with-deps"
 
 [deploy]
-startCommand = "npm run worker"
+startCommand = "npm run worker:prod"
 restartPolicyType = "always"
