@@ -63,29 +63,39 @@ export async function processCrawlJob(data: {
   })
 
   try {
-    let result = await crawlSite(domain, {
-      maxPages,
-      timeoutMs: CRAWL_TIMEOUT_MS,
-      crawlDelayMs,
-      onProgress: async (pagesCount) => {
-        await updateAuditStatus(auditId, { status: "running", pagesCount })
-      },
-    })
+    /* Primary crawler: Firecrawl — hosted rendering + anti-bot bypass, no local
+       browser needed, best results for JS-heavy sites and sites that block bots. */
+    let result: Awaited<ReturnType<typeof crawlSite>>
+    let usedFirecrawl = false
 
-    /* If static crawler got nothing (blocked, JS-rendered, etc.), retry with Firecrawl —
-       hosted rendering + anti-bot bypass, no local browser required. */
-    if (result.pages.length === 0 && process.env.FIRECRAWL_API_KEY) {
-      logger.info({ auditId, domain }, "CheerioCrawler returned 0 pages — retrying with Firecrawl")
+    if (process.env.FIRECRAWL_API_KEY) {
       try {
         result = await crawlSiteWithFirecrawl(domain, { maxPages, timeoutMs: CRAWL_TIMEOUT_MS })
+        usedFirecrawl = true
       } catch (firecrawlErr) {
-        logger.warn({ auditId, domain, firecrawlErr }, "Firecrawl crawl failed")
+        logger.warn({ auditId, domain, firecrawlErr }, "Firecrawl crawl failed — falling back to static crawler")
+        result = { domain, pages: [], brokenLinks: [], redirectChains: [], crawledAt: new Date().toISOString(), durationMs: 0 }
       }
+    } else {
+      result = { domain, pages: [], brokenLinks: [], redirectChains: [], crawledAt: new Date().toISOString(), durationMs: 0 }
+    }
+
+    /* Fallback: static Cheerio crawler (fast, free) if Firecrawl is unavailable or returned nothing */
+    if (result.pages.length === 0) {
+      logger.info({ auditId, domain, usedFirecrawl }, "Trying static Cheerio crawler")
+      result = await crawlSite(domain, {
+        maxPages,
+        timeoutMs: CRAWL_TIMEOUT_MS,
+        crawlDelayMs,
+        onProgress: async (pagesCount) => {
+          await updateAuditStatus(auditId, { status: "running", pagesCount })
+        },
+      })
     }
 
     /* Last resort: self-hosted Playwright (requires Chromium on the worker) */
     if (result.pages.length === 0) {
-      logger.info({ auditId, domain }, "Firecrawl unavailable or returned 0 pages — retrying with Playwright")
+      logger.info({ auditId, domain }, "Firecrawl + Cheerio both returned 0 pages — retrying with Playwright")
       try {
         result = await crawlSiteWithPlaywright(domain, { maxPages, timeoutMs: CRAWL_TIMEOUT_MS })
       } catch (playwrightErr) {
