@@ -4,6 +4,7 @@ import { createAudit, updateAuditStatus, bulkInsertIssues, verifyFixedIssues } f
 import { getSiteById } from "@/db/repositories/sites"
 import { getUserById } from "@/db/repositories/users"
 import { crawlSite } from "./crawler"
+import { crawlSiteWithFirecrawl } from "./firecrawlCrawler"
 import { crawlSiteWithPlaywright } from "./playwrightCrawler"
 import { analyzePages, computeHealthScore, buildPageAnalyses } from "./analyzer"
 import { PLAN_LIMITS, CRAWL_TIMEOUT_MS } from "@/lib/constants"
@@ -71,9 +72,20 @@ export async function processCrawlJob(data: {
       },
     })
 
-    /* If static crawler got nothing, retry with Playwright (handles React/Next.js/Vue/Angular) */
+    /* If static crawler got nothing (blocked, JS-rendered, etc.), retry with Firecrawl —
+       hosted rendering + anti-bot bypass, no local browser required. */
+    if (result.pages.length === 0 && process.env.FIRECRAWL_API_KEY) {
+      logger.info({ auditId, domain }, "CheerioCrawler returned 0 pages — retrying with Firecrawl")
+      try {
+        result = await crawlSiteWithFirecrawl(domain, { maxPages, timeoutMs: CRAWL_TIMEOUT_MS })
+      } catch (firecrawlErr) {
+        logger.warn({ auditId, domain, firecrawlErr }, "Firecrawl crawl failed")
+      }
+    }
+
+    /* Last resort: self-hosted Playwright (requires Chromium on the worker) */
     if (result.pages.length === 0) {
-      logger.info({ auditId, domain }, "CheerioCrawler returned 0 pages — retrying with Playwright")
+      logger.info({ auditId, domain }, "Firecrawl unavailable or returned 0 pages — retrying with Playwright")
       try {
         result = await crawlSiteWithPlaywright(domain, { maxPages, timeoutMs: CRAWL_TIMEOUT_MS })
       } catch (playwrightErr) {
@@ -84,10 +96,10 @@ export async function processCrawlJob(data: {
     if (result.pages.length === 0) {
       await updateAuditStatus(auditId, {
         status: "failed",
-        errorMessage: "No pages could be crawled. The site may be blocking crawlers or be unreachable. If it's a JavaScript-heavy site, ensure Playwright is installed on the worker.",
+        errorMessage: "No pages could be crawled. The site may be blocking crawlers or be unreachable.",
         completedAt: new Date(),
       })
-      logger.warn({ auditId, domain }, "Both crawlers returned 0 pages — marking as failed")
+      logger.warn({ auditId, domain }, "All crawlers returned 0 pages — marking as failed")
       return
     }
 
